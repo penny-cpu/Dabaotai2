@@ -1,0 +1,6 @@
+{
+  "name": "大葆台博物馆",
+  "description": "北京大葆台汉墓博物馆 - 汉代古遗址与画像石数字互动体验",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
