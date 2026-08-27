@@ -4,12 +4,16 @@ import dabaotaiUnderLayerImg from '../assets/images/dabaotai_under_layer_1786614
 import tombCrossSectionImg from '../assets/images/tomb_cross_section_1786614691625.jpg';
 import hanWuDanceImg from '../assets/images/han_wu_dance_1786614702286.jpg';
 import hanLifeScrollImg from '../assets/images/han_life_scroll_1786614713000.jpg';
+import dabaotaiMuseumExteriorImg from '../assets/images/dabaotai_museum_exterior_1787849371431.jpg';
+import dabaotaiMuseumSunsetImg from '../assets/images/dabaotai_museum_sunset_1787849384519.jpg';
 
 export const ASSETS = {
   underLayer: dabaotaiUnderLayerImg,
   tombSection: tombCrossSectionImg,
   wuDance: hanWuDanceImg,
   lifeScroll: hanLifeScrollImg,
+  museumExterior: dabaotaiMuseumExteriorImg,
+  museumSunset: dabaotaiMuseumSunsetImg,
 };
 
 export const RELICS_DATA: Relic[] = [

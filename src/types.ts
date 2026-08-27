@@ -1,14 +1,56 @@
 export type SectionKey =
-  | 'home'         // 01. 地表 · 风吹沙开
-  | 'strata'       // 02. 表层土 · 墓葬土层
-  | 'dance'        // 03. 汉代武舞 · 礼乐兵器
-  | 'relics'       // 04. 古物发掘 · 五件遗珍
-  | 'scroll'       // 05. 照见汉代 · 宴乐百戏
-  | 'huangchang'   // 06. 黄肠题凑 · 死亡的边界 (核心转场节点)
-  | 'funerary'     // 07. 送葬舞 · 送亡者入墓
-  | 'immortal'     // 08. 升仙舞 · 神仙幻想世界
-  | 'pangu'        // 09. 盘鼓舞 · 两千年后当代复现
-  | 'epilogue';    // 10. 沉浸结语 · 历史重沉地下/首尾循环
+  | 'home'         // 01. 首页 · 风吹沙 (现代外景与地下沙土考古唤醒)
+  | 'weapon'       // 02. 第一章 · 戈影 (北土汉邦 / 武库兵器半圆盘选兵)
+  | 'pendant'      // 03. 第二章 · 宴乐 (长乐未央 / 组玉佩与翘袖折腰)
+  | 'gallery'      // 04. 第三章 · 浮游 (长乐未央 / 五列上升文物博览与漫游)
+  | 'baixi'        // 05. 第四章 · 百戏 (长乐未央 / 蜡烛照壁画与跳丸算术)
+  | 'funerary'     // 06. 第五章 · 袖舞 (题凑礼藏 / 送葬长袖与星云铜镜)
+  | 'huangchang'   // 07. 第六章 · 题凑 (题凑礼藏 / 15880黄肠题凑考工)
+  | 'ascension'    // 08. 第七章 · 星路 (题凑礼藏 / 极光星空与七盘一鼓升仙)
+  | 'epilogue'     // 09. 终章 · 揖礼 (玉舞人合体揖礼致谢)
+  | 'conclusion'   // 10. 结语长文 (优雅逐行阅读)
+  | 'postcard'     // 11. 双面翻转明信片
+  | 'sunset';      // 12. 飞鸟与橘光夕阳博物馆回溯
+
+export type HallKey = 'beituhanbang' | 'changleweiyang' | 'ticoulicang';
+
+export interface ExhibitionHall {
+  id: HallKey;
+  name: string;
+  pinyin: string;
+  desc: string;
+  chapters: { key: SectionKey; title: string; subtitle: string; fragmentName: string }[];
+  color: string;
+  bgColor: string;
+  borderColor: string;
+}
+
+export type JadeFragmentId =
+  | 'frag_right_sleeve'   // 1. 戈影——右袖
+  | 'frag_chest_pendant'  // 2. 宴乐——胸前佩饰
+  | 'frag_left_sleeve'    // 3. 浮游——左袖
+  | 'frag_robe_skirt'     // 4. 百戏——衣摆
+  | 'frag_waist'          // 5. 袖舞——腰身
+  | 'frag_body_core'      // 6. 题凑——身体主体
+  | 'frag_head_halo';     // 7. 星路——头部与最终光环
+
+export interface JadeFragmentInfo {
+  id: JadeFragmentId;
+  name: string;
+  partName: string;
+  chapterIndex: number;
+  chapterTitle: string;
+  description: string;
+  isUnlocked: boolean;
+}
+
+export interface UserInteractionTrackPoint {
+  x: number;
+  y: number;
+  chapter: SectionKey;
+  timestamp: number;
+  action: 'tap' | 'scratch' | 'solve';
+}
 
 export interface Relic {
   id: string;
@@ -16,15 +58,17 @@ export interface Relic {
   subtitle: string;
   era: string;
   category: string;
-  xPercent: number; // Zigzag x position percentage (0-100)
-  yPercent: number; // Zigzag y position percentage (0-100)
-  exposedPartName: string; // What exposed part looks like
+  xPercent?: number;
+  yPercent?: number;
+  exposedPartName?: string;
   description: string;
   historicalValue: string;
-  audioPath: string; // Reserved code asset path e.g. "assets/audio/relic_01.mp3"
-  audioDuration: string;
+  audioPath?: string;
+  audioDuration?: string;
   imageUrl: string;
-  isUncovered: boolean;
+  isUncovered?: boolean;
+  relationToJadeDancer?: string;
+  layerIndex?: 1 | 2 | 3;
 }
 
 export interface TombLayer {

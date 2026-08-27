@@ -155,6 +155,82 @@ class SoundEngine {
       // Ignore
     }
   }
+
+  /**
+   * Play bird chirp sound (morning / warm sunlight nature sound)
+   */
+  public playBirdChirp() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = 'sine';
+      // Bird warble frequency modulation
+      osc.frequency.setValueAtTime(2200, now);
+      osc.frequency.exponentialRampToValueAtTime(3600, now + 0.08);
+      osc.frequency.exponentialRampToValueAtTime(2800, now + 0.15);
+      osc.frequency.exponentialRampToValueAtTime(4200, now + 0.22);
+      osc.frequency.exponentialRampToValueAtTime(2000, now + 0.3);
+
+      gain.gain.setValueAtTime(0.08, now);
+      gain.gain.exponentialRampToValueAtTime(0.18, now + 0.08);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.35);
+    } catch {
+      // Ignore audio error
+    }
+  }
+
+  /**
+   * Play gentle wind & rustling leaves sound
+   */
+  public playWindLeaves() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const bufferSize = this.ctx.sampleRate * 0.8;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = Math.random() * 2 - 1;
+      }
+
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(400, now);
+      filter.frequency.exponentialRampToValueAtTime(800, now + 0.4);
+      filter.frequency.exponentialRampToValueAtTime(300, now + 0.8);
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.01, now);
+      gain.gain.exponentialRampToValueAtTime(0.1, now + 0.3);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      noise.start(now);
+    } catch {
+      // Ignore
+    }
+  }
 }
 
 export const soundFX = new SoundEngine();
