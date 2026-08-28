@@ -1,47 +1,84 @@
 export type SectionKey =
-  | 'home'         // 01. 首页 · 风吹沙 (现代外景与地下沙土考古唤醒)
-  | 'weapon'       // 02. 第一章 · 戈影 (北土汉邦 / 武库兵器半圆盘选兵)
-  | 'pendant'      // 03. 第二章 · 宴乐 (长乐未央 / 组玉佩与翘袖折腰)
-  | 'gallery'      // 04. 第三章 · 浮游 (长乐未央 / 五列上升文物博览与漫游)
-  | 'baixi'        // 05. 第四章 · 百戏 (长乐未央 / 蜡烛照壁画与跳丸算术)
-  | 'funerary'     // 06. 第五章 · 袖舞 (题凑礼藏 / 送葬长袖与星云铜镜)
-  | 'huangchang'   // 07. 第六章 · 题凑 (题凑礼藏 / 15880黄肠题凑考工)
-  | 'ascension'    // 08. 第七章 · 星路 (题凑礼藏 / 极光星空与七盘一鼓升仙)
-  | 'epilogue'     // 09. 终章 · 揖礼 (玉舞人合体揖礼致谢)
-  | 'conclusion'   // 10. 结语长文 (优雅逐行阅读)
-  | 'postcard'     // 11. 双面翻转明信片
-  | 'sunset';      // 12. 飞鸟与橘光夕阳博物馆回溯
+  | 'prologue_sand'    // 场景 0A：卡牌与拨沙首页
+  | 'prologue_glitch'  // 场景 0B：信号故障与七片坠落
+  | 'prologue_gate'    // 场景 0C：残门守卫与七关地图展开
+  | 'weapon'           // 第一关 · 戈影 (半圆兵器盘与武舞记忆)
+  | 'banquet'          // 第二关 · 宴乐 (现场拍照取景与宴乐记忆)
+  | 'gallery'          // 第三关 · 浮游 (五列上浮文物与文物舞记忆)
+  | 'baixi'            // 第四关 · 百戏 (灯笼照三景与六博残局)
+  | 'funerary'         // 第五关 · 袖舞 (送行长袖与礼仪画面抉择)
+  | 'huangchang'       // 第六关 · 木阵 (协作舞蹈与 1-5-5-8-0 黄肠重构)
+  | 'ascension'        // 第七关 · 星路 (四象星图与四段舞姿连接归途)
+  | 'epilogue_gate'    // 终章 E1 · 残门送别
+  | 'epilogue_bow'     // 终章 E2 · 玉舞人揖礼归位
+  | 'epilogue_card'    // 终章 E3 · 双面纪念明信片与结尾
+  | 'epilogue_dance'
+  | 'home'
+  | 'pendant'
+  | 'epilogue';
 
-export type HallKey = 'beituhanbang' | 'changleweiyang' | 'ticoulicang';
+export type SpeakerRole = 'dancer' | 'pushou' | 'player' | 'narrator';
 
-export interface ExhibitionHall {
-  id: HallKey;
-  name: string;
-  pinyin: string;
-  desc: string;
-  chapters: { key: SectionKey; title: string; subtitle: string; fragmentName: string }[];
-  color: string;
-  bgColor: string;
-  borderColor: string;
+export interface DialogueLine {
+  speaker: SpeakerRole;
+  speakerName: string;
+  avatar?: string;
+  text: string;
 }
 
 export type JadeFragmentId =
-  | 'frag_right_sleeve'   // 1. 戈影——右袖
-  | 'frag_chest_pendant'  // 2. 宴乐——胸前佩饰
-  | 'frag_left_sleeve'    // 3. 浮游——左袖
-  | 'frag_robe_skirt'     // 4. 百戏——衣摆
-  | 'frag_waist'          // 5. 袖舞——腰身
-  | 'frag_body_core'      // 6. 题凑——身体主体
-  | 'frag_head_halo';     // 7. 星路——头部与最终光环
+  | 'frag_right_sleeve'   // 1. 戈影——右袖 (第一关)
+  | 'frag_chest_pendant'  // 2. 宴乐——胸前佩饰 (第二关)
+  | 'frag_left_sleeve'    // 3. 浮游——左袖 (第三关)
+  | 'frag_robe_skirt'     // 4. 百戏——衣摆 (第四关)
+  | 'frag_waist'          // 5. 袖舞——腰身 (第五关)
+  | 'frag_body_core'      // 6. 木阵——身体主体 (第六关)
+  | 'frag_head_halo';     // 7. 星路——头部与星宿光环 (第七关)
 
 export interface JadeFragmentInfo {
   id: JadeFragmentId;
   name: string;
-  partName: string;
   chapterIndex: number;
   chapterTitle: string;
-  description: string;
+  storySummary: string;
   isUnlocked: boolean;
+}
+
+export interface Relic {
+  id: string;
+  name: string;
+  subtitle?: string;
+  category: string;
+  era: string;
+  description: string;
+  imageUrl: string;
+  depth?: string;
+  story?: string;
+  culturalSignificance?: string;
+  unlockedByDefault?: boolean;
+  xPercent?: number;
+  yPercent?: number;
+  exposedPartName?: string;
+  historicalValue?: string;
+  relationToJadeDancer?: string;
+  audioPath?: string;
+  audioDuration?: string;
+  layerIndex?: number;
+  isUncovered?: boolean;
+}
+
+export interface TombLayer {
+  depth?: string;
+  depthMeters?: number;
+  layerName?: string;
+  name?: string;
+  subtitle?: string;
+  depthRange?: string;
+  soilTexture?: string;
+  color?: string;
+  description: string;
+  relics?: string[];
+  artifactsFound?: string[];
 }
 
 export interface UserInteractionTrackPoint {
@@ -49,37 +86,7 @@ export interface UserInteractionTrackPoint {
   y: number;
   chapter: SectionKey;
   timestamp: number;
-  action: 'tap' | 'scratch' | 'solve';
-}
-
-export interface Relic {
-  id: string;
-  name: string;
-  subtitle: string;
-  era: string;
-  category: string;
-  xPercent?: number;
-  yPercent?: number;
-  exposedPartName?: string;
-  description: string;
-  historicalValue: string;
-  audioPath?: string;
-  audioDuration?: string;
-  imageUrl: string;
-  isUncovered?: boolean;
-  relationToJadeDancer?: string;
-  layerIndex?: 1 | 2 | 3;
-}
-
-export interface TombLayer {
-  depthRange: string;
-  depthMeters: number;
-  name: string;
-  subtitle: string;
-  description: string;
-  color: string;
-  soilTexture: string;
-  artifactsFound: string[];
+  action: 'tap' | 'scratch' | 'solve' | 'photo' | 'drag';
 }
 
 export interface VideoInfo {
@@ -92,3 +99,4 @@ export interface VideoInfo {
   duration: string;
   description: string;
 }
+

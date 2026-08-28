@@ -1,128 +1,107 @@
 import React from 'react';
 import { JadeFragmentId } from '../types';
-import { JADE_FRAGMENTS_CONFIG } from '../data/scriptQuestData';
-import { Sparkles } from 'lucide-react';
+import { Sparkles, Map } from 'lucide-react';
+import { soundFX } from '../utils/soundEngine';
 
 interface JadeProgressSilhouetteProps {
   unlockedFragments: JadeFragmentId[];
-  onOpenMap?: () => void;
+  onOpenMap: () => void;
+  isCorrupted?: boolean;
 }
+
+const ALL_FRAGMENTS: { id: JadeFragmentId; name: string; stage: string }[] = [
+  { id: 'frag_right_sleeve', name: '右袖', stage: '戈影' },
+  { id: 'frag_chest_pendant', name: '胸佩', stage: '宴乐' },
+  { id: 'frag_left_sleeve', name: '左袖', stage: '浮游' },
+  { id: 'frag_robe_skirt', name: '衣摆', stage: '百戏' },
+  { id: 'frag_waist', name: '腰身', stage: '袖舞' },
+  { id: 'frag_body_core', name: '主体', stage: '木阵' },
+  { id: 'frag_head_halo', name: '首光', stage: '星路' },
+];
 
 export const JadeProgressSilhouette: React.FC<JadeProgressSilhouetteProps> = ({
   unlockedFragments,
   onOpenMap,
+  isCorrupted = false,
 }) => {
-  const total = 7;
   const count = unlockedFragments.length;
-  const percent = Math.round((count / total) * 100);
-
-  // Check if a specific fragment is unlocked
-  const isUnlocked = (id: JadeFragmentId) => unlockedFragments.includes(id);
+  const isFull = count === 7;
 
   return (
-    <div
-      onClick={onOpenMap}
-      className="w-full bg-[#241a13]/95 border-b border-[#3d2b1f] px-3 py-1.5 backdrop-blur-md z-30 flex items-center justify-between shadow-lg cursor-pointer select-none group hover:bg-[#2c1d12] transition-colors"
-      title="点击查看七章纵向考古地图与记忆玉片"
-    >
-      {/* Left: Memory Tag */}
-      <div className="flex items-center gap-1.5 shrink-0">
-        <div className="w-5 h-5 rounded-full bg-[#3d2b1f] border border-[#d2b48c]/60 flex items-center justify-center">
-          <Sparkles className="w-3 h-3 text-[#d2b48c] animate-pulse" />
+    <div className="w-full bg-[#120d09]/95 border-b border-[#3d2b1f] px-3 py-2 flex items-center justify-between z-30 shadow-lg backdrop-blur-md">
+      {/* Mini Jade Silhouette Preview */}
+      <div className="flex items-center gap-2">
+        <div className="relative w-8 h-9 flex items-center justify-center bg-[#1c130d] border border-[#5c4033] rounded-lg p-0.5 shadow-inner">
+          <svg viewBox="0 0 100 120" className="w-full h-full">
+            {/* Base faint outline */}
+            <path
+              d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
+              fill="none"
+              stroke={isCorrupted ? '#552222' : '#3d2b1f'}
+              strokeWidth="4"
+              strokeLinecap="round"
+            />
+            {/* Restored glowing jade path */}
+            <path
+              d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
+              fill="none"
+              stroke={isCorrupted ? '#e53e3e' : '#a7f3d0'}
+              strokeWidth="4.5"
+              strokeDasharray="280"
+              strokeDashoffset={280 - (280 * count) / 7}
+              strokeLinecap="round"
+              className="transition-all duration-700 filter drop-shadow-[0_0_4px_rgba(167,243,208,0.8)]"
+            />
+            {count >= 7 && <circle cx="50" cy="14" r="6" fill="#e6fffa" />}
+          </svg>
         </div>
-        <div className="flex flex-col">
-          <span className="text-[9px] font-mono text-[#a3805d] leading-none uppercase tracking-widest">
-            JADE MEMORY
-          </span>
-          <span className="text-xs font-black text-[#e6d5b8] font-serif tracking-wider">
-            记忆恢复 <strong className="text-[#ffe89c] font-mono">{count}/7</strong>
-          </span>
-        </div>
-      </div>
 
-      {/* Center: Slim Jade Dancer Silhouette with 7 distinct puzzle pieces */}
-      <div className="flex-1 max-w-[170px] mx-2 flex items-center justify-center">
-        <div className="relative w-full h-8 flex items-center justify-center px-1">
-          {/* Stylized Silhouette Representation composed of 7 Jade Chips */}
-          <div className="flex items-center gap-1 w-full justify-between">
-            {/* 1. 右袖 */}
-            <div
-              className={`h-4 w-3 rounded-l-md border transition-all duration-500 relative ${
-                isUnlocked('frag_right_sleeve')
-                  ? 'bg-gradient-to-br from-[#cdeacd] to-[#88b598] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-105'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
+        <div>
+          <div className="flex items-center gap-1">
+            <span className="text-[10px] font-black text-[#e6d5b8] font-serif tracking-wide">
+              玉舞人记忆修复
+            </span>
+            <span
+              className={`text-[9px] font-mono font-bold px-1.5 py-0.2 rounded-full border ${
+                isFull
+                  ? 'bg-emerald-900/60 border-emerald-500 text-emerald-300'
+                  : 'bg-[#241a13] border-[#5c4033] text-[#ffe89c]'
               }`}
-              title="1. 戈影 · 右袖"
-            />
-
-            {/* 2. 胸前佩饰 */}
-            <div
-              className={`h-3 w-3 rounded-full border transition-all duration-500 ${
-                isUnlocked('frag_chest_pendant')
-                  ? 'bg-gradient-to-br from-[#d4f0d4] to-[#7aa88a] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-110'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="2. 佩鸣 · 胸前佩饰"
-            />
-
-            {/* 3. 左袖 */}
-            <div
-              className={`h-4 w-3 rounded-r-md border transition-all duration-500 ${
-                isUnlocked('frag_left_sleeve')
-                  ? 'bg-gradient-to-br from-[#cdeacd] to-[#88b598] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-105'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="3. 浮游 · 左袖"
-            />
-
-            {/* 4. 衣摆 */}
-            <div
-              className={`h-5 w-3.5 rounded-b-md border transition-all duration-500 ${
-                isUnlocked('frag_robe_skirt')
-                  ? 'bg-gradient-to-br from-[#cdeacd] to-[#88b598] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-105'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="4. 百戏 · 衣摆"
-            />
-
-            {/* 5. 腰身 */}
-            <div
-              className={`h-4 w-3 rounded-sm border transition-all duration-500 ${
-                isUnlocked('frag_waist')
-                  ? 'bg-gradient-to-br from-[#cdeacd] to-[#88b598] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-105'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="5. 云镜 · 腰身"
-            />
-
-            {/* 6. 身体主体 */}
-            <div
-              className={`h-6 w-4 rounded-sm border transition-all duration-500 ${
-                isUnlocked('frag_body_core')
-                  ? 'bg-gradient-to-br from-[#d4f0d4] to-[#6f9c80] border-[#e8f5e9] shadow-[0_0_8px_rgba(180,240,200,0.8)] scale-105'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="6. 木阵 · 身体主体"
-            />
-
-            {/* 7. 头部与最终光环 */}
-            <div
-              className={`h-4 w-4 rounded-full border-2 transition-all duration-500 relative ${
-                isUnlocked('frag_head_halo')
-                  ? 'bg-gradient-to-br from-[#fff7d6] to-[#a8d4b5] border-[#ffe89c] shadow-[0_0_12px_rgba(255,230,150,0.9)] animate-pulse scale-110'
-                  : 'bg-[#1a120b] border-[#5c4033] opacity-40'
-              }`}
-              title="7. 星路 · 头部与光环"
-            />
+            >
+              {count}/7
+            </span>
+          </div>
+          {/* Fragment dot bar */}
+          <div className="flex items-center gap-1 mt-0.5">
+            {ALL_FRAGMENTS.map((frag, idx) => {
+              const active = unlockedFragments.includes(frag.id);
+              return (
+                <div
+                  key={frag.id}
+                  title={`${frag.stage}: ${frag.name}`}
+                  className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                    active
+                      ? 'bg-[#88b598] shadow-[0_0_6px_#88b598] scale-110'
+                      : 'bg-[#291b12] border border-[#4a3424]'
+                  }`}
+                />
+              );
+            })}
           </div>
         </div>
       </div>
 
-      {/* Right: Map Entrance Button */}
-      <div className="flex items-center gap-1 text-[10px] text-[#d2b48c] font-serif bg-[#3d2b1f] px-2 py-1 rounded-lg border border-[#5c4033] group-hover:border-[#d2b48c] transition-colors shrink-0">
-        <span>七章地图</span>
-        <span className="font-mono text-[9px] text-[#ffe89c]">▼</span>
-      </div>
+      {/* Map Button */}
+      <button
+        onClick={() => {
+          soundFX.playStoneDrum();
+          onOpenMap();
+        }}
+        className="px-2.5 py-1 bg-[#241a13] hover:bg-[#3d2b1f] text-[#d2b48c] border border-[#5c4033] rounded-xl text-[10px] font-serif flex items-center gap-1 transition-all active:scale-95 shadow-md"
+      >
+        <Map className="w-3 h-3 text-[#ffe89c]" />
+        <span>七关地图</span>
+      </button>
     </div>
   );
 };
