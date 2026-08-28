@@ -75,6 +75,7 @@ export default function App() {
         return (
           <PrologueSand
             onStartGlitch={() => setActiveSection('prologue_glitch')}
+            onOpenMap={() => setShowMapModal(true)}
             onTrackAction={(x, y, act) => handleTrackAction(x, y, act)}
           />
         );
@@ -150,6 +151,7 @@ export default function App() {
       case 'epilogue_dance':
         return (
           <EpilogueEnding
+            trackPoints={trackPoints}
             onRestart={() => {
               setUnlockedFragments([]);
               setActiveSection('prologue_sand');

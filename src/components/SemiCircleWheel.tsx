@@ -1,178 +1,166 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Check, Info } from 'lucide-react';
+import { Check, Shield, Sparkles } from 'lucide-react';
 
-export interface WheelItem {
+export interface WheelWeaponItem {
   id: string;
   name: string;
-  pinyin?: string;
-  isCorrect?: boolean;
+  isCorrect: boolean;
   category?: string;
-  iconSvg: React.ReactNode;
-  hint: string;
+  desc?: string;
+  label?: string;
+  pinyin?: string;
+  hint?: string;
+  [key: string]: any;
 }
 
+export type WheelItem = WheelWeaponItem;
+
 interface SemiCircleWheelProps {
-  items: WheelItem[];
+  items: WheelWeaponItem[];
   selectedIds: string[];
   maxSelect?: number;
-  onToggleSelect: (item: WheelItem) => void;
-  title: string;
-  promptText: string;
+  onToggleSelect: (item: WheelWeaponItem) => void;
 }
 
 export const SemiCircleWheel: React.FC<SemiCircleWheelProps> = ({
   items,
   selectedIds,
-  maxSelect = 1,
+  maxSelect = 2,
   onToggleSelect,
-  title,
-  promptText,
 }) => {
-  const [rotationAngle, setRotationAngle] = useState(0);
-  const [isDragging, setIsDragging] = useState(false);
-  const [dragStartX, setDragStartX] = useState(0);
-  const [activePreviewItem, setActivePreviewItem] = useState<WheelItem | null>(null);
+  const [rotationAngle, setRotationAngle] = useState<number>(0);
+  const [isDragging, setIsDragging] = useState<boolean>(false);
+  const [lastTouchAngle, setLastTouchAngle] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
+  const radius = 135; // px from center
   const totalItems = items.length;
   const angleStep = 360 / totalItems;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setIsDragging(true);
-    setDragStartX(e.touches[0].clientX);
+  const getAngleFromCenter = (clientX: number, clientY: number): number | null => {
+    if (!containerRef.current) return null;
+    const rect = containerRef.current.getBoundingClientRect();
+    const centerX = rect.left + rect.width / 2;
+    const centerY = rect.bottom; // Center of the full circle is at the bottom center line
+    const dx = clientX - centerX;
+    const dy = clientY - centerY;
+    return Math.atan2(dy, dx) * (180 / Math.PI);
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!isDragging) return;
-    const deltaX = e.touches[0].clientX - dragStartX;
-    setRotationAngle((prev) => prev + deltaX * 0.4);
-    setDragStartX(e.touches[0].clientX);
+  const handlePointerDown = (clientX: number, clientY: number) => {
+    const angle = getAngleFromCenter(clientX, clientY);
+    if (angle !== null) {
+      setIsDragging(true);
+      setLastTouchAngle(angle);
+    }
   };
 
-  const handleTouchEnd = () => {
+  const handlePointerMove = (clientX: number, clientY: number) => {
+    if (!isDragging || lastTouchAngle === null) return;
+    const currentAngle = getAngleFromCenter(clientX, clientY);
+    if (currentAngle !== null) {
+      let delta = currentAngle - lastTouchAngle;
+      // Handle 180 to -180 degree jump
+      if (delta > 180) delta -= 360;
+      if (delta < -180) delta += 360;
+
+      if (Math.abs(delta) > 0.3) {
+        soundFX.playSandScratch();
+        setRotationAngle((prev) => prev + delta);
+        setLastTouchAngle(currentAngle);
+      }
+    }
+  };
+
+  const handlePointerUp = () => {
     setIsDragging(false);
+    setLastTouchAngle(null);
   };
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    setIsDragging(true);
-    setDragStartX(e.clientX);
-  };
-
-  const handleMouseMove = (e: React.MouseEvent) => {
-    if (!isDragging) return;
-    const deltaX = e.clientX - dragStartX;
-    setRotationAngle((prev) => prev + deltaX * 0.4);
-    setDragStartX(e.clientX);
-  };
-
-  const handleMouseUp = () => {
-    setIsDragging(false);
-  };
-
-  const rotateLeft = () => {
-    soundFX.playStoneDrum();
-    setRotationAngle((prev) => prev - angleStep);
-  };
-
-  const rotateRight = () => {
-    soundFX.playStoneDrum();
-    setRotationAngle((prev) => prev + angleStep);
-  };
-
-  const radius = 135; // Radius of wheel circle in px
 
   return (
-    <div className="relative w-full flex flex-col items-center select-none pt-2 pb-1">
-      {/* Title & Guidance Header */}
+    <div className="relative w-full flex flex-col items-center select-none pt-1">
+      {/* Top Hint Bar */}
       <div className="w-full flex items-center justify-between px-3 mb-1">
-        <div className="flex items-center gap-1.5">
-          <span className="w-1.5 h-3 bg-[#d2b48c] rounded-full" />
-          <span className="text-xs font-serif font-black text-[#e6d5b8] tracking-wider">
-            {title}
-          </span>
-        </div>
-        <span className="text-[10px] font-mono text-[#ffe89c] bg-[#3d2b1f] px-2 py-0.5 rounded-full border border-[#5c4033]">
-          已选: {selectedIds.length} / {maxSelect}
+        <span className="text-[10px] text-[#e6d5b8] font-serif font-black flex items-center gap-1">
+          <Shield className="w-3.5 h-3.5 text-amber-400" />
+          <span>手指在半圆弧线边框上直接顺/逆时针滑动旋转</span>
+        </span>
+        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#2a170d] text-amber-300 border border-amber-800">
+          已选 {selectedIds.length}/{maxSelect}
         </span>
       </div>
 
-      <p className="text-[10px] text-[#c2a385] text-center font-serif px-4 mb-1 italic">
-        {promptText}
-      </p>
-
-      {/* Semi-Circular Rotary Wheel Container (Only Top Half Visible) */}
+      {/* Semi-circular dial container (Only top half exposed) */}
       <div
         ref={containerRef}
-        className="relative w-full h-[145px] overflow-hidden flex items-end justify-center cursor-grab active:cursor-grabbing"
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
+        onMouseMove={(e) => handlePointerMove(e.clientX, e.clientY)}
+        onMouseUp={handlePointerUp}
+        onMouseLeave={handlePointerUp}
+        onTouchStart={(e) => {
+          if (e.touches[0]) handlePointerDown(e.touches[0].clientX, e.touches[0].clientY);
+        }}
+        onTouchMove={(e) => {
+          if (e.touches[0]) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
+        }}
+        onTouchEnd={handlePointerUp}
+        className="relative w-full h-[155px] overflow-hidden flex items-end justify-center cursor-grab active:cursor-grabbing touch-none border-b border-[#3d2b1f]/60"
       >
-        {/* Decorative Rim & Surveying Graduations */}
-        <div className="absolute top-2 w-[290px] h-[290px] rounded-full border-2 border-dashed border-[#d2b48c]/40 pointer-events-none" />
-        <div className="absolute top-4 w-[270px] h-[270px] rounded-full border border-[#5c4033] pointer-events-none bg-gradient-to-b from-[#241a13]/80 to-[#140e0a]" />
+        {/* Outer Glowing Arc Rim (The line user touches to swipe) */}
+        <div className="absolute -bottom-[140px] w-[310px] h-[310px] rounded-full border-4 border-amber-600/70 shadow-[0_0_20px_rgba(217,119,6,0.35)] pointer-events-none" />
+        <div className="absolute -bottom-[130px] w-[290px] h-[290px] rounded-full border border-dashed border-[#ffe89c]/40 pointer-events-none bg-gradient-to-t from-[#140e0a] to-[#24170d]/80" />
 
-        {/* Center Hub Indicator */}
-        <div className="absolute top-0 w-24 h-12 rounded-b-full bg-[#3d2b1f] border-b-2 border-x-2 border-[#d2b48c] flex items-center justify-center shadow-lg z-20 pointer-events-none">
-          <span className="text-[9px] text-[#ffe89c] font-serif tracking-widest uppercase">
-            左右滑动轮盘
+        {/* Center Hub Indicator at the very bottom */}
+        <div className="absolute bottom-0 w-28 h-7 bg-[#29170d] rounded-t-full border-t-2 border-x-2 border-amber-500 flex items-center justify-center pointer-events-none z-20 shadow-md">
+          <span className="text-[8px] font-mono text-amber-200 tracking-widest uppercase">
+            沿弧线滑旋
           </span>
         </div>
 
-        {/* The Full Rotating Disc */}
+        {/* Rotating Wheel Disc */}
         <div
-          className="absolute w-[280px] h-[280px] rounded-full transition-transform duration-100 ease-out flex items-center justify-center"
+          className="absolute -bottom-[140px] w-[280px] h-[280px] rounded-full flex items-center justify-center transition-transform duration-75 ease-out"
           style={{
-            transform: `translateY(130px) rotate(${rotationAngle}deg)`,
+            transform: `rotate(${rotationAngle}deg)`,
             transformOrigin: 'center center',
           }}
         >
-          {items.map((item, index) => {
-            const itemAngleDeg = index * angleStep;
-            const itemAngleRad = (itemAngleDeg * Math.PI) / 180;
-            const x = Math.cos(itemAngleRad) * radius;
-            const y = Math.sin(itemAngleRad) * radius;
-
-            const isSelected = selectedIds.includes(item.id);
+          {items.map((weapon, idx) => {
+            const angleDeg = idx * angleStep;
+            const angleRad = (angleDeg * Math.PI) / 180;
+            const x = Math.cos(angleRad) * radius;
+            const y = Math.sin(angleRad) * radius;
+            const isSelected = selectedIds.includes(weapon.id);
 
             return (
               <div
-                key={item.id}
+                key={weapon.id}
                 onClick={(e) => {
                   e.stopPropagation();
                   soundFX.playStoneDrum();
-                  setActivePreviewItem(item);
-                  onToggleSelect(item);
+                  onToggleSelect(weapon);
                 }}
                 className="absolute flex flex-col items-center justify-center cursor-pointer group"
                 style={{
                   transform: `translate(${x}px, ${y}px) rotate(${-rotationAngle}deg)`,
-                  width: '54px',
-                  height: '54px',
+                  width: '56px',
+                  height: '56px',
                 }}
               >
-                {/* Item Disc Button */}
                 <div
-                  className={`w-12 h-12 rounded-full flex flex-col items-center justify-center p-1 border-2 transition-all duration-200 shadow-md ${
+                  className={`w-13 h-13 rounded-2xl flex flex-col items-center justify-center p-1.5 border-2 transition-all shadow-md active:scale-95 ${
                     isSelected
-                      ? 'bg-[#ffe89c] text-[#1a120b] border-[#e6d5b8] scale-110 ring-4 ring-[#ffe89c]/40 font-bold'
-                      : 'bg-[#291e16] text-[#e6d5b8] border-[#5c4033] hover:border-[#d2b48c] hover:scale-105'
+                      ? 'bg-amber-600 text-white border-[#ffe89c] scale-110 ring-4 ring-amber-400/40 font-bold shadow-[0_0_12px_#ffe89c]'
+                      : 'bg-[#24170d] text-[#e6d5b8] border-[#5c4033] hover:border-amber-500'
                   }`}
                 >
-                  <div className="w-5 h-5 flex items-center justify-center">
-                    {item.iconSvg}
-                  </div>
-                  <span className="text-[8px] font-serif leading-tight text-center tracking-tighter truncate w-full px-0.5">
-                    {item.name}
+                  <span className="text-[10px] font-serif font-black leading-tight text-center truncate w-full">
+                    {weapon.name}
                   </span>
 
                   {isSelected && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#2e7d32] text-white rounded-full flex items-center justify-center">
+                    <div className="absolute -top-1.5 -right-1.5 w-4 h-4 bg-emerald-600 text-white rounded-full flex items-center justify-center shadow">
                       <Check className="w-2.5 h-2.5" />
                     </div>
                   )}
@@ -181,39 +169,7 @@ export const SemiCircleWheel: React.FC<SemiCircleWheelProps> = ({
             );
           })}
         </div>
-
-        {/* Manual Left/Right Navigation Buttons */}
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            rotateLeft();
-          }}
-          className="absolute left-2 top-10 z-30 p-1.5 rounded-full bg-[#241a13]/90 border border-[#5c4033] text-[#d2b48c] hover:text-[#ffe89c] text-xs shadow-md"
-          title="向左旋转"
-        >
-          ◀
-        </button>
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            rotateRight();
-          }}
-          className="absolute right-2 top-10 z-30 p-1.5 rounded-full bg-[#241a13]/90 border border-[#5c4033] text-[#d2b48c] hover:text-[#ffe89c] text-xs shadow-md"
-          title="向右旋转"
-        >
-          ▶
-        </button>
       </div>
-
-      {/* Selected Item Short Hint Card */}
-      {activePreviewItem && (
-        <div className="mt-1 px-3 py-1 bg-[#241a13] border border-[#3d2b1f] rounded-xl text-[10px] text-[#c2a385] flex items-center gap-1.5 max-w-[90%] font-serif">
-          <Info className="w-3 h-3 text-[#d2b48c] shrink-0" />
-          <span className="truncate">
-            <strong className="text-[#ffe89c]">{activePreviewItem.name}:</strong> {activePreviewItem.hint}
-          </span>
-        </div>
-      )}
     </div>
   );
 };

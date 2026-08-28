@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { ShieldAlert, Sparkles, AlertTriangle, ArrowRight } from 'lucide-react';
+import { ShieldAlert, ArrowRight, Bug } from 'lucide-react';
 import { DialogueLine } from '../types';
 import { DialogueSystem } from './DialogueSystem';
 
@@ -8,7 +8,12 @@ interface PrologueGateProps {
   onStartChapter1: () => void;
 }
 
-const DIALOGUES_0C: DialogueLine[] = [
+const DIALOGUES_GATE: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '【滋滋滋……嚼嚼嚼……残存的汉代王陵，马上就要被我们吃光了……】',
+  },
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
@@ -16,7 +21,7 @@ const DIALOGUES_0C: DialogueLine[] = [
   },
   {
     speaker: 'player',
-    speakerName: '见证者 (你)',
+    speakerName: '见证者 (我)',
     text: '这里还是大葆台吗？',
   },
   {
@@ -36,20 +41,25 @@ const DIALOGUES_0C: DialogueLine[] = [
   },
   {
     speaker: 'player',
-    speakerName: '见证者 (你)',
-    text: '我来。',
+    speakerName: '见证者 (我)',
+    text: '好，我们这就出发！',
   },
 ];
 
 export const PrologueGate: React.FC<PrologueGateProps> = ({ onStartChapter1 }) => {
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
-  const [isMapRevealed, setIsMapRevealed] = useState<boolean>(false);
+  const [isReadyForChapter1, setIsReadyForChapter1] = useState<boolean>(false);
+
+  useEffect(() => {
+    soundFX.playCrawlerScurry();
+  }, []);
 
   const handleNextDialogue = () => {
-    if (dialogueIdx < DIALOGUES_0C.length - 1) {
+    if (dialogueIdx < DIALOGUES_GATE.length - 1) {
       setDialogueIdx(dialogueIdx + 1);
     } else {
-      setIsMapRevealed(true);
+      soundFX.playBronzeChime();
+      setIsReadyForChapter1(true);
     }
   };
 
@@ -60,7 +70,7 @@ export const PrologueGate: React.FC<PrologueGateProps> = ({ onStartChapter1 }) =
         <div className="flex items-center gap-1.5">
           <ShieldAlert className="w-3.5 h-3.5 text-amber-500" />
           <span className="text-[9px] font-mono tracking-widest text-[#a3805d]">
-            FUTURE CRISIS · 序章 0C
+            FUTURE RESISTANCE · 序章 0C
           </span>
         </div>
         <span className="text-[9px] font-mono px-2 py-0.5 rounded bg-[#2a1a0f] text-amber-400 border border-amber-800">
@@ -82,16 +92,12 @@ export const PrologueGate: React.FC<PrologueGateProps> = ({ onStartChapter1 }) =
               {/* Mythical Beast Face of Pushou with Ring */}
               <svg viewBox="0 0 100 100" className="w-20 h-20 fill-amber-400 stroke-amber-700">
                 <circle cx="50" cy="50" r="42" fill="#3a2211" stroke="#b45309" strokeWidth="3" />
-                {/* Horns & Brows */}
                 <path d="M25 35 Q50 15 75 35 Q50 30 25 35" fill="#d97706" />
-                {/* Eyes */}
                 <circle cx="38" cy="45" r="6" fill="#fef3c7" />
                 <circle cx="62" cy="45" r="6" fill="#fef3c7" />
                 <circle cx="38" cy="45" r="2.5" fill="#78350f" />
                 <circle cx="62" cy="45" r="2.5" fill="#78350f" />
-                {/* Nose & Mouth */}
                 <path d="M44 55 Q50 50 56 55 Q50 65 44 55" fill="#b45309" />
-                {/* Door Ring in mouth */}
                 <circle cx="50" cy="72" r="14" fill="none" stroke="#f59e0b" strokeWidth="4" />
               </svg>
             </div>
@@ -114,14 +120,14 @@ export const PrologueGate: React.FC<PrologueGateProps> = ({ onStartChapter1 }) =
           </div>
         </div>
 
-        {/* Seven Stages Mission Reveal Card after dialogue completed */}
-        {isMapRevealed && (
+        {/* Action card after dialogue completes */}
+        {isReadyForChapter1 && (
           <div className="w-full mt-3 bg-[#1e140d] border-2 border-amber-600/80 rounded-2xl p-3 shadow-2xl text-center space-y-2 animate-fade-in">
             <div className="text-xs font-black text-[#ffe89c] tracking-widest">
-              ✦ 七关救赎已开启 · 第一关【戈影】亮起 ✦
+              ✦ 七关时空已连通 · 第一关【戈影】亮起 ✦
             </div>
             <p className="text-[10px] text-[#c2a385] leading-relaxed">
-              在被蚀墓虫完全吞噬前，找回七段汉代记忆碎片，重聚玉舞人与地下王陵。
+              辨认出属于大葆台的两件真正汉代兵器，找回玉舞人的第一块记忆碎片。
             </p>
             <button
               onClick={() => {
@@ -137,10 +143,10 @@ export const PrologueGate: React.FC<PrologueGateProps> = ({ onStartChapter1 }) =
         )}
       </div>
 
-      {/* Fixed Dialogue System */}
-      {!isMapRevealed && (
+      {/* Dialogue System */}
+      {!isReadyForChapter1 && (
         <DialogueSystem
-          dialogues={DIALOGUES_0C}
+          dialogues={DIALOGUES_GATE}
           currentIndex={dialogueIdx}
           onNext={handleNextDialogue}
           restorationLevel={0}

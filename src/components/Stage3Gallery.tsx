@@ -52,14 +52,32 @@ const FIVE_COLUMNS: FloatingArtifact[][] = [
 
 const DIALOGUES_3: DialogueLine[] = [
   {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '【滋滋滋……浮动在时空里的器物，哪个真哪个假你们分不清的……】',
+  },
+  {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '它们都在说自己属于这里。你还记得刚才真正看见了什么吗？',
+    text: '它们都在说自己属于这里。你还记得刚才在展厅真正看见了什么吗？',
   },
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
-    text: '形状会伪装，现场的记忆不会。',
+    text: '形状会伪装，现场的记忆不会。找出大葆台的三件真品器物。',
+  },
+];
+
+const DIALOGUES_3_RESTORED: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '吱吱吱，这里净化了，快退至墓穴深处……！',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '鎏金铜钫、朱漆耳杯、星云铜镜连成了玉色光线！第三块左袖碎片重聚了！',
   },
 ];
 
@@ -104,7 +122,7 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
     <div className="relative w-full h-full bg-[#080c14] text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none">
       <GlitchCorruptionOverlay
         isVisible={showCorruption}
-        message="文物名称瞬间乱码 · 玉舞人：“记忆不对，它不属于这段时间。”"
+        message="器物年代错乱 · 选入了非大葆台西汉时空的浮游器物"
       />
 
       {/* Top Bar */}

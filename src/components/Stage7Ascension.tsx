@@ -18,7 +18,12 @@ const FOUR_SYMBOLS = [
   { id: 'tortoise', name: '玄武 (北)', dir: '北', correctOrder: 4, color: '#4ade80' },
 ];
 
-const DIALOGUES_7: DialogueLine[] = [
+const DIALOGUES_START: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '【嚼嚼嚼……四象星图马上要被黑暗遮蔽了……你们再也回不去了……】',
+  },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
@@ -27,7 +32,20 @@ const DIALOGUES_7: DialogueLine[] = [
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
-    text: '星路已开。大葆台的名字，由你们留下了。',
+    text: '星路已开。顺应东苍龙、南朱鸟、西白虎、北玄武，连通四象开启时空归途。',
+  },
+];
+
+const DIALOGUES_RESTORED: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '吱吱吱，全境净化了！墓穴深处已无容身之所，蚀墓之障溃散……！',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '七块记忆碎片全部合一！天地星轨连通，我们战胜了规则怪谈！',
   },
 ];
 
@@ -40,6 +58,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   const [rotationAngle, setRotationAngle] = useState<number>(0);
   const [showDialogue, setShowDialogue] = useState<boolean>(true);
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
+  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
   const [showCorruption, setShowCorruption] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
@@ -57,6 +76,9 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
         soundFX.playMemoryRestore();
         setIsSuccess(true);
         onUnlockFragment();
+        setActiveDialogues(DIALOGUES_RESTORED);
+        setDialogueIdx(0);
+        setShowDialogue(true);
       }
     } else {
       soundFX.playGlitchStatic();
@@ -73,7 +95,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
     <div className="relative w-full h-full bg-[#050814] text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none">
       <GlitchCorruptionOverlay
         isVisible={showCorruption}
-        message="星图微震 · 顺应天象：东苍龙、南朱雀、西白虎、北玄武"
+        message="星宿方位错位 · 四象星图应顺应：东苍龙、南朱雀、西白虎、北玄武"
       />
 
       {/* Top Bar */}
@@ -202,10 +224,10 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
       {/* Story Dialogue */}
       {showDialogue && (
         <DialogueSystem
-          dialogues={DIALOGUES_7}
+          dialogues={activeDialogues}
           currentIndex={dialogueIdx}
           onNext={() => {
-            if (dialogueIdx < DIALOGUES_7.length - 1) {
+            if (dialogueIdx < activeDialogues.length - 1) {
               setDialogueIdx(dialogueIdx + 1);
             } else {
               setShowDialogue(false);

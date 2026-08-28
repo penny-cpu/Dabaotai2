@@ -17,7 +17,7 @@ export type SectionKey =
   | 'pendant'
   | 'epilogue';
 
-export type SpeakerRole = 'dancer' | 'pushou' | 'player' | 'narrator';
+export type SpeakerRole = 'dancer' | 'pushou' | 'player' | 'corruptor' | 'narrator';
 
 export interface DialogueLine {
   speaker: SpeakerRole;

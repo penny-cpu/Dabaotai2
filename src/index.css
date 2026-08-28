@@ -74,3 +74,133 @@ button:hover:not(:disabled),
   background: #d2b48c;
 }
 
+/* Floating Wind Blowing Leaves Keyframes */
+@keyframes float-leaf-1 {
+  0% {
+    transform: translate(-40px, -20px) rotate(0deg) scale(0.8);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.9;
+  }
+  85% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(380px, 260px) rotate(360deg) scale(1.1);
+    opacity: 0;
+  }
+}
+
+@keyframes float-leaf-2 {
+  0% {
+    transform: translate(-30px, 40px) rotate(45deg) scale(0.7);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.85;
+  }
+  80% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(360px, 320px) rotate(-280deg) scale(1);
+    opacity: 0;
+  }
+}
+
+@keyframes float-leaf-3 {
+  0% {
+    transform: translate(40px, -30px) rotate(0deg) scale(0.9);
+    opacity: 0;
+  }
+  25% {
+    opacity: 0.95;
+  }
+  75% {
+    opacity: 0.95;
+  }
+  100% {
+    transform: translate(400px, 200px) rotate(420deg) scale(0.6);
+    opacity: 0;
+  }
+}
+
+/* Flying Birds Across Sky Keyframes */
+@keyframes bird-fly-across {
+  0% {
+    transform: translate(-60px, 30px) scale(0.65);
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.85;
+  }
+  50% {
+    transform: translate(180px, -10px) scale(0.85);
+  }
+  90% {
+    opacity: 0.85;
+  }
+  100% {
+    transform: translate(420px, 20px) scale(0.75);
+    opacity: 0;
+  }
+}
+
+@keyframes bird-fly-across-2 {
+  0% {
+    transform: translate(-50px, 60px) scale(0.5);
+    opacity: 0;
+  }
+  15% {
+    opacity: 0.8;
+  }
+  50% {
+    transform: translate(190px, 25px) scale(0.65);
+  }
+  85% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(410px, 50px) scale(0.55);
+    opacity: 0;
+  }
+}
+
+/* Sun Ray Pulse Glow */
+@keyframes sunlight-glow {
+  0%, 100% {
+    opacity: 0.45;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.75;
+    transform: scale(1.05);
+  }
+}
+
+.animate-leaf-1 {
+  animation: float-leaf-1 9s ease-in-out infinite;
+}
+
+.animate-leaf-2 {
+  animation: float-leaf-2 11s ease-in-out infinite 2.5s;
+}
+
+.animate-leaf-3 {
+  animation: float-leaf-3 8s ease-in-out infinite 5s;
+}
+
+.animate-bird-1 {
+  animation: bird-fly-across 14s ease-out infinite;
+}
+
+.animate-bird-2 {
+  animation: bird-fly-across-2 17s ease-out infinite 4s;
+}
+
+.animate-sunlight {
+  animation: sunlight-glow 6s ease-in-out infinite;
+}
+
+

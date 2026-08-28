@@ -1,10 +1,11 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Flame, Sparkles, CheckCircle2, AlertTriangle, Eye } from 'lucide-react';
+import { Flame, Sparkles, CheckCircle2, AlertTriangle, Eye, HelpCircle } from 'lucide-react';
 import { GlitchCorruptionOverlay } from './GlitchCorruptionOverlay';
 import { DialogueLine } from '../types';
 import { DialogueSystem } from './DialogueSystem';
 import { ASSETS } from '../data/museumData';
+import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
 
 interface Stage4BaixiProps {
   onUnlockFragment: () => void;
@@ -12,19 +13,71 @@ interface Stage4BaixiProps {
   isUnlocked: boolean;
 }
 
-const DIALOGUES_4: DialogueLine[] = [
+interface BaixiScene {
+  id: string;
+  name: string;
+  category: string;
+  desc: string;
+  isLit: boolean;
+  pos: { x: number; y: number };
+}
+
+const INITIAL_SCENES: BaixiScene[] = [
   {
-    speaker: 'dancer',
-    speakerName: '玉舞人',
-    text: '这里的人还在，只是动作被封住了。先让他们重新见光。',
+    id: 'b1',
+    name: '盘鼓舞 (七盘舞)',
+    category: '汉代乐舞',
+    desc: '舞者罗袜蹑盘，足踏七盘如流星飞掷，汉代绝美打击乐舞。',
+    isLit: false,
+    pos: { x: 22, y: 35 },
+  },
+  {
+    id: 'b2',
+    name: '寻橦与倒立',
+    category: '百戏杂技',
+    desc: '长杆倒立、飞剑跳丸，汉代百戏之勇烈神技。',
+    isLit: false,
+    pos: { x: 74, y: 30 },
+  },
+  {
+    id: 'b3',
+    name: '六博对弈',
+    category: '汉代博戏',
+    desc: '投箸行棋、争道进击，汉代王公贵族最钟爱之智戏。',
+    isLit: false,
+    pos: { x: 50, y: 72 },
   },
 ];
 
-// 3 Highlight Scenes
-const THREE_SCENES = [
-  { id: 'liubo', name: '六博对弈', x: 50, y: 25, hint: '六博棋局·博弈胜负' },
-  { id: 'tiaowan', name: '跳丸绝技', x: 28, y: 65, hint: '七彩飞丸·飞跃空中' },
-  { id: 'qipan', name: '七盘舞姿', x: 75, y: 70, hint: '七盘一鼓·足踏星云' },
+const DIALOGUES_START: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '【嚼嚼嚼……黑夜里连烛火都不会再有了……六博残局永远死在这里吧……】',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '好黑。我只记得百戏很热闹，有鼓，有长索，还有……六博的棋子声。',
+  },
+  {
+    speaker: 'pushou',
+    speakerName: '鎏金铜铺首',
+    text: '提灯照亮三处壁画，看清动作，再按舞人的步法走完六博残局。',
+  },
+];
+
+const DIALOGUES_RESTORED: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '吱吱吱，这里净化了，快退至墓穴深处……！',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '盘鼓乐动，六博局开！第四块衣摆碎片重聚了！',
+  },
 ];
 
 export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
@@ -32,253 +85,226 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [isLanternLit, setIsLanternLit] = useState<boolean>(false);
-  const [lanternPos, setLanternPos] = useState<{ x: number; y: number }>({ x: 50, y: 85 });
-  const [revealedScenes, setRevealedScenes] = useState<string[]>([]);
+  const [scenes, setScenes] = useState<BaixiScene[]>(INITIAL_SCENES);
+  const [currentStep, setCurrentStep] = useState<number>(0); // 0 to 6 for liubo
   const [showDialogue, setShowDialogue] = useState<boolean>(true);
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
+  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
   const [showCorruption, setShowCorruption] = useState<boolean>(false);
   const [showMemoryVideo, setShowMemoryVideo] = useState<boolean>(false);
-  const [boardStep, setBoardStep] = useState<number>(0); // 0 to 6 steps
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    soundFX.playCrawlerScurry();
+  }, []);
 
-  const handleLightLantern = () => {
+  const litCount = scenes.filter((s) => s.isLit).length;
+
+  const handleLightScene = (id: string) => {
     soundFX.playStoneDrum();
-    setIsLanternLit(true);
-    soundFX.playWindLeaves();
+    soundFX.playBronzeChime();
+    setScenes((prev) =>
+      prev.map((s) => (s.id === id ? { ...s, isLit: true } : s))
+    );
   };
 
-  const handleMoveLantern = (clientX: number, clientY: number) => {
-    if (!isLanternLit || !containerRef.current) return;
-    const rect = containerRef.current.getBoundingClientRect();
-    const xPct = Math.max(0, Math.min(100, ((clientX - rect.left) / rect.width) * 100));
-    const yPct = Math.max(0, Math.min(100, ((clientY - rect.top) / rect.height) * 100));
-    setLanternPos({ x: xPct, y: yPct });
+  const handleLiuboStep = (stepIdx: number) => {
+    if (litCount < 3) {
+      soundFX.playGlitchStatic();
+      setShowCorruption(true);
+      setTimeout(() => setShowCorruption(false), 1200);
+      return;
+    }
 
-    // Check proximity to 3 scenes
-    THREE_SCENES.forEach((sc) => {
-      const dist = Math.hypot(sc.x - xPct, sc.y - yPct);
-      if (dist < 18 && !revealedScenes.includes(sc.id)) {
+    if (stepIdx === currentStep + 1) {
+      soundFX.playStoneDrum();
+      setCurrentStep(stepIdx);
+
+      if (stepIdx === 6) {
         soundFX.playBronzeChime();
-        const next = [...revealedScenes, sc.id];
-        setRevealedScenes(next);
-
-        if (next.length === 3) {
-          // Trigger Video after revealing all 3 scenes
-          setTimeout(() => {
-            setShowMemoryVideo(true);
-          }, 800);
-        }
-      }
-    });
-  };
-
-  // Six-step Liubo board click solver (1 -> 2 -> 3 -> 4 -> 5 -> 6)
-  const handleBoardClick = (stepIndex: number) => {
-    soundFX.playStoneDrum();
-
-    if (stepIndex === boardStep + 1) {
-      const nextStep = boardStep + 1;
-      setBoardStep(nextStep);
-      soundFX.playBronzeChime();
-
-      if (nextStep === 6) {
         soundFX.playMemoryRestore();
         setIsSuccess(true);
         onUnlockFragment();
+        setActiveDialogues(DIALOGUES_RESTORED);
+        setDialogueIdx(0);
+        setShowDialogue(true);
       }
     } else {
       soundFX.playGlitchStatic();
       soundFX.playInsectEating();
       setShowCorruption(true);
-      setTimeout(() => setShowCorruption(false), 1400);
+      setTimeout(() => setShowCorruption(false), 1200);
     }
   };
 
   return (
-    <div className="relative w-full h-full bg-[#140e0a] text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none">
+    <div className={`relative w-full h-full text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
+      isSuccess ? 'bg-[#18110a]' : 'bg-[#0a0705]'
+    }`}>
       <GlitchCorruptionOverlay
         isVisible={showCorruption}
-        message="棋子退回 · 玉舞人：“再看一次，他们每人走了三步。”"
+        message="六博步法走乱 · 需先点亮三处百戏再按 1-6 顺序踏出步法"
       />
 
       {/* Top Bar */}
-      <div className="p-2.5 bg-[#20150e] border-b border-[#3d2b1f] flex items-center justify-between z-10 shadow-md">
+      <div className="p-2.5 bg-[#17100b] border-b border-[#3d2b1f] flex items-center justify-between z-10 shadow-md">
         <div>
           <span className="text-[8px] tracking-[0.25em] uppercase text-[#a3805d] font-mono">
-            CHAPTER 4 · BAIXI LANTERN PUZZLE
+            CHAPTER 4 · BAIXI ACROBATICS
           </span>
           <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
-            第四关 · 百戏 (烛光照壁画与六博)
+            第四关 · 百戏 (灯照三景与六博)
           </h2>
         </div>
 
-        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#2a1a0f] text-[#ffe89c] border border-[#5c4033]">
-          图景已照亮 {revealedScenes.length}/3 · 六博 {boardStep}/6
-        </span>
+        <div className="flex items-center gap-1 text-[9px] font-mono bg-[#24170d] px-2 py-0.5 rounded-full border border-amber-800 text-amber-300">
+          <span>点亮 {litCount}/3 · 六博 {currentStep}/6</span>
+        </div>
       </div>
 
-      {/* Main Image Brick Stage with Dark Mask */}
-      <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-between p-3">
-        <div
-          ref={containerRef}
-          onMouseMove={(e) => isLanternLit && handleMoveLantern(e.clientX, e.clientY)}
-          onTouchMove={(e) => {
-            if (isLanternLit && e.touches[0]) {
-              handleMoveLantern(e.touches[0].clientX, e.touches[0].clientY);
-            }
-          }}
-          className="relative w-full flex-1 rounded-3xl bg-[#0a0705] border-2 border-[#5c4033] overflow-hidden flex items-center justify-center shadow-2xl touch-none"
-        >
-          {/* Base Han Image Brick Artwork */}
+      {/* Main Lantern & Liubo Interactive Canvas */}
+      <div className="flex-1 relative overflow-hidden flex flex-col justify-between p-3">
+        {/* Upper Canvas: Darkened Tomb Wall with 3 Lantern Spotlights */}
+        <div className={`relative w-full flex-1 rounded-3xl border-2 transition-all duration-700 overflow-hidden flex flex-col items-center justify-center shadow-2xl p-2 ${
+          isSuccess
+            ? 'bg-[#1e130a] border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+            : 'bg-[#0c0805] border-[#3d2b1f]'
+        }`}>
+          {/* Faint Baixi Mural Background */}
           <div
-            className="absolute inset-0 bg-cover bg-center opacity-85 filter contrast-125"
+            className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
+              litCount === 3 ? 'opacity-80 brightness-110 contrast-110' : 'opacity-20 grayscale'
+            }`}
             style={{ backgroundImage: `url(${ASSETS.lifeScroll})` }}
           />
 
-          {/* Dark Overlay with Dynamic Radial Lantern Cutout */}
-          <div
-            className="absolute inset-0 pointer-events-none transition-all"
-            style={{
-              background: isLanternLit
-                ? `radial-gradient(circle 90px at ${lanternPos.x}% ${lanternPos.y}%, transparent 0%, rgba(5,3,2,0.92) 80%)`
-                : 'rgba(5,3,2,0.95)',
-            }}
-          />
-
-          {/* 3 Hotspot Scene Markers */}
-          {THREE_SCENES.map((sc) => {
-            const isRev = revealedScenes.includes(sc.id);
-            return (
+          {/* 3 Clickable Lantern Spotlights */}
+          {scenes.map((scene) => (
+            <div
+              key={scene.id}
+              onClick={() => handleLightScene(scene.id)}
+              style={{ left: `${scene.pos.x}%`, top: `${scene.pos.y}%` }}
+              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 group"
+            >
               <div
-                key={sc.id}
-                style={{ left: `${sc.x}%`, top: `${sc.y}%` }}
-                className={`absolute -translate-x-1/2 -translate-y-1/2 p-2 rounded-2xl border-2 transition-all flex flex-col items-center z-20 ${
-                  isRev
-                    ? 'bg-[#1b2a1e]/90 border-[#88b598] shadow-[0_0_15px_#88b598] scale-105'
-                    : 'bg-black/70 border-[#5c4033] opacity-40'
+                className={`p-2 rounded-2xl border-2 transition-all flex flex-col items-center shadow-xl ${
+                  scene.isLit
+                    ? 'bg-amber-950/90 border-[#ffe89c] text-[#ffe89c] shadow-[0_0_20px_rgba(255,232,156,0.5)] scale-105'
+                    : 'bg-black/80 border-[#5c4033] text-[#8c7561] hover:border-amber-500 animate-pulse'
                 }`}
               >
-                <div className="text-[10px] font-black text-[#ffe89c] font-serif">
-                  {sc.name}
+                <div className="flex items-center gap-1">
+                  <Flame
+                    className={`w-4 h-4 ${
+                      scene.isLit ? 'text-amber-400 fill-amber-400 animate-bounce' : 'text-[#8c7561]'
+                    }`}
+                  />
+                  <span className="text-[10px] font-black">{scene.name}</span>
                 </div>
-                <div className="text-[8px] text-[#cdeacd] font-mono">{sc.hint}</div>
-                {isRev && <CheckCircle2 className="w-3 h-3 text-[#88b598] mt-0.5" />}
+                {scene.isLit && (
+                  <p className="text-[8px] text-emerald-300 mt-1 max-w-[130px] leading-tight text-center">
+                    {scene.desc}
+                  </p>
+                )}
               </div>
-            );
-          })}
-
-          {/* Floating Lantern Cursor icon */}
-          {isLanternLit && (
-            <div
-              style={{ left: `${lanternPos.x}%`, top: `${lanternPos.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 pointer-events-none z-30 flex flex-col items-center animate-pulse"
-            >
-              <div className="w-10 h-10 rounded-full bg-amber-500/20 border-2 border-amber-300 flex items-center justify-center shadow-[0_0_20px_#f59e0b]">
-                <Flame className="w-6 h-6 text-amber-300" />
-              </div>
-              <span className="text-[8px] font-mono text-amber-200 bg-black/70 px-1.5 rounded mt-0.5">
-                拖动照亮壁画
-              </span>
             </div>
-          )}
+          ))}
+
+          {/* Instruction */}
+          <div className="absolute bottom-2 inset-x-2 text-center text-[9px] text-[#a3805d] bg-black/60 py-0.5 rounded-full border border-[#3d2b1f]/50">
+            {litCount < 3
+              ? '点击提灯逐一照亮 3 处百戏场景（盘鼓舞、倒立走索、六博对弈）'
+              : '三景已照亮！点击下方按 1-6 步法走通六博残局'}
+          </div>
         </div>
 
-        {/* Bottom Six-step Liubo Board or Lantern Lighter */}
-        <div className="w-full mt-2.5 z-10 space-y-2">
-          {!isLanternLit ? (
-            <button
-              onClick={handleLightLantern}
-              className="w-full py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5"
-            >
-              <Flame className="w-4 h-4 text-amber-400 animate-bounce" />
-              <span>点击灯笼点火 · 拖动光圈照亮三处百戏残景</span>
-            </button>
-          ) : revealedScenes.length >= 3 ? (
-            // 6-step Liubo Game Steps
-            <div className="bg-[#1c130d] border-2 border-[#5c4033] p-2.5 rounded-2xl shadow-xl space-y-2">
-              <div className="flex items-center justify-between text-[10px] text-[#ffe89c] font-serif">
-                <span>根据视频提示完成六博残局：一对舞人各走三步 (共六步)</span>
-                <span className="font-mono text-[#88b598]">已完成 {boardStep}/6</span>
-              </div>
+        {/* Lower Liubo 6-Step Track */}
+        <div className="w-full mt-2 bg-[#17100b] border-2 border-[#3d2b1f] rounded-2xl p-2.5 shadow-xl space-y-1.5 z-10">
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black text-[#ffe89c] flex items-center gap-1">
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>六博残局 · 舞步六进</span>
+            </span>
+            <span className="text-[8px] font-mono text-[#a3805d]">
+              依次点击 1 至 6 号步位
+            </span>
+          </div>
 
-              {/* 6 Step Buttons */}
-              <div className="grid grid-cols-6 gap-1.5">
-                {[1, 2, 3, 4, 5, 6].map((num) => {
-                  const isDone = boardStep >= num;
-                  const isNext = boardStep + 1 === num;
+          <div className="grid grid-cols-6 gap-1.5">
+            {[1, 2, 3, 4, 5, 6].map((step) => {
+              const isFinished = step <= currentStep;
+              const isNext = step === currentStep + 1;
 
-                  return (
-                    <button
-                      key={num}
-                      onClick={() => handleBoardClick(num)}
-                      className={`py-2 rounded-xl border font-serif font-black text-xs transition-all ${
-                        isDone
-                          ? 'bg-[#1a382b] border-[#68d391] text-[#e8f8ec] shadow-md'
-                          : isNext
-                          ? 'bg-amber-700/80 border-[#ffe89c] text-white animate-pulse'
-                          : 'bg-[#140e0a] border-[#3d2b1f] text-[#a3805d]'
-                      }`}
-                    >
-                      第{num}步
-                    </button>
-                  );
-                })}
-              </div>
-
-              {isSuccess && (
+              return (
                 <button
-                  onClick={() => {
-                    soundFX.playStoneDrum();
-                    onNextPage();
-                  }}
-                  className="w-full py-2 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-xl border border-[#d2b48c] text-xs shadow-md mt-1"
+                  key={step}
+                  onClick={() => handleLiuboStep(step)}
+                  disabled={isSuccess || litCount < 3}
+                  className={`h-10 rounded-xl border-2 font-serif font-black text-xs transition-all flex flex-col items-center justify-center ${
+                    isFinished
+                      ? 'bg-emerald-900 border-emerald-400 text-white shadow-[0_0_10px_#34d399]'
+                      : isNext && litCount === 3
+                      ? 'bg-amber-600 border-[#ffe89c] text-white animate-bounce'
+                      : 'bg-[#0f0a07] border-[#2b1b12] text-[#6b4c35]'
+                  }`}
                 >
-                  百戏画像已全面复活 · 进入第五关
+                  <span>{step}</span>
+                  <span className="text-[7px] font-mono opacity-80">步</span>
                 </button>
-              )}
-            </div>
-          ) : (
-            <div className="p-2 text-center text-[10px] text-[#a3805d] bg-[#140e0a] rounded-xl border border-[#3d2b1f]">
-              滑动手指拖动烛光光圈，依次寻找并照亮：六博棋、跳丸表演、七盘舞
-            </div>
-          )}
+              );
+            })}
+          </div>
         </div>
+
+        {/* Action Button */}
+        {isSuccess && (
+          <div className="w-full mt-2 z-10">
+            <button
+              onClick={() => {
+                soundFX.playStoneDrum();
+                setShowMemoryVideo(true);
+              }}
+              className="w-full py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-serif font-black rounded-2xl border-2 border-emerald-400 text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 animate-pulse"
+            >
+              <Sparkles className="w-4 h-4 text-emerald-200" />
+              <span>衣摆碎片已归位 · 查看百戏乐舞视频</span>
+            </button>
+          </div>
+        )}
       </div>
 
-      {/* Memory Video Modal (百戏记忆) */}
+      {/* Video Modal with VideoPlayerPlaceholder (百戏乐舞视频) */}
       {showMemoryVideo && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 animate-fade-in">
-          <div className="text-center mt-4">
-            <span className="text-[9px] font-mono text-[#88b598] tracking-widest bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
-              MEMORY VIDEO · 百戏六博记忆
+        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 animate-fade-in font-serif select-none">
+          <div className="text-center mt-3">
+            <span className="text-[9px] font-mono text-emerald-300 tracking-widest bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
+              MEMORY VIDEO · 第四块碎片归位
             </span>
-            <h3 className="text-base font-black text-[#ffe89c] mt-2 font-serif">
-              一对玉舞人各走三步 · 共六步破残局
+            <h3 className="text-base font-black text-[#ffe89c] mt-2">
+              百戏记忆 · 盘鼓踏歌，六博定局
             </h3>
           </div>
 
-          <div className="relative w-full max-w-xs aspect-[3/4] rounded-3xl overflow-hidden border-2 border-amber-600 shadow-2xl bg-[#1c130d] flex items-center justify-center p-4">
-            <div className="text-center space-y-3">
-              <div className="w-20 h-20 rounded-full bg-[#2a1a0f] border-4 border-amber-500 mx-auto flex items-center justify-center text-xl font-black text-amber-300">
-                1 → 6
-              </div>
-              <p className="text-[11px] text-[#e8f8ec] font-serif leading-relaxed">
-                “舞者扬袖翻飞，在六博棋盘上依次踏出六步玄妙步法（舞人甲走 1, 2, 3；舞人乙走 4, 5, 6）。”
-              </p>
-            </div>
+          <div className="w-full max-w-xs">
+            <VideoPlayerPlaceholder
+              title="【汉代百戏 · 盘鼓与杂技】"
+              subtitle="16:9 汉代百戏复原演艺"
+              videoSrc="/assets/videos/dance_baixi.mp4"
+              posterImage={ASSETS.lifeScroll}
+              description="舞者踏盘而歌，杂技倒立寻橦，伴随六博行子，展现汉代盛大生动的百戏艺术。"
+              videoAssetPathHint="src/assets/videos/dance_baixi.mp4"
+            />
           </div>
 
           <button
             onClick={() => {
               soundFX.playStoneDrum();
               setShowMemoryVideo(false);
+              onNextPage();
             }}
-            className="w-full max-w-xs py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1"
+            className="w-full max-w-xs py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1"
           >
-            <span>返回画像砖 · 按顺序走出六步残局</span>
+            <span>进入第五关 · 袖舞</span>
           </button>
         </div>
       )}
@@ -286,16 +312,16 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
       {/* Story Dialogue */}
       {showDialogue && (
         <DialogueSystem
-          dialogues={DIALOGUES_4}
+          dialogues={activeDialogues}
           currentIndex={dialogueIdx}
           onNext={() => {
-            if (dialogueIdx < DIALOGUES_4.length - 1) {
+            if (dialogueIdx < activeDialogues.length - 1) {
               setDialogueIdx(dialogueIdx + 1);
             } else {
               setShowDialogue(false);
             }
           }}
-          restorationLevel={4}
+          restorationLevel={isSuccess ? 4 : 3}
         />
       )}
     </div>

@@ -19,6 +19,7 @@ import {
   Info,
   X,
   Compass,
+  Home,
 } from 'lucide-react';
 
 interface PhoneFrameProps {
@@ -39,8 +40,8 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [showHuangchangModal, setShowHuangchangModal] = useState(false);
 
+  // Bottom navigation items (7 stages + epilogue)
   const sections: { key: SectionKey; name: string; icon: React.ReactNode; desc: string }[] = [
-    { key: 'prologue_sand', name: '序章', icon: <Sparkles className="w-3.5 h-3.5" />, desc: '尘沙显现·玉舞人' },
     { key: 'weapon', name: '戈影', icon: <Shield className="w-3.5 h-3.5" />, desc: '第一关·武舞之器' },
     { key: 'banquet', name: '宴乐', icon: <Gem className="w-3.5 h-3.5" />, desc: '第二关·相机取景' },
     { key: 'gallery', name: '浮游', icon: <Eye className="w-3.5 h-3.5" />, desc: '第三关·五列上浮' },
@@ -48,7 +49,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
     { key: 'funerary', name: '袖舞', icon: <Wind className="w-3.5 h-3.5" />, desc: '第五关·送葬礼仪' },
     { key: 'huangchang', name: '木阵', icon: <Hammer className="w-3.5 h-3.5" />, desc: '第六关·15880木构' },
     { key: 'ascension', name: '星路', icon: <Star className="w-3.5 h-3.5" />, desc: '第七关·四象聚合' },
-    { key: 'epilogue_card', name: '终章', icon: <RotateCcw className="w-3.5 h-3.5" />, desc: '终章·见证者纪念卡' },
+    { key: 'epilogue_card', name: '终章', icon: <RotateCcw className="w-3.5 h-3.5" />, desc: '终章·时空见证卡' },
   ];
 
   const handleToggleMute = () => {
@@ -69,38 +70,48 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
 
       {/* Top Header Control Bar for App Metadata & Mode */}
       <header className="w-full max-w-md md:max-w-4xl flex items-center justify-between mb-2.5 px-3.5 py-2 bg-[#1c130d] backdrop-blur-md rounded-2xl border border-[#3d2b1f] shadow-xl z-30">
-        <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-[#291b12] flex items-center justify-center font-serif text-[#ffe89c] font-black text-base border border-[#d2b48c]/40 shadow-inner title-drop-shadow">
-            葆
-          </div>
-          <div>
+        <div className="flex items-center gap-2">
+          {/* Top-left "回首页" Button */}
+          <button
+            onClick={() => {
+              soundFX.playStoneDrum();
+              onSelectSection('prologue_sand');
+            }}
+            className="px-2.5 py-1.5 rounded-xl bg-[#291b12] hover:bg-[#3d2b1f] text-[#ffe89c] border border-amber-600/70 shadow-md flex items-center gap-1.5 active:scale-95 transition-all group"
+            title="回到大葆台外景与首页"
+          >
+            <Home className="w-3.5 h-3.5 text-amber-400 group-hover:scale-110 transition-transform" />
+            <span className="text-xs font-black font-serif">回首页</span>
+          </button>
+
+          <div className="hidden sm:block pl-1">
             <div className="flex items-center gap-2">
               <span className="text-[8px] tracking-[0.25em] uppercase opacity-70 text-[#c2a385] font-mono">
                 RULE TALES · DABAOTAI
               </span>
               <span className="text-[8px] px-1.5 py-0.2 rounded bg-[#291b12] text-amber-300 border border-[#5c4033]">
-                轻量交互小游戏
+                移动端交互小游戏
               </span>
             </div>
-            <h1 className="text-xs sm:text-sm font-black text-[#e6d5b8] tracking-widest font-serif title-drop-shadow flex items-center gap-1.5">
+            <h1 className="text-xs sm:text-sm font-black text-[#e6d5b8] tracking-widest font-serif title-drop-shadow">
               规则怪谈降临大葆台
             </h1>
           </div>
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Strata Map Button */}
+          {/* Map Directory Button (地图目录) */}
           {onOpenMapModal && (
             <button
               onClick={() => {
                 soundFX.playStoneDrum();
                 onOpenMapModal();
               }}
-              className="p-1.5 bg-[#291b12] hover:bg-[#3d2b1f] text-[#ffe89c] rounded-xl border border-[#5c4033] text-xs transition-colors flex items-center gap-1 shadow-md font-bold"
-              title="查看七关时空地脉图"
+              className="p-1.5 px-2.5 bg-[#291b12] hover:bg-[#3d2b1f] text-[#ffe89c] rounded-xl border border-amber-600/80 text-xs transition-colors flex items-center gap-1.5 shadow-md font-bold active:scale-95"
+              title="打开三大展厅地图目录"
             >
-              <Compass className="w-3.5 h-3.5 text-[#ffe89c]" />
-              <span className="hidden sm:inline font-serif text-[11px]">七关地图</span>
+              <Compass className="w-3.5 h-3.5 text-amber-400" />
+              <span className="font-serif text-[11px]">地图目录</span>
             </button>
           )}
 
@@ -114,7 +125,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
             title="查看汉代黄肠题凑考工"
           >
             <Hammer className="w-3.5 h-3.5 text-[#d2b48c]" />
-            <span className="hidden sm:inline font-serif text-[11px]">题凑考工</span>
+            <span className="hidden md:inline font-serif text-[11px]">题凑考工</span>
           </button>
 
           {/* Mute toggle button */}
@@ -143,7 +154,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
           <button
             onClick={() => setShowInfoModal(true)}
             className="p-1.5 bg-[#1a120b] hover:bg-[#2c1d12] text-[#d2b48c] rounded-xl border border-[#3d2b1f] text-xs transition-colors"
-            title="查看关于与规则怪谈指南"
+            title="查看剧本规则与指南"
           >
             <Info className="w-3.5 h-3.5" />
           </button>
@@ -188,7 +199,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
                   soundFX.playStoneDrum();
                   onSelectSection(item.key);
                 }}
-                className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl transition-all duration-200 shrink-0 min-w-[48px] ${
+                className={`flex flex-col items-center justify-center py-1 px-1.5 rounded-xl transition-all duration-200 shrink-0 min-w-[45px] ${
                   isActive
                     ? 'text-[#ffe89c] bg-[#291b12] border border-[#d2b48c] shadow-md scale-105 font-bold'
                     : 'text-[#8c7561] hover:text-[#d2b48c] hover:bg-[#1a120b]'
@@ -212,7 +223,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
           <div className="bg-[#1c130d] border-2 border-[#5c4033] rounded-3xl max-w-md w-full p-6 text-[#d2b48c] relative shadow-2xl space-y-3">
             <h2 className="text-sm sm:text-base font-black font-serif text-[#ffe89c] flex items-center gap-2 border-b border-[#3d2b1f] pb-2 tracking-wider title-drop-shadow">
               <Sparkles className="w-4 h-4 text-amber-400" />
-              规则怪谈降临大葆台 · 游戏规则与玩法
+              规则怪谈降临大葆台 · 完整剧本与玩法指南
             </h2>
 
             <div className="space-y-2 text-xs leading-relaxed text-[#c2a385] max-h-[55vh] overflow-y-auto pr-1 font-serif">
@@ -221,12 +232,17 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
                 未来时空发生怪谈异变，蚀墓虫正在啃噬西汉大葆台博物馆的建筑与人们的记忆。玉舞人跌落七层时空，碎裂为七块记忆残片。
               </p>
               <p>
-                <strong className="text-[#ffe89c]">2. 七关解谜机制：</strong>
-                【戈影】选对大葆台武舞兵器 ➔ 【宴乐】相机取景对齐宴席 ➔ 【浮游】五列上浮辨识真品 ➔ 【百戏】烛光照壁与六步六博 ➔ 【袖舞】识别汉家送葬礼乐 ➔ 【木阵】输入 15880 考工密码 ➔ 【星路】顺应四象开辟星轨。
+                <strong className="text-[#ffe89c]">2. 三大展厅与七关机制：</strong>
+                <br />
+                ✦ <strong>【第一部分 · 北土汉邦】</strong>：第一关【戈影】选对大葆台武舞兵器。
+                <br />
+                ✦ <strong>【第二部分 · 长乐未央】</strong>：第二关【宴乐】相机对齐宴席 ➔ 第三关【浮游】辨识真品 ➔ 第四关【百戏】烛光照壁与六博。
+                <br />
+                ✦ <strong>【第三部分 · 事死如生】</strong>：第五关【袖舞】识别汉家礼乐 ➔ 第六关【木阵】输入 15880 考工密码 ➔ 第七关【星路】四象聚合开辟归途。
               </p>
               <p>
                 <strong className="text-[#ffe89c]">3. 终章救赎：</strong>
-                集齐 7 块碎片后，玉舞人完全体回归，玉色光华反冲七层空间，生成独一无二的时空见证者纪念卡！
+                集齐 7 块碎片后，玉舞人完全体回归，生成独一无二的时空见证者纪念卡！
               </p>
             </div>
 
@@ -234,7 +250,7 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
               onClick={() => setShowInfoModal(false)}
               className="mt-4 w-full py-2.5 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-bold rounded-xl border border-[#d2b48c] text-xs transition-colors shadow-lg"
             >
-              了解规则 · 进入冒险
+              了解剧本 · 进入冒险
             </button>
           </div>
         </div>

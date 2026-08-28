@@ -100,7 +100,7 @@ export const JadeProgressSilhouette: React.FC<JadeProgressSilhouetteProps> = ({
         className="px-2.5 py-1 bg-[#241a13] hover:bg-[#3d2b1f] text-[#d2b48c] border border-[#5c4033] rounded-xl text-[10px] font-serif flex items-center gap-1 transition-all active:scale-95 shadow-md"
       >
         <Map className="w-3 h-3 text-[#ffe89c]" />
-        <span>七关地图</span>
+        <span>地图目录</span>
       </button>
     </div>
   );

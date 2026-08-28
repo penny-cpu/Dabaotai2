@@ -333,6 +333,46 @@ class SoundEngine {
       // Ignore
     }
   }
+
+  /**
+   * Play crawling insect rustling / scurrying sound effect
+   */
+  public playCrawlerScurry() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const bufferSize = this.ctx.sampleRate * 0.45;
+      const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+      const data = buffer.getChannelData(0);
+      for (let i = 0; i < bufferSize; i++) {
+        data[i] = (Math.random() * 2 - 1) * (Math.sin(i * 0.08) > 0 ? 0.9 : -0.2);
+      }
+
+      const noise = this.ctx.createBufferSource();
+      noise.buffer = buffer;
+
+      const filter = this.ctx.createBiquadFilter();
+      filter.type = 'bandpass';
+      filter.frequency.setValueAtTime(2400, now);
+      filter.frequency.exponentialRampToValueAtTime(800, now + 0.4);
+      filter.Q.value = 3.5;
+
+      const gain = this.ctx.createGain();
+      gain.gain.setValueAtTime(0.25, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.45);
+
+      noise.connect(filter);
+      filter.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      noise.start(now);
+    } catch {
+      // Ignore
+    }
+  }
 }
 
 export const soundFX = new SoundEngine();

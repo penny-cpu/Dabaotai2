@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, CheckCircle2, RotateCcw, AlertTriangle, Play, Delete } from 'lucide-react';
+import { Sparkles, CheckCircle2, RotateCcw, AlertTriangle, Play, Delete, Hammer } from 'lucide-react';
 import { GlitchCorruptionOverlay } from './GlitchCorruptionOverlay';
 import { DialogueLine } from '../types';
 import { DialogueSystem } from './DialogueSystem';
@@ -13,16 +13,34 @@ interface Stage6HuangchangProps {
 
 const TARGET_CODE = ['1', '5', '5', '8', '0'];
 
-const DIALOGUES_6: DialogueLine[] = [
+const DIALOGUES_START: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '【嚼嚼嚼……一万多根柏木题凑，我们一根一根全啃烂……】',
+  },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '一根木头守不住墓室。让我请他们回来，一起告诉你答案。',
+    text: '一根木头守不住墓室。让我请他们回来，一起用舞姿告诉你答案。',
   },
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
-    text: '记住动作出现的先后，不要把同一个姿态拆成两个数字。',
+    text: '记住动作出现的先后，输入大葆台王陵 15880 考工密码，严密合拢柏木黄心。',
+  },
+];
+
+const DIALOGUES_RESTORED: DialogueLine[] = [
+  {
+    speaker: 'corruptor',
+    speakerName: '蚀墓虫',
+    text: '吱吱吱，这里净化了，快退至墓穴深处……！',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '黄肠题凑严丝合缝！第六块身体主体碎片已重聚！',
   },
 ];
 
@@ -34,9 +52,14 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
   const [inputDigits, setInputDigits] = useState<string[]>([]);
   const [showDialogue, setShowDialogue] = useState<boolean>(true);
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
+  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
   const [showCorruption, setShowCorruption] = useState<boolean>(false);
   const [showDanceVideo, setShowDanceVideo] = useState<boolean>(false);
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
+
+  useEffect(() => {
+    soundFX.playCrawlerScurry();
+  }, []);
 
   const handleDigitClick = (digit: string) => {
     soundFX.playStoneDrum();
@@ -54,13 +77,15 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
           soundFX.playMemoryRestore();
           setIsSuccess(true);
           onUnlockFragment();
+          setActiveDialogues(DIALOGUES_RESTORED);
+          setDialogueIdx(0);
+          setShowDialogue(true);
         } else {
           soundFX.playGlitchStatic();
           soundFX.playInsectEating();
           setShowCorruption(true);
           setTimeout(() => {
             setShowCorruption(false);
-            // Clear current erroneous slot
             setInputDigits([]);
           }, 1400);
         }
@@ -74,24 +99,28 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full bg-[#140e0a] text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none">
+    <div className={`relative w-full h-full text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
+      isSuccess ? 'bg-[#1c1209]' : 'bg-[#100a06]'
+    }`}>
       <GlitchCorruptionOverlay
         isVisible={showCorruption}
-        message="数字槽出现黑色裂纹并清空 · 蚀墓虫侵蚀木构密码"
+        message="题凑密码错误 · 数字槽已清空，请参照舞姿输入 1-5-5-8-0"
       />
 
       {/* Top Bar */}
       <div className="p-2.5 bg-[#20150e] border-b border-[#3d2b1f] flex items-center justify-between z-10 shadow-md">
         <div>
           <span className="text-[8px] tracking-[0.25em] uppercase text-[#a3805d] font-mono">
-            CHAPTER 6 · HUANGCHANG TIMBER ARRAY
+            CHAPTER 6 · HUANGCHANG TICOU
           </span>
           <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
-            第六关 · 木阵 (黄肠题凑 15880 考工)
+            第六关 · 题凑 (黄肠题凑 15880 考工)
           </h2>
         </div>
 
-        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#2a1a0f] text-[#88b598] border border-[#5c4033]">
+        <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
+          isSuccess ? 'bg-emerald-950 text-emerald-300 border-emerald-500' : 'bg-[#2a1a0f] text-[#88b598] border-[#5c4033]'
+        }`}>
           {isSuccess ? '木构已合拢 100%' : '密码输入中'}
         </span>
       </div>
@@ -99,7 +128,11 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
       {/* Main Timber Array Stage */}
       <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-between p-3">
         {/* Collapsing Huangchang Timbers & Rebuilding Visual Box */}
-        <div className="relative w-full h-44 rounded-3xl bg-[#1c130d] border-2 border-[#5c4033] overflow-hidden flex flex-col items-center justify-center p-3 shadow-2xl">
+        <div className={`relative w-full h-44 rounded-3xl border-2 transition-all duration-700 overflow-hidden flex flex-col items-center justify-center p-3 shadow-2xl ${
+          isSuccess
+            ? 'bg-[#26180e] border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
+            : 'bg-[#150e09] border-[#5c4033]'
+        }`}>
           {/* Timber Cross Section Graphic Grid */}
           <div className="grid grid-cols-8 gap-1.5 opacity-80">
             {Array.from({ length: 24 }).map((_, idx) => (
@@ -185,7 +218,7 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
               soundFX.playStoneDrum();
               onNextPage();
             }}
-            className="w-full mt-2 py-2.5 bg-[#1b2a1e] hover:bg-[#253d2b] text-[#88b598] font-serif font-black rounded-2xl border-2 border-[#88b598] text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 z-20"
+            className="w-full mt-2 py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-serif font-black rounded-2xl border-2 border-emerald-400 text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 z-20 animate-pulse"
           >
             <span>第六块碎片归位 · 前往第七关星路</span>
           </button>
@@ -230,16 +263,16 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
       {/* Story Dialogue */}
       {showDialogue && (
         <DialogueSystem
-          dialogues={DIALOGUES_6}
+          dialogues={activeDialogues}
           currentIndex={dialogueIdx}
           onNext={() => {
-            if (dialogueIdx < DIALOGUES_6.length - 1) {
+            if (dialogueIdx < activeDialogues.length - 1) {
               setDialogueIdx(dialogueIdx + 1);
             } else {
               setShowDialogue(false);
             }
           }}
-          restorationLevel={6}
+          restorationLevel={isSuccess ? 6 : 5}
         />
       )}
     </div>
