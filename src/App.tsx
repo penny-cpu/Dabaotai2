@@ -6,42 +6,38 @@
 import React, { useState } from 'react';
 import { SectionKey, JadeFragmentId, UserInteractionTrackPoint } from './types';
 import { PhoneFrame } from './components/PhoneFrame';
-import { PrologueSand } from './components/PrologueSand';
-import { PrologueGlitch } from './components/PrologueGlitch';
-import { PrologueGate } from './components/PrologueGate';
+import { PrologueFlow } from './components/PrologueFlow';
 import { Stage1Weapon } from './components/Stage1Weapon';
 import { Stage2Banquet } from './components/Stage2Banquet';
+import { JadeSphereInteractive } from './components/JadeSphereInteractive';
 import { Stage3Gallery } from './components/Stage3Gallery';
 import { Stage4Baixi } from './components/Stage4Baixi';
 import { Stage5Funerary } from './components/Stage5Funerary';
 import { Stage6Huangchang } from './components/Stage6Huangchang';
 import { Stage7Ascension } from './components/Stage7Ascension';
-import { EpilogueEnding } from './components/EpilogueEnding';
-import { JadeProgressSilhouette } from './components/JadeProgressSilhouette';
 import { VerticalSevenMapModal } from './components/VerticalSevenMapModal';
+import { RightTopActions } from './components/RightTopActions';
 import { soundFX } from './utils/soundEngine';
 
 const SECTION_ORDER: SectionKey[] = [
-  'prologue_sand',
-  'prologue_glitch',
-  'prologue_gate',
+  'prologue_flow',
   'weapon',
   'banquet',
+  'jade_sphere',
   'gallery',
   'baixi',
   'funerary',
   'huangchang',
   'ascension',
-  'epilogue_card',
 ];
 
 export default function App() {
-  const [activeSection, setActiveSection] = useState<SectionKey>('prologue_sand');
+  const [activeSection, setActiveSection] = useState<SectionKey>('prologue_flow');
   const [unlockedFragments, setUnlockedFragments] = useState<JadeFragmentId[]>([]);
   const [trackPoints, setTrackPoints] = useState<UserInteractionTrackPoint[]>([]);
   const [showMapModal, setShowMapModal] = useState<boolean>(false);
 
-  // Track User Interaction Points for Postcard S-Curve Generation
+  // Track User Interaction Points
   const handleTrackAction = (x: number, y: number, action: 'tap' | 'scratch' | 'photo' | 'drag' | 'solve' = 'tap') => {
     setTrackPoints((prev) => [
       ...prev,
@@ -62,32 +58,15 @@ export default function App() {
 
   const handleNextSection = (currentKey: SectionKey) => {
     const currIdx = SECTION_ORDER.indexOf(currentKey);
-    const nextKey = currIdx < SECTION_ORDER.length - 1 ? SECTION_ORDER[currIdx + 1] : 'prologue_sand';
+    const nextKey = currIdx < SECTION_ORDER.length - 1 ? SECTION_ORDER[currIdx + 1] : 'prologue_flow';
     triggerSectionChange(nextKey);
   };
 
-  const isPrologue = activeSection === 'prologue_sand' || activeSection === 'prologue_glitch' || activeSection === 'prologue_gate';
-  const isEpilogue = activeSection === 'epilogue_card' || activeSection === 'epilogue_dance';
-
   const renderActivePage = () => {
     switch (activeSection) {
-      case 'prologue_sand':
+      case 'prologue_flow':
         return (
-          <PrologueSand
-            onStartGlitch={() => setActiveSection('prologue_glitch')}
-            onOpenMap={() => setShowMapModal(true)}
-            onTrackAction={(x, y, act) => handleTrackAction(x, y, act)}
-          />
-        );
-      case 'prologue_glitch':
-        return (
-          <PrologueGlitch
-            onComplete={() => setActiveSection('prologue_gate')}
-          />
-        );
-      case 'prologue_gate':
-        return (
-          <PrologueGate
+          <PrologueFlow
             onStartChapter1={() => setActiveSection('weapon')}
           />
         );
@@ -105,6 +84,12 @@ export default function App() {
             onUnlockFragment={() => handleUnlockFragment('frag_chest_pendant')}
             onNextPage={() => handleNextSection('banquet')}
             isUnlocked={unlockedFragments.includes('frag_chest_pendant')}
+          />
+        );
+      case 'jade_sphere':
+        return (
+          <JadeSphereInteractive
+            onComplete={() => setActiveSection('gallery')}
           />
         );
       case 'gallery':
@@ -143,26 +128,17 @@ export default function App() {
         return (
           <Stage7Ascension
             onUnlockFragment={() => handleUnlockFragment('frag_head_halo')}
-            onGoToEpilogue={() => setActiveSection('epilogue_card')}
-            isUnlocked={unlockedFragments.includes('frag_head_halo')}
-          />
-        );
-      case 'epilogue_card':
-      case 'epilogue_dance':
-        return (
-          <EpilogueEnding
-            trackPoints={trackPoints}
             onRestart={() => {
               setUnlockedFragments([]);
-              setActiveSection('prologue_sand');
+              setActiveSection('prologue_flow');
             }}
+            isUnlocked={unlockedFragments.includes('frag_head_halo')}
           />
         );
       default:
         return (
-          <PrologueSand
-            onStartGlitch={() => setActiveSection('prologue_glitch')}
-            onTrackAction={(x, y, act) => handleTrackAction(x, y, act)}
+          <PrologueFlow
+            onStartChapter1={() => setActiveSection('weapon')}
           />
         );
     }
@@ -178,11 +154,14 @@ export default function App() {
         onClick={(e) => handleTrackAction(e.clientX, e.clientY, 'tap')}
         className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#0d0906]"
       >
-        {/* Top Jade Progress Bar & Map Trigger (Visible throughout chapters 1-7) */}
-        {!isPrologue && (
-          <JadeProgressSilhouette
-            unlockedFragments={unlockedFragments}
-            onOpenMap={() => setShowMapModal(true)}
+        {/* Top Right Circular Actions: 地图目录 & 记忆碎片 */}
+        {activeSection !== 'prologue_flow' && (
+          <RightTopActions
+            currentChapterKey={activeSection}
+            unlockedCount={unlockedFragments.length}
+            totalChapters={7}
+            unlockedCardIds={unlockedFragments}
+            onOpenMapModal={() => setShowMapModal(true)}
           />
         )}
 

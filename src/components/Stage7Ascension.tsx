@@ -1,240 +1,311 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, CheckCircle2, RotateCw, AlertTriangle, ArrowRight } from 'lucide-react';
-import { GlitchCorruptionOverlay } from './GlitchCorruptionOverlay';
+import { Sparkles, CheckCircle2, Play, ArrowRight, RotateCcw, Star, Compass } from 'lucide-react';
 import { DialogueLine } from '../types';
-import { DialogueSystem } from './DialogueSystem';
+import { UnifiedDialogueBox } from './UnifiedDialogueBox';
+import { RightTopActions } from './RightTopActions';
 
 interface Stage7AscensionProps {
   onUnlockFragment: () => void;
-  onGoToEpilogue: () => void;
+  onRestart: () => void;
   isUnlocked: boolean;
 }
 
-const FOUR_SYMBOLS = [
-  { id: 'dragon', name: '青龙 (东)', dir: '东', correctOrder: 1, color: '#38bdf8' },
-  { id: 'bird', name: '朱雀 (南)', dir: '南', correctOrder: 2, color: '#f87171' },
-  { id: 'tiger', name: '白虎 (西)', dir: '西', correctOrder: 3, color: '#facc15' },
-  { id: 'tortoise', name: '玄武 (北)', dir: '北', correctOrder: 4, color: '#4ade80' },
+interface ConstellationStar {
+  id: string;
+  name: string;
+  x: number; // percentage 0-100
+  y: number;
+  sequence: number; // 0, 1, 2, 3, 4
+}
+
+const STARS: ConstellationStar[] = [
+  { id: 'dou', name: '斗宿', x: 22, y: 32, sequence: 0 },
+  { id: 'nv', name: '女宿', x: 40, y: 22, sequence: 1 },
+  { id: 'xu', name: '虚宿', x: 62, y: 32, sequence: 2 },
+  { id: 'wei', name: '危宿', x: 78, y: 50, sequence: 3 },
+  { id: 'jiao', name: '角宿', x: 50, y: 72, sequence: 4 },
 ];
 
-const DIALOGUES_START: DialogueLine[] = [
+const DIALOGUES_STAGE7_INTRO: DialogueLine[] = [
   {
-    speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '【嚼嚼嚼……四象星图马上要被黑暗遮蔽了……你们再也回不去了……】',
+    speaker: 'narrator',
+    speakerName: '旁白',
+    text: '在汉代人的宇宙里，生命并未在墓中终结。他们相信人死后，灵魂会进入更广阔的世界，甚至升入星宿与仙境。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我全部想起来了。我来自西汉广阳国，在这里跳过两千年的舞。',
-  },
-  {
-    speaker: 'pushou',
-    speakerName: '鎏金铜铺首',
-    text: '星路已开。顺应东苍龙、南朱鸟、西白虎、北玄武，连通四象开启时空归途。',
+    text: '我好像想起来了……我们被放入墓室，不是为了被遗忘，而是为了在另一个世界继续起舞、继续陪伴。可最后这一步，还需要把星辰连起来。',
   },
 ];
 
-const DIALOGUES_RESTORED: DialogueLine[] = [
-  {
-    speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '吱吱吱，全境净化了！墓穴深处已无容身之所，蚀墓之障溃散……！',
-  },
+const DIALOGUES_STAGE7_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '七块记忆碎片全部合一！天地星轨连通，我们战胜了规则怪谈！',
+    text: '星宿连成了路。我想起了一切——我属于王后组玉佩，曾在广阳国的宴乐中起舞，也曾伴随他们走过送葬与永恒。原来汉代人对待死亡，并不只有悲伤，还有对生命延续的浪漫想象。',
+  },
+];
+
+const DIALOGUES_STAGE7_EPILOGUE: DialogueLine[] = [
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '谢谢你，陪我找回了所有的记忆。我是大葆台汉墓的玉舞人。两千年前的广阳国已经远去，但只要还有人记得这些舞蹈与器物，大汉的生命就不会真正沉睡。',
+  },
+  {
+    speaker: 'narrator',
+    speakerName: '旁白',
+    text: '大葆台西汉墓以黄肠题凑与千余件文物，为后世留下了汉代王陵的完整样本。生前的礼乐、身后的秩序，以及对星宿与永恒的想象，共同构成了汉代人独特的生命观。',
   },
 ];
 
 export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   onUnlockFragment,
-  onGoToEpilogue,
+  onRestart,
   isUnlocked,
 }) => {
-  const [clickedSymbols, setClickedSymbols] = useState<string[]>([]);
-  const [rotationAngle, setRotationAngle] = useState<number>(0);
-  const [showDialogue, setShowDialogue] = useState<boolean>(true);
+  const [phase, setPhase] = useState<'intro_dialogue' | 'interactive' | 'success_dialogue' | 'grand_epilogue'>('intro_dialogue');
+  const [connectedStarIds, setConnectedStarIds] = useState<string[]>([]);
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
-  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
-  const [showCorruption, setShowCorruption] = useState<boolean>(false);
+  const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
-  const handleSymbolClick = (sym: (typeof FOUR_SYMBOLS)[0]) => {
+  useEffect(() => {
     soundFX.playStoneDrum();
+  }, []);
 
-    const expectedNextOrder = clickedSymbols.length + 1;
-
-    if (sym.correctOrder === expectedNextOrder) {
+  const handleStarClick = (star: ConstellationStar) => {
+    soundFX.playStoneDrum();
+    const nextExpectedSeq = connectedStarIds.length;
+    if (star.sequence === nextExpectedSeq) {
       soundFX.playBronzeChime();
-      const next = [...clickedSymbols, sym.id];
-      setClickedSymbols(next);
+      const updated = [...connectedStarIds, star.id];
+      setConnectedStarIds(updated);
+      setErrorTip('');
 
-      if (next.length === 4) {
+      if (updated.length === STARS.length) {
         soundFX.playMemoryRestore();
         setIsSuccess(true);
         onUnlockFragment();
-        setActiveDialogues(DIALOGUES_RESTORED);
-        setDialogueIdx(0);
-        setShowDialogue(true);
+        setTimeout(() => {
+          setPhase('success_dialogue');
+          setDialogueIdx(0);
+        }, 600);
       }
     } else {
       soundFX.playGlitchStatic();
-      soundFX.playInsectEating();
-      setShowCorruption(true);
+      setErrorTip('再想想……星宿连线须循序顺应天象：斗宿 → 女宿 → 虚宿 → 危宿 → 角宿。');
+      setConnectedStarIds([]);
       setTimeout(() => {
-        setShowCorruption(false);
-        setClickedSymbols([]);
-      }, 1400);
+        setErrorTip('');
+      }, 4000);
     }
   };
 
   return (
-    <div className="relative w-full h-full bg-[#050814] text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none">
-      <GlitchCorruptionOverlay
-        isVisible={showCorruption}
-        message="星宿方位错位 · 四象星图应顺应：东苍龙、南朱雀、西白虎、北玄武"
-      />
+    <div
+      className="relative w-full h-full text-[#d6e4ff] flex flex-col justify-between overflow-hidden font-serif select-none"
+      style={{
+        background: 'radial-gradient(circle at 50% 30%, #0d1a33 0%, #050a14 55%, #020408 100%)',
+      }}
+    >
+      {/* Background Starry Sky & 28 Lunar Mansions Twinkling Shimmer (Point 10) */}
+      <div className="absolute inset-0 pointer-events-none overflow-hidden">
+        {/* Softly pulsating celestial gold/silver starlight gradient */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 via-indigo-950/20 to-transparent animate-pulse" />
 
-      {/* Top Bar */}
-      <div className="p-2.5 bg-[#091124] border-b border-[#1b2b4a] flex items-center justify-between z-10 shadow-md">
-        <div>
-          <span className="text-[8px] tracking-[0.25em] uppercase text-[#7a9bb8] font-mono">
-            CHAPTER 7 · ASTRONOMICAL ASCENSION
-          </span>
-          <h2 className="text-xs sm:text-sm font-black text-[#e6f1ff] tracking-widest title-drop-shadow">
-            第七关 · 星路 (四象聚合与归途开启)
-          </h2>
-        </div>
-
-        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#14233f] text-[#88b598] border border-[#2b4470] font-bold">
-          四象对齐 {clickedSymbols.length}/4
-        </span>
+        {/* Dynamic Twinkling Stars */}
+        {[...Array(50)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute rounded-full bg-white animate-pulse"
+            style={{
+              width: `${(i % 3) * 1.2 + 1}px`,
+              height: `${(i % 3) * 1.2 + 1}px`,
+              left: `${(i * 19) % 100}%`,
+              top: `${(i * 23) % 100}%`,
+              opacity: (i % 5) * 0.18 + 0.25,
+              animationDuration: `${(i % 4) + 1.8}s`,
+              backgroundColor: i % 2 === 0 ? '#fef08a' : '#e0e7ff',
+              boxShadow: i % 4 === 0 ? '0 0 6px #fde047' : '0 0 4px #c7d2fe',
+            }}
+          />
+        ))}
       </div>
 
-      {/* Main Celestial Map Stage */}
-      <div className="flex-1 relative overflow-hidden flex flex-col items-center justify-between p-3">
-        {/* Star Sea Background */}
-        <div
-          className="absolute inset-0 opacity-40 pointer-events-none"
-          style={{
-            backgroundImage: 'radial-gradient(#a5b4fc 1px, transparent 0)',
-            backgroundSize: '20px 20px',
-          }}
-        />
+      {/* Top Bar */}
+      <div className="p-2.5 bg-[#0b1324]/90 border-b border-indigo-950 flex items-center justify-between z-10 shadow-md">
+        <div>
+          <span className="text-[8px] tracking-[0.25em] uppercase text-indigo-400 font-mono">
+            CHAPTER 07 · 星宿 · 升仙
+          </span>
+          <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
+            第七章｜星宿 · 升仙
+          </h2>
+        </div>
+      </div>
 
-        {/* Central Four Symbols Cosmic Disc */}
-        <div className="relative w-full flex-1 rounded-3xl bg-[#040817]/90 border-2 border-[#1f3358] overflow-hidden flex flex-col items-center justify-center p-3 shadow-2xl">
-          {/* Central Rotating Wheel */}
-          <div
-            className="relative w-56 h-56 rounded-full border-2 border-dashed border-[#38bdf8]/40 flex items-center justify-center transition-transform duration-500 shadow-[0_0_30px_rgba(56,189,248,0.2)]"
-            style={{ transform: `rotate(${rotationAngle}deg)` }}
-          >
-            {/* Center Jade Head Light Spark */}
-            <div className="w-16 h-16 rounded-full bg-[#0a182e] border-2 border-[#88b598] flex flex-col items-center justify-center shadow-[0_0_15px_#88b598] z-20">
-              <Sparkles className="w-6 h-6 text-[#a7f3d0] animate-pulse" />
-              <span className="text-[7px] font-mono text-emerald-200">
-                {isSuccess ? '完全体' : '首光'}
-              </span>
+      {/* STEP 1: PAGE 23 汉代生死观阐释 */}
+      {phase === 'intro_dialogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in z-10">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-indigo-950 border-2 border-indigo-400 flex items-center justify-center shadow-[0_0_25px_rgba(99,102,241,0.7)] animate-pulse">
+              <Compass className="w-10 h-10 text-indigo-300" />
             </div>
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono text-indigo-300">西汉天人观念 · 星宿与仙境</span>
+              <h3 className="text-base font-black text-[#ffe89c]">魂归星宿 · 千载不朽</h3>
+            </div>
+          </div>
 
-            {/* 4 Constellation quadrant nodes */}
-            {FOUR_SYMBOLS.map((sym, idx) => {
-              const angles = [0, 90, 180, 270]; // East, South, West, North
-              const angle = angles[idx];
-              const isDone = clickedSymbols.includes(sym.id);
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE7_INTRO}
+            currentIndex={dialogueIdx}
+            onNext={() => {
+              if (dialogueIdx < DIALOGUES_STAGE7_INTRO.length - 1) {
+                setDialogueIdx(dialogueIdx + 1);
+              } else {
+                soundFX.playStoneDrum();
+                setPhase('interactive');
+              }
+            }}
+          />
+        </div>
+      )}
 
+      {/* STEP 2: PAGE 24 交互：连线二十八宿星图 (Point 10 & Point 12) */}
+      {phase === 'interactive' && (
+        <div className="flex-1 relative overflow-hidden flex flex-col justify-start space-y-2 p-3 animate-fade-in pb-36 z-10">
+          {/* Top Prompt */}
+          <div className="text-center py-1">
+            <span className="text-[10.5px] font-black text-[#ffe89c] bg-[#0c162e]/90 px-3.5 py-1 rounded-full border border-indigo-500/70 shadow">
+              依序点亮二十八宿星辰（斗宿 → 女宿 → 虚宿 → 危宿 → 角宿）
+            </span>
+          </div>
+
+          {/* Interactive Constellation Canvas Map */}
+          <div className="relative w-full aspect-[4/4.2] my-auto rounded-3xl bg-[#080f1e]/80 border-2 border-indigo-500/70 shadow-[0_0_30px_rgba(99,102,241,0.3)] overflow-hidden">
+            {/* SVG Connecting Lines between connected stars */}
+            <svg className="absolute inset-0 w-full h-full pointer-events-none z-10">
+              {connectedStarIds.map((starId, index) => {
+                if (index === 0) return null;
+                const prevStar = STARS.find((s) => s.id === connectedStarIds[index - 1]);
+                const curStar = STARS.find((s) => s.id === starId);
+                if (!prevStar || !curStar) return null;
+                return (
+                  <line
+                    key={starId}
+                    x1={`${prevStar.x}%`}
+                    y1={`${prevStar.y}%`}
+                    x2={`${curStar.x}%`}
+                    y2={`${curStar.y}%`}
+                    stroke="#fde047"
+                    strokeWidth="3"
+                    strokeDasharray="3 3"
+                    className="animate-pulse"
+                  />
+                );
+              })}
+            </svg>
+
+            {/* 5 Constellation Star Nodes */}
+            {STARS.map((star) => {
+              const isConnected = connectedStarIds.includes(star.id);
+              const isNextTarget = connectedStarIds.length === star.sequence;
               return (
                 <div
-                  key={sym.id}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleSymbolClick(sym);
-                  }}
-                  className="absolute cursor-pointer flex flex-col items-center justify-center"
-                  style={{
-                    transform: `rotate(${angle}deg) translate(0, -84px) rotate(${-angle - rotationAngle}deg)`,
-                  }}
+                  key={star.id}
+                  onClick={() => handleStarClick(star)}
+                  style={{ left: `${star.x}%`, top: `${star.y}%` }}
+                  className="absolute -translate-x-1/2 -translate-y-1/2 flex flex-col items-center cursor-pointer group z-20"
                 >
                   <div
-                    className={`w-14 h-14 rounded-2xl border-2 flex flex-col items-center justify-center shadow-lg transition-all active:scale-95 ${
-                      isDone
-                        ? 'bg-emerald-950/90 border-emerald-400 text-emerald-200 shadow-[0_0_15px_#34d399]'
-                        : 'bg-[#0e1e36] border-[#38bdf8]/60 text-[#c7d2fe] hover:border-[#ffe89c]'
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition-all shadow-md ${
+                      isConnected
+                        ? 'bg-amber-400 border-2 border-white text-black shadow-[0_0_15px_#fde047] scale-110'
+                        : isNextTarget
+                        ? 'bg-indigo-700 border-2 border-amber-300 text-amber-200 animate-bounce shadow-[0_0_12px_rgba(245,158,11,0.7)]'
+                        : 'bg-[#152342] border border-indigo-700 text-indigo-300 hover:border-indigo-400'
                     }`}
                   >
-                    <span className="text-[10px] font-black font-serif">
-                      {sym.name}
-                    </span>
-                    <span className="text-[7px] font-mono text-[#94a3b8]">
-                      {isDone ? '已归位' : `次序 ${sym.correctOrder}`}
-                    </span>
+                    <Star className={`w-4 h-4 ${isConnected ? 'fill-black' : 'fill-none'}`} />
                   </div>
+                  <span className="text-[9px] font-mono font-bold text-[#ffe89c] bg-black/70 px-1.5 py-0.5 rounded mt-1 shadow">
+                    {star.name}
+                  </span>
                 </div>
               );
             })}
           </div>
 
-          {/* Hint text */}
-          <div className="mt-4 text-center text-[10px] text-[#93c5fd] font-serif">
-            顺应汉代天象星律：依次点击 东苍龙 → 南朱鸟 → 西白虎 → 北玄武
-          </div>
+          {/* Interactive Mode: Jade dancer with 3-level progressive hints */}
+          <UnifiedDialogueBox
+            isInteractiveMode={true}
+            hints={[
+              '汉代墓顶星宿图记录着汉代人对星空的敬畏与升仙天界之遐想。',
+              '需自北方玄武宿度顺天而行，连及东方苍龙主星角宿。',
+              '正确连线顺序为：斗宿 ➔ 女宿 ➔ 虚宿 ➔ 危宿 ➔ 角宿，依次点亮即可完成星图归位。',
+            ]}
+            errorTip={errorTip}
+            onClearError={() => setErrorTip('')}
+          />
         </div>
+      )}
 
-        {/* Action / Next Page Button */}
-        <div className="w-full mt-2.5 z-10 space-y-1.5">
-          {isSuccess ? (
-            <button
-              onClick={() => {
-                soundFX.playStoneDrum();
-                onGoToEpilogue();
-              }}
-              className="w-full py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-serif font-black rounded-2xl border-2 border-emerald-300 text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 animate-pulse"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-200" />
-              <span>七片玉化合一 · 开启终章回归</span>
-              <ArrowRight className="w-4 h-4" />
-            </button>
-          ) : (
-            <div className="flex items-center justify-between px-2">
-              <button
-                onClick={() => setRotationAngle((prev) => prev - 45)}
-                className="px-3 py-1 bg-[#101d36] text-[#93c5fd] rounded-xl border border-[#233b66] text-[9px] flex items-center gap-1"
-              >
-                <RotateCw className="w-3 h-3" />
-                <span>逆转星轨</span>
-              </button>
-              <span className="text-[8px] font-mono text-[#64748b]">
-                四象归位将开启时空隧道
-              </span>
-              <button
-                onClick={() => setRotationAngle((prev) => prev + 45)}
-                className="px-3 py-1 bg-[#101d36] text-[#93c5fd] rounded-xl border border-[#233b66] text-[9px] flex items-center gap-1"
-              >
-                <RotateCw className="w-3 h-3" />
-                <span>顺转星轨</span>
-              </button>
+      {/* STEP 3: 成功反馈对白 */}
+      {phase === 'success_dialogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in z-10">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-emerald-950 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse">
+              <Sparkles className="w-10 h-10 text-emerald-300" />
             </div>
-          )}
-        </div>
-      </div>
+            <div className="text-center">
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
+                新记忆已收录 · 记忆卡 07
+              </span>
+              <h3 className="text-base font-black text-[#ffe89c] mt-2">
+                卡片 07「升仙之路」已点亮
+              </h3>
+            </div>
+          </div>
 
-      {/* Story Dialogue */}
-      {showDialogue && (
-        <DialogueSystem
-          dialogues={activeDialogues}
-          currentIndex={dialogueIdx}
-          onNext={() => {
-            if (dialogueIdx < activeDialogues.length - 1) {
-              setDialogueIdx(dialogueIdx + 1);
-            } else {
-              setShowDialogue(false);
-            }
-          }}
-          restorationLevel={7}
-        />
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE7_SUCCESS}
+            currentIndex={0}
+            onNext={() => {
+              setPhase('grand_epilogue');
+            }}
+          />
+        </div>
+      )}
+
+      {/* STEP 4: 终章结语与升华 */}
+      {phase === 'grand_epilogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in z-10">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-24 h-24 rounded-full bg-amber-950/80 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.8)] animate-pulse">
+              <Sparkles className="w-12 h-12 text-amber-300" />
+            </div>
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono text-amber-300">大葆台西汉墓 · 千古汉韵</span>
+              <h3 className="text-base font-black text-[#ffe89c]">记忆完全复原 · 七章圆满</h3>
+            </div>
+          </div>
+
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE7_EPILOGUE}
+            currentIndex={dialogueIdx}
+            onNext={() => {
+              if (dialogueIdx < DIALOGUES_STAGE7_EPILOGUE.length - 1) {
+                setDialogueIdx(dialogueIdx + 1);
+              } else {
+                onRestart();
+              }
+            }}
+          />
+        </div>
       )}
     </div>
   );

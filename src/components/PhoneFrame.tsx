@@ -100,21 +100,6 @@ export const PhoneFrame: React.FC<PhoneFrameProps> = ({
         </div>
 
         <div className="flex items-center gap-1.5">
-          {/* Map Directory Button (地图目录) */}
-          {onOpenMapModal && (
-            <button
-              onClick={() => {
-                soundFX.playStoneDrum();
-                onOpenMapModal();
-              }}
-              className="p-1.5 px-2.5 bg-[#291b12] hover:bg-[#3d2b1f] text-[#ffe89c] rounded-xl border border-amber-600/80 text-xs transition-colors flex items-center gap-1.5 shadow-md font-bold active:scale-95"
-              title="打开三大展厅地图目录"
-            >
-              <Compass className="w-3.5 h-3.5 text-amber-400" />
-              <span className="font-serif text-[11px]">地图目录</span>
-            </button>
-          )}
-
           {/* Huangchang Ticou Modal Button */}
           <button
             onClick={() => {

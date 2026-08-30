@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, Rotate3d, Share2, RotateCcw, ChevronDown, Award, Compass, Heart, ShieldCheck } from 'lucide-react';
+import { Sparkles, Download, RotateCcw, Share2, Compass, ShieldCheck, CheckCircle2 } from 'lucide-react';
 import { ASSETS } from '../data/museumData';
 import { DialogueLine, UserInteractionTrackPoint } from '../types';
 import { DialogueSystem } from './DialogueSystem';
@@ -38,15 +38,14 @@ const SEVEN_STAGES = [
   { id: 'ascension', name: '星路', depth: '深处', x: 65, y: 88 },
 ];
 
-export const EpilogueEnding: React.FC<EpilogueEndingProps> = ({ onRestart, trackPoints = [] }) => {
-  const [step, setStep] = useState<'pushou_thanks' | 'dancer_bow' | 'postcard_flip'>('pushou_thanks');
+export const EpilogueEnding: React.FC<EpilogueEndingProps> = ({ onRestart }) => {
+  const [step, setStep] = useState<'pushou_thanks' | 'dancer_bow' | 'postcard_view'>('pushou_thanks');
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
   const [isFlipped, setIsFlipped] = useState<boolean>(false);
-  const [isCopied, setIsCopied] = useState<boolean>(false);
-  const [showSunsetUnlocked, setShowSunsetUnlocked] = useState<boolean>(false);
-  const [scrollY, setScrollY] = useState<number>(0);
+  const [isDownloading, setIsDownloading] = useState<boolean>(false);
+  const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
 
-  const containerRef = useRef<HTMLDivElement | null>(null);
+  const postcardCardRef = useRef<HTMLDivElement | null>(null);
 
   const handleNextDialogue = () => {
     if (dialogueIdx < EPILOGUE_DIALOGUES.length - 1) {
@@ -55,46 +54,149 @@ export const EpilogueEnding: React.FC<EpilogueEndingProps> = ({ onRestart, track
       soundFX.playBronzeChime();
       setStep('dancer_bow');
       setTimeout(() => {
-        setStep('postcard_flip');
-      }, 2500);
+        setStep('postcard_view');
+      }, 2400);
     }
   };
 
-  const handleFlipCard = () => {
-    soundFX.playStoneDrum();
-    soundFX.playSandScratch();
-    setIsFlipped(!isFlipped);
-  };
+  const handleDownloadPostcard = () => {
+    soundFX.playBronzeChime();
+    setIsDownloading(true);
 
-  const handleShare = () => {
-    soundFX.playStoneDrum();
-    navigator.clipboard?.writeText?.(
-      '【大葆台汉墓博物馆 · 时空守护明信片】我已走完戈影、宴乐、浮游、百戏、袖舞、题凑、星路七关，玉舞人完全体重聚，大葆台千古汉风永续传承！'
-    );
-    setIsCopied(true);
-    setTimeout(() => setIsCopied(false), 2000);
-  };
+    try {
+      // Create high-res offscreen canvas to export the full postcard long image
+      const canvas = document.createElement('canvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 750;
+      canvas.height = 1200;
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const target = e.currentTarget;
-    const currentScroll = target.scrollTop;
-    setScrollY(currentScroll);
-    if (currentScroll > 140 && !showSunsetUnlocked) {
-      soundFX.playMemoryRestore();
-      setShowSunsetUnlocked(true);
+      if (ctx) {
+        // Dark museum gold gradient background
+        const grad = ctx.createLinearGradient(0, 0, 0, 1200);
+        grad.addColorStop(0, '#1c120a');
+        grad.addColorStop(0.5, '#29180d');
+        grad.addColorStop(1, '#0f0804');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, 750, 1200);
+
+        // Border
+        ctx.strokeStyle = '#d97706';
+        ctx.lineWidth = 8;
+        ctx.strokeRect(20, 20, 710, 1160);
+
+        // Inner Border
+        ctx.strokeStyle = '#78350f';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(30, 30, 690, 1140);
+
+        // Header Title
+        ctx.fillStyle = '#ffe89c';
+        ctx.font = 'bold 36px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('大葆台汉墓博物馆 · 时空守护明信片', 375, 90);
+
+        ctx.fillStyle = '#c2a385';
+        ctx.font = '20px serif';
+        ctx.fillText('Dabaotai Western Han Dynasty Relics · 见证者纪念', 375, 125);
+
+        // Sunset Horizon Artwork Box
+        ctx.fillStyle = '#170e08';
+        ctx.fillRect(50, 160, 650, 360);
+        ctx.strokeStyle = '#b45309';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(50, 160, 650, 360);
+
+        ctx.fillStyle = '#fef3c7';
+        ctx.font = 'bold 28px serif';
+        ctx.fillText('大葆台落日 · 千载汉韵永续长青', 375, 340);
+
+        ctx.fillStyle = '#fbbf24';
+        ctx.font = '18px monospace';
+        ctx.fillText('【七关记忆已全部找回 · 100% 汉风复原达成】', 375, 380);
+
+        // 7 Stages Track Line
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 4;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        SEVEN_STAGES.forEach((stage, idx) => {
+          const px = 100 + (stage.x / 100) * 550;
+          const py = 560 + (idx / 6) * 380;
+          if (idx === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Stage Markers
+        SEVEN_STAGES.forEach((stage, idx) => {
+          const px = 100 + (stage.x / 100) * 550;
+          const py = 560 + (idx / 6) * 380;
+
+          ctx.fillStyle = '#d97706';
+          ctx.beginPath();
+          ctx.arc(px, py, 18, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#ffe89c';
+          ctx.lineWidth = 3;
+          ctx.stroke();
+
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 16px monospace';
+          ctx.fillText((idx + 1).toString(), px, py + 6);
+
+          ctx.fillStyle = '#ffe89c';
+          ctx.font = 'bold 18px serif';
+          ctx.textAlign = 'left';
+          ctx.fillText(`第0${idx + 1}章 · ${stage.name}`, px + 28, py + 6);
+          ctx.textAlign = 'center';
+        });
+
+        // Seal at Bottom
+        ctx.fillStyle = '#064e3b';
+        ctx.fillRect(80, 1020, 590, 110);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 3;
+        ctx.strokeRect(80, 1020, 590, 110);
+
+        ctx.fillStyle = '#a7f3d0';
+        ctx.font = 'bold 24px serif';
+        ctx.fillText('❖ 我有玉舞人 · 通照汉古今 ❖', 375, 1065);
+
+        ctx.fillStyle = '#6ee7b7';
+        ctx.font = '16px monospace';
+        ctx.fillText('守护者认证码：DBT-2026-HAN-AUTHENTIC', 375, 1100);
+
+        // Download trigger
+        const dataUrl = canvas.toDataURL('image/png');
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = '大葆台汉墓_时空守护长图明信片.png';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+        setDownloadSuccess(true);
+        setTimeout(() => setDownloadSuccess(false), 3000);
+      }
+    } catch (err) {
+      console.error('Download error:', err);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
   return (
     <div
-      ref={containerRef}
-      onScroll={handleScroll}
-      className="relative w-full h-full bg-[#0d0906] text-[#e6d5b8] flex flex-col justify-between overflow-y-auto font-serif select-none scrollbar-none"
+      className="relative w-full h-full text-[#e6d5b8] flex flex-col justify-between overflow-y-auto font-serif select-none scrollbar-none"
+      style={{
+        background: 'linear-gradient(to bottom, #1f1208 0%, #120904 50%, #080402 100%)',
+      }}
     >
       {/* Top Banner */}
-      <div className="p-2.5 bg-[#17100b] border-b border-[#3d2b1f] flex items-center justify-between z-20 shadow-md sticky top-0">
+      <div className="p-2.5 bg-[#1a0f07] border-b border-[#3d2414] flex items-center justify-between z-20 shadow-md sticky top-0">
         <div className="flex items-center gap-1.5">
-          <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+          <ShieldCheck className="w-4 h-4 text-emerald-400" />
           <span className="text-[9px] font-mono tracking-widest text-[#88b598]">
             EPILOGUE · 终章 守护结语
           </span>
@@ -107,7 +209,7 @@ export const EpilogueEnding: React.FC<EpilogueEndingProps> = ({ onRestart, track
       {/* Main Interactive Stage */}
       <div className="flex-1 relative flex flex-col items-center justify-center p-3">
         {step === 'pushou_thanks' && (
-          // 1. Pushou & Broken Gate Thanks Stage
+          // 1. Pushou Thanks Stage
           <div className="relative w-full max-w-sm rounded-3xl bg-[#1c130d] border-2 border-amber-600/80 p-5 flex flex-col items-center justify-center text-center shadow-2xl space-y-4 animate-fade-in my-auto">
             <div className="w-20 h-20 rounded-full bg-[#2a170d] border-2 border-amber-400 flex items-center justify-center shadow-[0_0_20px_rgba(217,119,6,0.6)]">
               <svg viewBox="0 0 100 100" className="w-14 h-14 fill-amber-400 stroke-amber-700">
@@ -133,253 +235,133 @@ export const EpilogueEnding: React.FC<EpilogueEndingProps> = ({ onRestart, track
         )}
 
         {step === 'dancer_bow' && (
-          // 2. Jade Dancer Deep Bow (揖礼)
+          // 2. Jade Dancer Deep Bow
           <div className="relative w-full max-w-sm rounded-3xl bg-[#14231b] border-2 border-emerald-500/80 p-6 flex flex-col items-center justify-center text-center shadow-2xl space-y-4 animate-fade-in my-auto">
             <div className="relative w-36 h-44 flex items-center justify-center">
-              {/* Jade Dancer Bowing Silhouette */}
               <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_0_15px_rgba(52,211,153,0.9)] animate-pulse">
-                {/* Bowing posture curved spine and folded sleeves */}
                 <path
-                  d="M60 25 C55 30, 50 35, 45 42 C38 52, 25 58, 15 50 C10 45, 18 35, 28 38 C35 42, 40 48, 44 55 C46 68, 40 82, 38 95 C35 105, 50 112, 60 110 C70 108, 62 92, 56 80 C65 75, 78 62, 80 45 C82 30, 68 25, 60 32"
+                  d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
                   fill="none"
                   stroke="#a7f3d0"
                   strokeWidth="5"
                   strokeLinecap="round"
                 />
-                <circle cx="62" cy="22" r="7" fill="#ffffff" />
-                {/* Bowing hands joined in front */}
-                <path d="M35 55 Q45 60 55 55" stroke="#ffffff" strokeWidth="4" fill="none" />
               </svg>
             </div>
             <div className="space-y-1">
-              <h3 className="text-sm font-black text-emerald-300 tracking-widest">
-                玉舞人 · 躬身汉家揖礼致谢
+              <span className="text-[9px] font-mono text-emerald-400">大汉玉舞人 · 敛衽作揖</span>
+              <h3 className="text-sm font-black text-[#ffe89c] tracking-widest">
+                “多谢你，唤醒了两千年的汉家歌舞。”
               </h3>
-              <p className="text-[10px] text-[#a7f3d0]">
-                “两千载汉韵长存，幸得与君共此行。”
-              </p>
             </div>
           </div>
         )}
 
-        {step === 'postcard_flip' && (
-          // 3. Postcard 3D Flipping Card Stage
-          <div className="w-full max-w-sm flex flex-col items-center space-y-3 animate-fade-in my-1">
-            <div className="flex items-center justify-between w-full px-1">
-              <span className="text-[9px] font-mono text-[#a3805d]">
-                点击明信片任意处 3D 翻转切换正反面
-              </span>
-              <button
-                onClick={handleFlipCard}
-                className="flex items-center gap-1 text-[9px] font-mono text-[#ffe89c] bg-[#24170d] px-2 py-0.5 rounded-full border border-[#5c4033] hover:border-amber-500"
-              >
-                <Rotate3d className="w-3 h-3" />
-                <span>{isFlipped ? '看正面 (实景)' : '看反面 (轨迹)'}</span>
-              </button>
-            </div>
-
-            {/* 3D Flip Card Box */}
+        {step === 'postcard_view' && (
+          // 3. Postcard with Dabaotai Sunset Backdrop & Side-by-Side Buttons (Point 11 & Point 13)
+          <div className="w-full max-w-sm flex flex-col items-center space-y-3 animate-fade-in my-auto">
+            {/* Postcard Container */}
             <div
-              onClick={handleFlipCard}
-              className="relative w-full aspect-[4/3] rounded-3xl cursor-pointer perspective-1000 shadow-2xl group"
-              style={{ perspective: '1200px' }}
+              ref={postcardCardRef}
+              className="relative w-full rounded-3xl bg-gradient-to-b from-[#24150b] via-[#1a0f07] to-[#0d0703] border-2 border-amber-500/90 p-4 shadow-2xl space-y-3"
             >
-              <div
-                className={`relative w-full h-full rounded-3xl transition-transform duration-700 transform-style-3d border-2 border-amber-600/80 overflow-hidden ${
-                  isFlipped ? 'rotate-y-180' : ''
-                }`}
-                style={{
-                  transformStyle: 'preserve-3d',
-                  transform: isFlipped ? 'rotateY(180deg)' : 'rotateY(0deg)',
-                }}
-              >
-                {/* Front Side: Modern Dabaotai Museum Exterior Scene */}
-                <div
-                  className="absolute inset-0 w-full h-full bg-[#1c130d] flex flex-col justify-between p-3 backface-hidden"
-                  style={{ backfaceVisibility: 'hidden' }}
-                >
-                  <div
-                    className="absolute inset-0 bg-cover bg-center filter brightness-105"
-                    style={{ backgroundImage: `url(${ASSETS.museumExterior})` }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/30 to-black/40" />
-
-                  {/* Stamp & Seal at top right */}
-                  <div className="relative z-10 flex justify-between items-start">
-                    <span className="text-[8px] font-mono px-2 py-0.5 rounded-full bg-black/60 text-amber-300 border border-amber-600/50">
-                      3026 见证者守护达成
-                    </span>
-                    <div className="w-13 h-13 rounded-lg border-2 border-red-600/80 bg-red-950/40 text-red-400 flex flex-col items-center justify-center p-1 text-[7px] font-serif font-black shadow transform rotate-6">
-                      <span>大葆台</span>
-                      <span>博物馆印</span>
-                    </div>
-                  </div>
-
-                  {/* Bottom Text & Seal */}
-                  <div className="relative z-10 space-y-0.5">
-                    <h4 className="text-xs font-black text-[#ffe89c] font-serif">
-                      北京大葆台西汉墓博物馆 · 纪念明信片
-                    </h4>
-                    <p className="text-[9px] text-[#e6d5b8] line-clamp-1">
-                      “两千年前的西汉王陵，一千年后的未来归途，在此刻相会。”
-                    </p>
-                  </div>
-                </div>
-
-                {/* Back Side: 7-Chapter Trajectory Map & User Path */}
-                <div
-                  className="absolute inset-0 w-full h-full bg-[#140e0a] flex flex-col justify-between p-3 backface-hidden"
-                  style={{
-                    backfaceVisibility: 'hidden',
-                    transform: 'rotateY(180deg)',
-                  }}
-                >
-                  {/* Grid background */}
-                  <div
-                    className="absolute inset-0 opacity-15"
-                    style={{
-                      backgroundImage: 'radial-gradient(#ffe89c 1px, transparent 0)',
-                      backgroundSize: '14px 14px',
-                    }}
-                  />
-
-                  {/* Header */}
-                  <div className="relative z-10 flex items-center justify-between border-b border-[#3d2b1f] pb-1">
-                    <span className="text-[9px] font-black text-[#ffe89c] flex items-center gap-1">
-                      <Compass className="w-3 h-3 text-amber-400" />
-                      <span>七关见证轨迹图 (1-7章连线)</span>
-                    </span>
-                    <span className="text-[8px] font-mono text-emerald-400">
-                      7/7 全通关
-                    </span>
-                  </div>
-
-                  {/* 7 Chapter S-Curve Node Map */}
-                  <div className="relative flex-1 w-full my-1">
-                    {/* Golden Path Line connecting nodes */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none">
-                      <polyline
-                        points={SEVEN_STAGES.map((s) => `${s.x}%,${s.y}%`).join(' ')}
-                        fill="none"
-                        stroke="#f59e0b"
-                        strokeWidth="2.5"
-                        strokeDasharray="4,3"
-                        className="animate-pulse"
-                      />
-                    </svg>
-
-                    {/* Stage Pins */}
-                    {SEVEN_STAGES.map((stage, idx) => (
-                      <div
-                        key={stage.id}
-                        style={{ left: `${stage.x}%`, top: `${stage.y}%` }}
-                        className="absolute -translate-x-1/2 -translate-y-1/2 flex items-center gap-1 group"
-                      >
-                        <div className="w-4 h-4 rounded-full bg-amber-600 border border-[#ffe89c] text-white flex items-center justify-center text-[7px] font-mono font-bold shadow-[0_0_8px_#f59e0b]">
-                          {idx + 1}
-                        </div>
-                        <span className="text-[8px] font-serif text-[#ffe89c] bg-black/80 px-1 rounded truncate">
-                          {stage.name}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Bottom Footer on Card */}
-                  <div className="relative z-10 text-[8px] font-mono text-[#a3805d] flex justify-between">
-                    <span>守护者坐标：大葆台</span>
-                    <span>记忆连线率：100%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Fixed Jade Dancer Logo at Bottom Left */}
-            <div className="w-full flex items-center justify-between pt-1">
-              <div className="flex items-center gap-2 bg-[#17100b] px-3 py-1.5 rounded-2xl border border-emerald-600/60 shadow-md">
-                <div className="w-6 h-6 flex items-center justify-center">
-                  <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_0_8px_rgba(52,211,153,0.8)]">
-                    <path
-                      d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                      fill="none"
-                      stroke="#a7f3d0"
-                      strokeWidth="6"
-                      strokeLinecap="round"
-                    />
-                  </svg>
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-[9px] font-black text-emerald-300 font-serif">
-                    我有玉舞人
-                  </span>
-                  <span className="text-[7px] text-[#88b598] font-mono">
-                    通照汉古今
-                  </span>
-                </div>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={handleShare}
-                  className="px-3 py-1.5 bg-[#291b12] hover:bg-[#3d2b1f] text-[#ffe89c] rounded-xl border border-amber-600 text-[9px] font-serif flex items-center gap-1 shadow active:scale-95"
-                >
-                  <Share2 className="w-3 h-3 text-[#ffe89c]" />
-                  <span>{isCopied ? '已复制' : '分享明信片'}</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Scroll Down Prompt */}
-            <div className="w-full text-center pt-2 pb-1 text-[9px] text-[#a3805d] flex flex-col items-center gap-1 animate-bounce">
-              <span>往下滑动查看终章归宿 · 大葆台夕阳</span>
-              <ChevronDown className="w-4 h-4 text-amber-400" />
-            </div>
-
-            {/* 4. Sunset Ending Scene Revealed on Scroll Down */}
-            <div className="w-full rounded-3xl bg-[#1a110a] border-2 border-amber-500/80 p-4 shadow-2xl space-y-3 mt-4">
+              {/* Sunset Landscape Card Section (Point 13) */}
               <div className="relative w-full aspect-[16/9] rounded-2xl overflow-hidden border border-amber-600/70 shadow-lg">
                 <img
                   src={ASSETS.museumSunset}
-                  alt="大葆台现代实景夕阳"
+                  alt="大葆台现代实景落日"
                   className="w-full h-full object-cover filter brightness-105 contrast-105"
                   referrerPolicy="no-referrer"
                 />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
                 <div className="absolute bottom-2 inset-x-3 text-center">
-                  <span className="text-[8px] font-mono text-amber-200 bg-black/70 px-2 py-0.5 rounded-full border border-amber-500/50">
-                    现代实景 · 夕阳之下的大葆台
+                  <span className="text-[8.5px] font-serif font-black text-[#ffe89c] bg-black/75 px-3 py-1 rounded-full border border-amber-500/60 shadow">
+                    现代实景 · 大葆台落日千载汉韵
                   </span>
                 </div>
               </div>
 
-              <div className="space-y-1.5 text-center px-1">
-                <h3 className="text-xs font-black text-[#ffe89c] tracking-widest font-serif">
-                  终章余韵 · 文明火种，生生不息
-                </h3>
-                <p className="text-[10px] text-[#e6d5b8] leading-relaxed">
-                  玉舞人回到大葆台恒温展柜中，静静安守两千载汉家礼乐；
-                  而你带着这段跨越三千年的记忆重归现实，
-                  只要记忆未被遗忘，大葆台便永远活在每一个踏入此地的人心中。
-                </p>
+              {/* 7 Stage Progression Node Track */}
+              <div className="p-2.5 rounded-2xl bg-[#140b06] border border-[#3d2414] space-y-2">
+                <div className="flex items-center justify-between text-[9px] font-mono border-b border-[#2b190e] pb-1">
+                  <span className="text-[#ffe89c] font-black flex items-center gap-1">
+                    <Compass className="w-3 h-3 text-amber-400" />
+                    <span>时空见证轨迹图 (1-7章)</span>
+                  </span>
+                  <span className="text-emerald-400 font-bold">100% 全通关</span>
+                </div>
+
+                <div className="grid grid-cols-4 gap-1.5 pt-1">
+                  {SEVEN_STAGES.map((s, idx) => (
+                    <div
+                      key={s.id}
+                      className="p-1 rounded-xl bg-[#211209] border border-amber-800/60 text-center flex flex-col items-center"
+                    >
+                      <span className="text-[7.5px] font-mono text-amber-400">0{idx + 1}</span>
+                      <span className="text-[9px] font-serif font-bold text-[#ffe89c]">{s.name}</span>
+                    </div>
+                  ))}
+                  <div className="p-1 rounded-xl bg-emerald-950/80 border border-emerald-600 text-center flex flex-col items-center justify-center">
+                    <Sparkles className="w-3 h-3 text-emerald-300" />
+                    <span className="text-[8px] font-mono text-emerald-300">圆满</span>
+                  </div>
+                </div>
               </div>
+
+              {/* Bottom Seal */}
+              <div className="flex items-center justify-between p-2 rounded-2xl bg-[#14231b] border border-emerald-600/70">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 flex items-center justify-center">
+                    <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_0_6px_rgba(52,211,153,0.8)]">
+                      <path
+                        d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
+                        fill="none"
+                        stroke="#a7f3d0"
+                        strokeWidth="6"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-[9px] font-black text-emerald-300 font-serif">
+                      我有玉舞人 · 通照汉古今
+                    </span>
+                    <span className="text-[7.5px] text-[#88b598] font-mono">
+                      大葆台西汉墓博物馆 · 认证纪念
+                    </span>
+                  </div>
+                </div>
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              </div>
+            </div>
+
+            {/* Side-by-Side Dual Buttons: "下载明信片" and "重新体验旅程" (Point 11) */}
+            <div className="w-full grid grid-cols-2 gap-2.5 pt-1">
+              <button
+                onClick={handleDownloadPostcard}
+                disabled={isDownloading}
+                className="py-3 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:brightness-110 text-black font-serif font-black rounded-2xl text-xs shadow-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all border border-amber-300"
+              >
+                <Download className="w-4 h-4 text-black" />
+                <span>{downloadSuccess ? '已下载保存！' : isDownloading ? '正在生成…' : '下载明信片'}</span>
+              </button>
 
               <button
                 onClick={() => {
                   soundFX.playStoneDrum();
                   onRestart();
                 }}
-                className="w-full py-2.5 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-xl border border-[#d2b48c] text-[10px] shadow-2xl flex items-center justify-center gap-1 active:scale-95"
+                className="py-3 bg-[#24150b] hover:bg-[#382112] text-[#ffe89c] font-serif font-black rounded-2xl text-xs shadow-xl flex items-center justify-center gap-1.5 active:scale-95 transition-all border border-amber-600"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>重新体验完整七关时空</span>
+                <RotateCcw className="w-4 h-4 text-amber-400" />
+                <span>重新体验旅程</span>
               </button>
             </div>
           </div>
         )}
       </div>
 
-      {/* Dialogue System in Pushou Thanks phase */}
+      {/* Pushou Thanks Dialogue */}
       {step === 'pushou_thanks' && (
         <DialogueSystem
           dialogues={EPILOGUE_DIALOGUES}

@@ -34,7 +34,7 @@ export const SemiCircleWheel: React.FC<SemiCircleWheelProps> = ({
   const [lastTouchAngle, setLastTouchAngle] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
 
-  const radius = 135; // px from center
+  const radius = 130; // px from center
   const totalItems = items.length;
   const angleStep = 360 / totalItems;
 
@@ -79,18 +79,7 @@ export const SemiCircleWheel: React.FC<SemiCircleWheelProps> = ({
   };
 
   return (
-    <div className="relative w-full flex flex-col items-center select-none pt-1">
-      {/* Top Hint Bar */}
-      <div className="w-full flex items-center justify-between px-3 mb-1">
-        <span className="text-[10px] text-[#e6d5b8] font-serif font-black flex items-center gap-1">
-          <Shield className="w-3.5 h-3.5 text-amber-400" />
-          <span>手指在半圆弧线边框上直接顺/逆时针滑动旋转</span>
-        </span>
-        <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#2a170d] text-amber-300 border border-amber-800">
-          已选 {selectedIds.length}/{maxSelect}
-        </span>
-      </div>
-
+    <div className="relative w-full flex flex-col items-center select-none mt-1">
       {/* Semi-circular dial container (Only top half exposed) */}
       <div
         ref={containerRef}
@@ -105,7 +94,7 @@ export const SemiCircleWheel: React.FC<SemiCircleWheelProps> = ({
           if (e.touches[0]) handlePointerMove(e.touches[0].clientX, e.touches[0].clientY);
         }}
         onTouchEnd={handlePointerUp}
-        className="relative w-full h-[155px] overflow-hidden flex items-end justify-center cursor-grab active:cursor-grabbing touch-none border-b border-[#3d2b1f]/60"
+        className="relative w-full h-[158px] overflow-hidden flex items-end justify-center cursor-grab active:cursor-grabbing touch-none border-b border-[#3d2b1f]/60"
       >
         {/* Outer Glowing Arc Rim (The line user touches to swipe) */}
         <div className="absolute -bottom-[140px] w-[310px] h-[310px] rounded-full border-4 border-amber-600/70 shadow-[0_0_20px_rgba(217,119,6,0.35)] pointer-events-none" />

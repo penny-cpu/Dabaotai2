@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, CheckCircle2, AlertTriangle, Wind, Compass } from 'lucide-react';
-import { GlitchCorruptionOverlay } from './GlitchCorruptionOverlay';
+import { Sparkles, CheckCircle2, Play, ArrowRight, Eye, Disc } from 'lucide-react';
 import { DialogueLine } from '../types';
-import { DialogueSystem } from './DialogueSystem';
-import { ASSETS } from '../data/museumData';
-import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
+import { UnifiedDialogueBox } from './UnifiedDialogueBox';
+import { RightTopActions } from './RightTopActions';
+import { HallTransitionPage } from './HallTransitionPage';
 
 interface Stage5FuneraryProps {
   onUnlockFragment: () => void;
@@ -13,73 +12,76 @@ interface Stage5FuneraryProps {
   isUnlocked: boolean;
 }
 
-interface RitualCard {
+interface RelicMirrorCandidate {
   id: string;
   name: string;
-  era: string;
+  material: string;
+  motif: string;
   isCorrect: boolean;
   desc: string;
 }
 
-const RITUAL_CARDS: RitualCard[] = [
+const MIRROR_CANDIDATES: RelicMirrorCandidate[] = [
   {
-    id: 'r1',
-    name: '汉代深衣长袖送行舞',
-    era: '西汉礼乐',
+    id: 'm_xing_yun_mirror',
+    name: '星云纹铜镜',
+    material: '青铜铸造 · 镜面光洁照人',
+    motif: '镜背通体铸造翻卷回旋之云气纹与星乳',
     isCorrect: true,
-    desc: '长袖舒卷如云，庄严送行，事死如生之大汉礼乐。',
+    desc: '大葆台汉墓典型随葬铜镜，云气翻卷通向天界，寄托升仙祈愿。',
   },
   {
-    id: 'r2',
-    name: '唐代胡旋舞急转',
-    era: '盛唐西域',
+    id: 'm_gui_feng_bi',
+    name: '透雕规矩玉璧',
+    material: '白玉质地',
+    motif: '博局纹与方折龙凤纹',
     isCorrect: false,
-    desc: '立小圆毯旋转如风，热烈奔放，非汉代肃穆随葬长袖礼仪。',
+    desc: '礼玉重器，非铜铸照人铜镜。',
   },
   {
-    id: 'r3',
-    name: '宋代杂剧滑稽演段',
-    era: '宋代勾栏',
+    id: 'm_cai_hui_pot',
+    name: '彩绘云气陶壶',
+    material: '泥质灰陶 · 朱墨彩绘',
+    motif: '壶腹彩绘灵动飞禽与云纹',
     isCorrect: false,
-    desc: '市井杂剧滑稽取笑，与汉代地下王陵礼藏不符。',
+    desc: '陶制随葬容器，非铜铸镜器。',
   },
   {
-    id: 'r4',
-    name: '清代宫廷大阅乐舞',
-    era: '清代八旗',
+    id: 'm_ming_wen_mirror',
+    name: '日光连弧铭文铜镜',
+    material: '青铜铸造',
+    motif: '铸有“见日之光，天下大明”汉隶铭文',
     isCorrect: false,
-    desc: '清廷塞宴与武备阅兵，时代相差千载。',
+    desc: '铭文铜镜，非纯粹翻卷回旋之云气纹。',
   },
 ];
 
-const DIALOGUES_START: DialogueLine[] = [
+const DIALOGUES_STAGE5_INTRO: DialogueLine[] = [
   {
-    speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '【嚼嚼嚼……这里太肃穆了，快把送行礼仪的庄重都吃光……】',
+    speaker: 'narrator',
+    speakerName: '旁白',
+    text: '汉代重视丧葬礼仪，诸侯王送葬同样离不开礼乐。送葬队伍启行，舞者以长袖相送。生前的礼乐，也被延续到身后。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '这一段舞不是为了热闹，而是为了……送行。长袖挥动时，要像云一样轻，又要像山一样重。',
-  },
-  {
-    speaker: 'pushou',
-    speakerName: '鎏金铜铺首',
-    text: '汉家礼乐，事死如生。辨认出正确的袖舞礼制。',
+    text: '这应该是广阳王的送葬队伍。',
   },
 ];
 
-const DIALOGUES_RESTORED: DialogueLine[] = [
-  {
-    speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '吱吱吱，这里净化了，快退至墓穴深处……！',
-  },
+const DIALOGUES_STAGE5_AFTER_VIDEO: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '长袖如云，送行礼成！第五块腰身碎片重聚了！',
+    text: '这个动作……我见过。她们的长袖在空中画出一道不断回旋的纹样。那不是普通袖痕。它一定刻在某件随葬文物上。',
+  },
+];
+
+const DIALOGUES_STAGE5_SUCCESS: DialogueLine[] = [
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '对，是星云纹铜镜。舞者用身体画云，工匠把云刻进铜镜。送葬的长袖与镜背的云气，都指向通往天界的想象。',
   },
 ];
 
@@ -88,179 +90,257 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
-  const [showDialogue, setShowDialogue] = useState<boolean>(true);
+  const [phase, setPhase] = useState<'intro_dialogue' | 'video_preshow' | 'dialogue_preshow' | 'interactive' | 'success_dialogue' | 'transition'>('intro_dialogue');
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
-  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
-  const [showCorruption, setShowCorruption] = useState<boolean>(false);
-  const [showMemoryVideo, setShowMemoryVideo] = useState<boolean>(false);
+  const [selectedMirrorId, setSelectedMirrorId] = useState<string | null>(null);
+  const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
   useEffect(() => {
-    soundFX.playCrawlerScurry();
+    soundFX.playStoneDrum();
   }, []);
 
-  const handleSelectCard = (card: RitualCard) => {
+  const handleSelectMirror = (id: string) => {
     soundFX.playStoneDrum();
-    setSelectedCardId(card.id);
+    setSelectedMirrorId(id);
+  };
 
-    if (card.isCorrect) {
+  const handleConfirmMirror = () => {
+    if (!selectedMirrorId) return;
+    const item = MIRROR_CANDIDATES.find((m) => m.id === selectedMirrorId);
+    if (item?.isCorrect) {
       soundFX.playBronzeChime();
       soundFX.playMemoryRestore();
+      setErrorTip('');
       setIsSuccess(true);
       onUnlockFragment();
-      setActiveDialogues(DIALOGUES_RESTORED);
-      setDialogueIdx(0);
-      setShowDialogue(true);
+      setPhase('success_dialogue');
     } else {
       soundFX.playGlitchStatic();
-      soundFX.playInsectEating();
-      setShowCorruption(true);
-      setTimeout(() => setShowCorruption(false), 1400);
+      setErrorTip('再想想……送葬长袖翻卷如腾云，应寻找镜背铸有翻卷云气与星乳的青铜镜器。');
+      setTimeout(() => {
+        setErrorTip('');
+      }, 4000);
     }
   };
 
   return (
-    <div className={`relative w-full h-full text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
-      isSuccess ? 'bg-[#150f1c]' : 'bg-[#0a070e]'
-    }`}>
-      <GlitchCorruptionOverlay
-        isVisible={showCorruption}
-        message="长袖礼仪动作辨识有误 · 汉代地下送灵需端庄沉稳、广袖回转"
-      />
-
+    <div
+      className={`relative w-full h-full text-[#ffdcb3] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
+        isSuccess ? 'bg-[#1f160e]' : 'bg-[#120a06]'
+      }`}
+      style={{
+        backgroundImage: 'radial-gradient(#26150b 1px, transparent 0)',
+        backgroundSize: '16px 16px',
+      }}
+    >
       {/* Top Bar */}
-      <div className="p-2.5 bg-[#1a1224] border-b border-[#35254a] flex items-center justify-between z-10 shadow-md">
+      <div className="p-2.5 bg-[#24170d] border-b border-[#4d3322] flex items-center justify-between z-10 shadow-md">
         <div>
-          <span className="text-[8px] tracking-[0.25em] uppercase text-[#a995c7] font-mono">
-            CHAPTER 5 · FUNERARY SLEEVE RITUAL
+          <span className="text-[8px] tracking-[0.25em] uppercase text-amber-400 font-mono">
+            CHAPTER 05 · 送葬 · 星云镜
           </span>
-          <h2 className="text-xs sm:text-sm font-black text-[#e9dcff] tracking-widest title-drop-shadow">
-            第五关 · 袖舞 (事死如生与汉仪)
+          <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
+            第五章｜送葬 · 星云纹镜
           </h2>
         </div>
-
-        <span className={`text-[9px] font-mono px-2 py-0.5 rounded-full border ${
-          isSuccess ? 'bg-purple-950 text-purple-300 border-purple-500' : 'bg-[#221630] text-[#c9b4e6] border-[#4b3566]'
-        }`}>
-          {isSuccess ? '送灵礼仪已复 100%' : '礼仪辨识中'}
-        </span>
       </div>
 
-      {/* Main Interactive Stage */}
-      <div className="flex-1 relative overflow-hidden flex flex-col justify-between p-3">
-        {/* Upper Video & Ritual Identification Area */}
-        <div className={`relative w-full flex-1 rounded-3xl border-2 transition-all duration-700 overflow-hidden flex flex-col items-center justify-center p-3 shadow-2xl ${
-          isSuccess
-            ? 'bg-[#201530] border-purple-400/80 shadow-[0_0_20px_rgba(168,85,247,0.25)]'
-            : 'bg-[#0e0a14] border-[#35254a]'
-        }`}>
-          {/* Sleeve Dance Video Player Box */}
-          <div className="w-full max-w-xs">
-            <VideoPlayerPlaceholder
-              title="【汉代长袖舞 · 送行之礼】"
-              subtitle="16:9 汉代送行长袖仪式"
-              videoSrc="/assets/videos/dance_funerary.mp4"
-              posterImage={ASSETS.wuDance}
-              description="舞者舒展深衣广袖，步履沉敛，以长袖回转划出云气之形，敬送逝者安息。"
-              videoAssetPathHint="src/assets/videos/dance_funerary.mp4"
-            />
+      {/* STEP 1: PAGE 17 仪式对白 */}
+      {phase === 'intro_dialogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-amber-950 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.6)] animate-pulse">
+              <Disc className="w-10 h-10 text-amber-400" />
+            </div>
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono text-amber-300">大汉丧葬礼制 · 诸侯王送葬</span>
+              <h3 className="text-base font-black text-[#ffe89c]">长袖相送 · 生死相承</h3>
+            </div>
           </div>
-        </div>
 
-        {/* Lower Ritual Choice Cards */}
-        <div className="w-full mt-2 grid grid-cols-2 gap-2 z-10">
-          {RITUAL_CARDS.map((card) => {
-            const isSelected = selectedCardId === card.id;
-            return (
-              <button
-                key={card.id}
-                onClick={() => handleSelectCard(card)}
-                className={`p-2.5 rounded-2xl border-2 transition-all text-left flex flex-col justify-between shadow-xl ${
-                  isSelected && card.isCorrect
-                    ? 'bg-purple-950/90 border-purple-400 text-white shadow-[0_0_15px_#a855f7]'
-                    : 'bg-[#181124] border-[#35254a] text-[#d2b48c] hover:border-purple-500'
-                }`}
-              >
-                <div>
-                  <span className="text-[8px] font-mono px-1.5 py-0.2 rounded bg-black/50 text-[#c9b4e6]">
-                    {card.era}
-                  </span>
-                  <div className="text-[11px] font-black text-[#f3ebff] mt-1 font-serif leading-tight">
-                    {card.name}
-                  </div>
-                </div>
-                <p className="text-[8px] text-[#a995c7] mt-1 line-clamp-2 leading-tight">
-                  {card.desc}
-                </p>
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Action Button */}
-        {isSuccess && (
-          <div className="w-full mt-2 z-10">
-            <button
-              onClick={() => {
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE5_INTRO}
+            currentIndex={dialogueIdx}
+            onNext={() => {
+              if (dialogueIdx < DIALOGUES_STAGE5_INTRO.length - 1) {
+                setDialogueIdx(dialogueIdx + 1);
+              } else {
                 soundFX.playStoneDrum();
-                setShowMemoryVideo(true);
-              }}
-              className="w-full py-2.5 bg-purple-800 hover:bg-purple-700 text-white font-serif font-black rounded-2xl border-2 border-purple-400 text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 animate-pulse"
-            >
-              <Sparkles className="w-4 h-4 text-purple-200" />
-              <span>腰身碎片已归位 · 查看袖舞记忆</span>
-            </button>
-          </div>
-        )}
-      </div>
+                setPhase('video_preshow');
+              }
+            }}
+          />
+        </div>
+      )}
 
-      {/* Memory Modal */}
-      {showMemoryVideo && (
+      {/* STEP 2: PAGE 18 送葬视频 */}
+      {phase === 'video_preshow' && (
         <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 animate-fade-in font-serif select-none">
-          <div className="text-center mt-3">
-            <span className="text-[9px] font-mono text-purple-300 tracking-widest bg-purple-950/80 px-3 py-1 rounded-full border border-purple-500">
-              MEMORY RESTORED · 第五块碎片归位
+          <div className="text-center mt-2">
+            <span className="text-[9px] font-mono text-amber-300 tracking-widest bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500">
+              DANCE VIDEO · 送葬长袖舞
             </span>
             <h3 className="text-base font-black text-[#ffe89c] mt-2">
-              袖舞记忆 · 广袖回风，礼序千秋
+              观看送葬长袖舞 · 长袖在空中画出回旋云纹
             </h3>
           </div>
 
-          <div className="relative w-full max-w-xs aspect-[3/4] rounded-3xl overflow-hidden border-2 border-purple-600 shadow-2xl bg-[#140b20] flex items-center justify-center p-4">
-            <div className="text-center space-y-3">
-              <p className="text-[11px] text-[#f2e6ff] leading-relaxed">
-                “长袖回风，汉礼肃然！舞人庄严合礼，第五块腰身碎片重聚，汉家事死如生之大义昭然。”
+          <div className="relative w-full max-w-xs aspect-[4/5] rounded-3xl overflow-hidden border-2 border-amber-600 shadow-2xl bg-[#1c130d] flex items-center justify-center">
+            <div className="w-40 h-48 rounded-2xl bg-amber-950/50 border border-amber-500/60 flex flex-col items-center justify-center p-3 text-center space-y-2">
+              <Disc className="w-10 h-10 text-amber-300 animate-spin" />
+              <span className="text-xs font-black text-amber-200">
+                送葬礼乐 · 挥袖成云
+              </span>
+              <p className="text-[10px] text-amber-100/80 leading-relaxed">
+                “舞者回旋挥袖，袖痕如翻卷云气，引导魂灵升入浩瀚星汉。”
               </p>
             </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
           </div>
 
           <button
             onClick={() => {
               soundFX.playStoneDrum();
-              setShowMemoryVideo(false);
-              onNextPage();
+              setPhase('dialogue_preshow');
             }}
-            className="w-full max-w-xs py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1"
+            className="w-full max-w-xs py-3 bg-amber-600 hover:bg-amber-500 text-black font-black rounded-2xl text-xs shadow-2xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
           >
-            <span>进入第六关 · 题凑</span>
+            <span>完成观看 · 寻觅对应云纹文物</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Story Dialogue */}
-      {showDialogue && (
-        <DialogueSystem
-          dialogues={activeDialogues}
-          currentIndex={dialogueIdx}
-          onNext={() => {
-            if (dialogueIdx < activeDialogues.length - 1) {
-              setDialogueIdx(dialogueIdx + 1);
-            } else {
-              setShowDialogue(false);
-            }
+      {/* STEP 3: PAGE 18 玉舞人发现纹样对白 */}
+      {phase === 'dialogue_preshow' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-amber-950 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.5)]">
+              <Eye className="w-10 h-10 text-amber-300" />
+            </div>
+            <div className="text-center text-[11px] text-[#c2a385]">
+              长乐展厅灯光照亮四件随葬珍宝，寻找与舞袖云纹相映之物
+            </div>
+          </div>
+
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE5_AFTER_VIDEO}
+            currentIndex={0}
+            onNext={() => {
+              setPhase('interactive');
+            }}
+          />
+        </div>
+      )}
+
+      {/* STEP 4: PAGE 19 交互：四选一文物（星云纹铜镜） */}
+      {phase === 'interactive' && (
+        <div className="flex-1 relative overflow-hidden flex flex-col justify-start space-y-2.5 p-3 animate-fade-in pb-36">
+          {/* Top Title Prompt */}
+          <div className="text-center py-1">
+            <span className="text-[10.5px] font-black text-[#ffe89c] bg-[#26170e] px-3.5 py-1 rounded-full border border-amber-600/70 shadow">
+              从四件随葬文物中，选出对应送葬舞袖回旋云气的「星云纹铜镜」
+            </span>
+          </div>
+
+          {/* 4 Relics 2x2 Grid */}
+          <div className="grid grid-cols-2 gap-2.5 my-auto">
+            {MIRROR_CANDIDATES.map((item) => {
+              const isSelected = selectedMirrorId === item.id;
+              return (
+                <div
+                  key={item.id}
+                  onClick={() => handleSelectMirror(item.id)}
+                  className={`p-2.5 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-1 shadow-md ${
+                    isSelected
+                      ? 'bg-[#332014] border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.5)] scale-102 ring-2 ring-amber-500/40'
+                      : 'bg-[#170e09]/90 border-[#3d2b1f] hover:border-amber-700/70'
+                  }`}
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="text-xs font-black text-[#ffe89c]">
+                      {item.name}
+                    </span>
+                    {isSelected && (
+                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                    )}
+                  </div>
+                  <div className="space-y-0.5 text-[8.5px] text-[#c2a385]">
+                    <p>❖ {item.material}</p>
+                    <p className="line-clamp-2">❖ {item.motif}</p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Standardized Confirm Button */}
+          <div className="w-full z-10 pt-1">
+            <button
+              onClick={handleConfirmMirror}
+              disabled={!selectedMirrorId}
+              className={`w-full py-3 rounded-2xl font-serif font-black text-xs border-2 shadow-2xl transition-all flex items-center justify-center gap-1.5 ${
+                selectedMirrorId
+                  ? 'bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:brightness-110 text-black border-amber-400 active:scale-98 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                  : 'bg-[#170f0a] text-[#554030] border-[#291b12] cursor-not-allowed'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4 text-black" />
+              <span>确认选择 · 点亮星云铜镜记忆</span>
+            </button>
+          </div>
+
+          {/* Interactive Mode: Jade dancer with 3-level progressive hints */}
+          <UnifiedDialogueBox
+            isInteractiveMode={true}
+            hints={[
+              '汉代铜镜常寄托长乐未央与通天登仙之愿，请辨认带有宇宙星宿流转寓意的随葬明器。',
+              '此镜背面纽座外环绕波折纹与连珠星云，纹饰如夜空流云星宿，映照阴阳神灵。',
+              '正确选项为「星云纹铜镜」——其镜背星云流转，正契合汉代‘观象察变、天人合一’的礼仪。',
+            ]}
+            errorTip={errorTip}
+            onClearError={() => setErrorTip('')}
+          />
+        </div>
+      )}
+
+      {/* STEP 5: 成功反馈对白 */}
+      {phase === 'success_dialogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-emerald-950 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse">
+              <Sparkles className="w-10 h-10 text-emerald-300" />
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
+                新记忆已收录 · 记忆卡 05
+              </span>
+              <h3 className="text-base font-black text-[#ffe89c] mt-2">
+                卡片 05「送葬长袖」已点亮
+              </h3>
+            </div>
+          </div>
+
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE5_SUCCESS}
+            currentIndex={0}
+            onNext={() => {
+              setPhase('transition');
+            }}
+          />
+        </div>
+      )}
+
+      {/* STEP 6: 过场 PAGE｜前往地宫核心 · 黄肠题凑 */}
+      {phase === 'transition' && (
+        <HallTransitionPage
+          targetHallName="前往：一号墓黄肠题凑现场"
+          subtitle="步入地宫深处，万根柏木筑起的地下宫殿正静候开启……"
+          themeColor="gold"
+          onContinue={() => {
+            onNextPage();
           }}
-          restorationLevel={isSuccess ? 5 : 4}
         />
       )}
     </div>

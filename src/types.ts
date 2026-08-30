@@ -1,9 +1,11 @@
 export type SectionKey =
+  | 'prologue_flow'    // 新剧本开场与序章 (PAGE 01 ~ PAGE 04)
   | 'prologue_sand'    // 场景 0A：卡牌与拨沙首页
   | 'prologue_glitch'  // 场景 0B：信号故障与七片坠落
   | 'prologue_gate'    // 场景 0C：残门守卫与七关地图展开
   | 'weapon'           // 第一关 · 戈影 (半圆兵器盘与武舞记忆)
   | 'banquet'          // 第二关 · 宴乐 (现场拍照取景与宴乐记忆)
+  | 'jade_sphere'      // 重点文物展柜 · 纵深球形空间文物自述
   | 'gallery'          // 第三关 · 浮游 (五列上浮文物与文物舞记忆)
   | 'baixi'            // 第四关 · 百戏 (灯笼照三景与六博残局)
   | 'funerary'         // 第五关 · 袖舞 (送行长袖与礼仪画面抉择)

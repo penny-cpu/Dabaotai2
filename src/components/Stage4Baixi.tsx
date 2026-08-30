@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Flame, Sparkles, CheckCircle2, AlertTriangle, Eye, HelpCircle } from 'lucide-react';
-import { GlitchCorruptionOverlay } from './GlitchCorruptionOverlay';
+import { Sparkles, CheckCircle2, Play, ArrowRight, Dices } from 'lucide-react';
 import { DialogueLine } from '../types';
-import { DialogueSystem } from './DialogueSystem';
-import { ASSETS } from '../data/museumData';
-import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
+import { UnifiedDialogueBox } from './UnifiedDialogueBox';
+import { RightTopActions } from './RightTopActions';
+import { HallTransitionPage } from './HallTransitionPage';
 
 interface Stage4BaixiProps {
   onUnlockFragment: () => void;
@@ -13,70 +12,24 @@ interface Stage4BaixiProps {
   isUnlocked: boolean;
 }
 
-interface BaixiScene {
-  id: string;
-  name: string;
-  category: string;
-  desc: string;
-  isLit: boolean;
-  pos: { x: number; y: number };
-}
-
-const INITIAL_SCENES: BaixiScene[] = [
-  {
-    id: 'b1',
-    name: '盘鼓舞 (七盘舞)',
-    category: '汉代乐舞',
-    desc: '舞者罗袜蹑盘，足踏七盘如流星飞掷，汉代绝美打击乐舞。',
-    isLit: false,
-    pos: { x: 22, y: 35 },
-  },
-  {
-    id: 'b2',
-    name: '寻橦与倒立',
-    category: '百戏杂技',
-    desc: '长杆倒立、飞剑跳丸，汉代百戏之勇烈神技。',
-    isLit: false,
-    pos: { x: 74, y: 30 },
-  },
-  {
-    id: 'b3',
-    name: '六博对弈',
-    category: '汉代博戏',
-    desc: '投箸行棋、争道进击，汉代王公贵族最钟爱之智戏。',
-    isLit: false,
-    pos: { x: 50, y: 72 },
-  },
-];
-
-const DIALOGUES_START: DialogueLine[] = [
+const DIALOGUES_STAGE4_PAIYOU: DialogueLine[] = [
   {
     speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '【嚼嚼嚼……黑夜里连烛火都不会再有了……六博残局永远死在这里吧……】',
+    speakerName: '俳优',
+    text: '看我这七颗丸球！我一天能抛“五千四百”回。可“五千四百”和“五千又四百”，到底是不是同一个数？算错了，我今晚的赏钱可没了！',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '好黑。我只记得百戏很热闹，有鼓，有长索，还有……六博的棋子声。',
-  },
-  {
-    speaker: 'pushou',
-    speakerName: '鎏金铜铺首',
-    text: '提灯照亮三处壁画，看清动作，再按舞人的步法走完六博残局。',
+    text: '百戏看似热闹，也有规则和技巧。你先看清他的说法，再替他算一算。',
   },
 ];
 
-const DIALOGUES_RESTORED: DialogueLine[] = [
-  {
-    speaker: 'corruptor',
-    speakerName: '蚀墓虫',
-    text: '吱吱吱，这里净化了，快退至墓穴深处……！',
-  },
+const DIALOGUES_STAGE4_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '盘鼓乐动，六博局开！第四块衣摆碎片重聚了！',
+    text: '对，两个说法都是五千四百。宴乐重礼，百戏娱民；热闹之中，也有严谨的秩序。我又想起了广阳宴席上的笑声。',
   },
 ];
 
@@ -85,243 +38,262 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [scenes, setScenes] = useState<BaixiScene[]>(INITIAL_SCENES);
-  const [currentStep, setCurrentStep] = useState<number>(0); // 0 to 6 for liubo
-  const [showDialogue, setShowDialogue] = useState<boolean>(true);
+  const [phase, setPhase] = useState<'video_preshow' | 'dialogue_paiyou' | 'interactive' | 'success_dialogue' | 'transition'>('video_preshow');
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
-  const [activeDialogues, setActiveDialogues] = useState<DialogueLine[]>(DIALOGUES_START);
-  const [showCorruption, setShowCorruption] = useState<boolean>(false);
-  const [showMemoryVideo, setShowMemoryVideo] = useState<boolean>(false);
+  const [selectedOption, setSelectedOption] = useState<'A' | 'B' | null>(null);
+  const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
   useEffect(() => {
-    soundFX.playCrawlerScurry();
+    soundFX.playStoneDrum();
   }, []);
 
-  const litCount = scenes.filter((s) => s.isLit).length;
-
-  const handleLightScene = (id: string) => {
+  const handleSelectOption = (opt: 'A' | 'B') => {
     soundFX.playStoneDrum();
-    soundFX.playBronzeChime();
-    setScenes((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, isLit: true } : s))
-    );
+    setSelectedOption(opt);
   };
 
-  const handleLiuboStep = (stepIdx: number) => {
-    if (litCount < 3) {
-      soundFX.playGlitchStatic();
-      setShowCorruption(true);
-      setTimeout(() => setShowCorruption(false), 1200);
-      return;
-    }
-
-    if (stepIdx === currentStep + 1) {
-      soundFX.playStoneDrum();
-      setCurrentStep(stepIdx);
-
-      if (stepIdx === 6) {
-        soundFX.playBronzeChime();
-        soundFX.playMemoryRestore();
-        setIsSuccess(true);
-        onUnlockFragment();
-        setActiveDialogues(DIALOGUES_RESTORED);
-        setDialogueIdx(0);
-        setShowDialogue(true);
-      }
+  const handleConfirmOption = () => {
+    if (!selectedOption) return;
+    if (selectedOption === 'B') {
+      soundFX.playBronzeChime();
+      soundFX.playMemoryRestore();
+      setErrorTip('');
+      setIsSuccess(true);
+      onUnlockFragment();
+      setPhase('success_dialogue');
     } else {
       soundFX.playGlitchStatic();
-      soundFX.playInsectEating();
-      setShowCorruption(true);
-      setTimeout(() => setShowCorruption(false), 1200);
+      setErrorTip('再想想……古汉语中“又”用于连接整数与零头，表示“加”，故五千又四百即为五千四百。');
+      setTimeout(() => {
+        setErrorTip('');
+      }, 4000);
     }
   };
 
   return (
-    <div className={`relative w-full h-full text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
-      isSuccess ? 'bg-[#18110a]' : 'bg-[#0a0705]'
-    }`}>
-      <GlitchCorruptionOverlay
-        isVisible={showCorruption}
-        message="六博步法走乱 · 需先点亮三处百戏再按 1-6 顺序踏出步法"
-      />
-
+    <div
+      className={`relative w-full h-full text-[#ffd1b3] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
+        isSuccess ? 'bg-[#210e0e]' : 'bg-[#140606]'
+      }`}
+      style={{
+        backgroundImage: 'radial-gradient(#301111 1px, transparent 0)',
+        backgroundSize: '16px 16px',
+      }}
+    >
       {/* Top Bar */}
-      <div className="p-2.5 bg-[#17100b] border-b border-[#3d2b1f] flex items-center justify-between z-10 shadow-md">
+      <div className="p-2.5 bg-[#260e0e] border-b border-red-900 flex items-center justify-between z-10 shadow-md">
         <div>
-          <span className="text-[8px] tracking-[0.25em] uppercase text-[#a3805d] font-mono">
-            CHAPTER 4 · BAIXI ACROBATICS
+          <span className="text-[8px] tracking-[0.25em] uppercase text-red-400 font-mono">
+            CHAPTER 04 · 百戏 · 跳丸
           </span>
           <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
-            第四关 · 百戏 (灯照三景与六博)
+            第四章｜百戏 · 跳丸
           </h2>
         </div>
-
-        <div className="flex items-center gap-1 text-[9px] font-mono bg-[#24170d] px-2 py-0.5 rounded-full border border-amber-800 text-amber-300">
-          <span>点亮 {litCount}/3 · 六博 {currentStep}/6</span>
-        </div>
       </div>
 
-      {/* Main Lantern & Liubo Interactive Canvas */}
-      <div className="flex-1 relative overflow-hidden flex flex-col justify-between p-3">
-        {/* Upper Canvas: Darkened Tomb Wall with 3 Lantern Spotlights */}
-        <div className={`relative w-full flex-1 rounded-3xl border-2 transition-all duration-700 overflow-hidden flex flex-col items-center justify-center shadow-2xl p-2 ${
-          isSuccess
-            ? 'bg-[#1e130a] border-amber-500/80 shadow-[0_0_20px_rgba(245,158,11,0.25)]'
-            : 'bg-[#0c0805] border-[#3d2b1f]'
-        }`}>
-          {/* Faint Baixi Mural Background */}
-          <div
-            className={`absolute inset-0 bg-cover bg-center transition-all duration-700 ${
-              litCount === 3 ? 'opacity-80 brightness-110 contrast-110' : 'opacity-20 grayscale'
-            }`}
-            style={{ backgroundImage: `url(${ASSETS.lifeScroll})` }}
-          />
-
-          {/* 3 Clickable Lantern Spotlights */}
-          {scenes.map((scene) => (
-            <div
-              key={scene.id}
-              onClick={() => handleLightScene(scene.id)}
-              style={{ left: `${scene.pos.x}%`, top: `${scene.pos.y}%` }}
-              className="absolute -translate-x-1/2 -translate-y-1/2 cursor-pointer z-10 group"
-            >
-              <div
-                className={`p-2 rounded-2xl border-2 transition-all flex flex-col items-center shadow-xl ${
-                  scene.isLit
-                    ? 'bg-amber-950/90 border-[#ffe89c] text-[#ffe89c] shadow-[0_0_20px_rgba(255,232,156,0.5)] scale-105'
-                    : 'bg-black/80 border-[#5c4033] text-[#8c7561] hover:border-amber-500 animate-pulse'
-                }`}
-              >
-                <div className="flex items-center gap-1">
-                  <Flame
-                    className={`w-4 h-4 ${
-                      scene.isLit ? 'text-amber-400 fill-amber-400 animate-bounce' : 'text-[#8c7561]'
-                    }`}
-                  />
-                  <span className="text-[10px] font-black">{scene.name}</span>
-                </div>
-                {scene.isLit && (
-                  <p className="text-[8px] text-emerald-300 mt-1 max-w-[130px] leading-tight text-center">
-                    {scene.desc}
-                  </p>
-                )}
-              </div>
-            </div>
-          ))}
-
-          {/* Instruction */}
-          <div className="absolute bottom-2 inset-x-2 text-center text-[9px] text-[#a3805d] bg-black/60 py-0.5 rounded-full border border-[#3d2b1f]/50">
-            {litCount < 3
-              ? '点击提灯逐一照亮 3 处百戏场景（盘鼓舞、倒立走索、六博对弈）'
-              : '三景已照亮！点击下方按 1-6 步法走通六博残局'}
-          </div>
-        </div>
-
-        {/* Lower Liubo 6-Step Track */}
-        <div className="w-full mt-2 bg-[#17100b] border-2 border-[#3d2b1f] rounded-2xl p-2.5 shadow-xl space-y-1.5 z-10">
-          <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black text-[#ffe89c] flex items-center gap-1">
-              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-              <span>六博残局 · 舞步六进</span>
-            </span>
-            <span className="text-[8px] font-mono text-[#a3805d]">
-              依次点击 1 至 6 号步位
-            </span>
-          </div>
-
-          <div className="grid grid-cols-6 gap-1.5">
-            {[1, 2, 3, 4, 5, 6].map((step) => {
-              const isFinished = step <= currentStep;
-              const isNext = step === currentStep + 1;
-
-              return (
-                <button
-                  key={step}
-                  onClick={() => handleLiuboStep(step)}
-                  disabled={isSuccess || litCount < 3}
-                  className={`h-10 rounded-xl border-2 font-serif font-black text-xs transition-all flex flex-col items-center justify-center ${
-                    isFinished
-                      ? 'bg-emerald-900 border-emerald-400 text-white shadow-[0_0_10px_#34d399]'
-                      : isNext && litCount === 3
-                      ? 'bg-amber-600 border-[#ffe89c] text-white animate-bounce'
-                      : 'bg-[#0f0a07] border-[#2b1b12] text-[#6b4c35]'
-                  }`}
-                >
-                  <span>{step}</span>
-                  <span className="text-[7px] font-mono opacity-80">步</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
-
-        {/* Action Button */}
-        {isSuccess && (
-          <div className="w-full mt-2 z-10">
-            <button
-              onClick={() => {
-                soundFX.playStoneDrum();
-                setShowMemoryVideo(true);
-              }}
-              className="w-full py-2.5 bg-emerald-800 hover:bg-emerald-700 text-white font-serif font-black rounded-2xl border-2 border-emerald-400 text-xs shadow-2xl active:scale-98 transition-all flex items-center justify-center gap-1.5 animate-pulse"
-            >
-              <Sparkles className="w-4 h-4 text-emerald-200" />
-              <span>衣摆碎片已归位 · 查看百戏乐舞视频</span>
-            </button>
-          </div>
-        )}
-      </div>
-
-      {/* Video Modal with VideoPlayerPlaceholder (百戏乐舞视频) */}
-      {showMemoryVideo && (
+      {/* STEP 1: PAGE 14 百戏视频 */}
+      {phase === 'video_preshow' && (
         <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 animate-fade-in font-serif select-none">
-          <div className="text-center mt-3">
-            <span className="text-[9px] font-mono text-emerald-300 tracking-widest bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
-              MEMORY VIDEO · 第四块碎片归位
+          <div className="text-center mt-2">
+            <span className="text-[9px] font-mono text-red-300 tracking-widest bg-red-950/80 px-3 py-1 rounded-full border border-red-500">
+              DANCE & BAIXI VIDEO · 汉代百戏
             </span>
             <h3 className="text-base font-black text-[#ffe89c] mt-2">
-              百戏记忆 · 盘鼓踏歌，六博定局
+              观看汉代百戏 · 跳丸、角抵与杂耍乐舞
             </h3>
           </div>
 
-          <div className="w-full max-w-xs">
-            <VideoPlayerPlaceholder
-              title="【汉代百戏 · 盘鼓与杂技】"
-              subtitle="16:9 汉代百戏复原演艺"
-              videoSrc="/assets/videos/dance_baixi.mp4"
-              posterImage={ASSETS.lifeScroll}
-              description="舞者踏盘而歌，杂技倒立寻橦，伴随六博行子，展现汉代盛大生动的百戏艺术。"
-              videoAssetPathHint="src/assets/videos/dance_baixi.mp4"
-            />
+          <div className="relative w-full max-w-xs aspect-[4/5] rounded-3xl overflow-hidden border-2 border-red-600 shadow-2xl bg-[#1c0808] flex items-center justify-center">
+            {/* 7 Juggling Balls bouncing animation */}
+            <div className="relative w-48 h-48 flex items-center justify-center">
+              {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="absolute w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 shadow-[0_0_12px_rgba(239,68,68,0.8)] border border-amber-300 animate-bounce"
+                  style={{
+                    left: `${50 + 35 * Math.cos((i * 2 * Math.PI) / 7)}%`,
+                    top: `${50 + 35 * Math.sin((i * 2 * Math.PI) / 7)}%`,
+                    animationDelay: `${i * 0.15}s`,
+                  }}
+                />
+              ))}
+              <div className="text-center text-xs font-serif font-black text-amber-200">
+                俳优腾掷七丸
+              </div>
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
+            <div className="absolute bottom-4 inset-x-4 text-center">
+              <p className="text-[11px] text-[#ffdfd0] leading-relaxed">
+                “宴乐之外，还有百戏。俳优一人腾掷七彩丸球，上下翻飞如流星连缀。”
+              </p>
+            </div>
           </div>
 
           <button
             onClick={() => {
               soundFX.playStoneDrum();
-              setShowMemoryVideo(false);
-              onNextPage();
+              setPhase('dialogue_paiyou');
+              setDialogueIdx(0);
             }}
-            className="w-full max-w-xs py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1"
+            className="w-full max-w-xs py-3 bg-red-600 hover:bg-red-500 text-white font-black rounded-2xl text-xs shadow-2xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
           >
-            <span>进入第五关 · 袖舞</span>
+            <span>完成观看 · 听俳优出题</span>
+            <ArrowRight className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Story Dialogue */}
-      {showDialogue && (
-        <DialogueSystem
-          dialogues={activeDialogues}
-          currentIndex={dialogueIdx}
-          onNext={() => {
-            if (dialogueIdx < activeDialogues.length - 1) {
-              setDialogueIdx(dialogueIdx + 1);
-            } else {
-              setShowDialogue(false);
-            }
+      {/* STEP 2: PAGE 15 俳优出场对白 */}
+      {phase === 'dialogue_paiyou' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-red-950 border-2 border-red-500 flex items-center justify-center shadow-[0_0_25px_rgba(239,68,68,0.7)] animate-pulse">
+              <Dices className="w-10 h-10 text-red-300" />
+            </div>
+            <div className="text-center space-y-1">
+              <span className="text-[10px] font-mono text-red-300">广阳市民乐舞 · 跳丸弄球</span>
+              <h3 className="text-base font-black text-[#ffe89c]">百戏娱民 · 热闹欢腾</h3>
+            </div>
+          </div>
+
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE4_PAIYOU}
+            currentIndex={dialogueIdx}
+            onNext={() => {
+              if (dialogueIdx < DIALOGUES_STAGE4_PAIYOU.length - 1) {
+                setDialogueIdx((prev) => prev + 1);
+              } else {
+                setPhase('interactive');
+              }
+            }}
+          />
+        </div>
+      )}
+
+      {/* STEP 3: PAGE 16 交互：跳丸数字谜题（Point 9: 左右滑动手势指示标已去掉） */}
+      {phase === 'interactive' && (
+        <div className="flex-1 relative overflow-hidden flex flex-col justify-start space-y-2 p-3 animate-fade-in pb-36">
+          {/* Top 7 Rainbow Bouncing Balls */}
+          <div className="relative w-full h-28 rounded-2xl bg-[#260e0e] border border-red-900/80 flex items-center justify-center overflow-hidden p-2 shadow-inner">
+            <div className="flex items-center gap-2.5">
+              {[0, 1, 2, 3, 4, 5, 6].map((i) => (
+                <div
+                  key={i}
+                  className="w-7 h-7 rounded-full bg-gradient-to-tr from-amber-500 to-red-500 border border-amber-200 flex items-center justify-center font-mono text-[9px] font-black text-black shadow-md animate-bounce"
+                  style={{ animationDelay: `${i * 0.12}s` }}
+                >
+                  丸{i + 1}
+                </div>
+              ))}
+            </div>
+            <div className="absolute bottom-1 text-[8.5px] text-[#ffb0a0] font-mono">
+              小字提示：“又”在古代汉语言中表示“加” (如：五千又四百 = 5000 + 400)
+            </div>
+          </div>
+
+          {/* Question Text */}
+          <div className="p-3 rounded-2xl bg-[#1c0a0a] border border-red-800 text-center space-y-1 my-auto shadow">
+            <span className="text-[9px] font-mono text-amber-300">俳优的算术困惑：</span>
+            <p className="text-xs sm:text-sm font-black text-[#ffe89c]">
+              “五千四百” 与 “五千又四百” 到底是不是同一个数？
+            </p>
+          </div>
+
+          {/* 2 Options */}
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => handleSelectOption('A')}
+              className={`p-4 rounded-2xl border-2 font-serif font-black text-xs transition-all shadow-md flex flex-col items-center justify-center gap-1 ${
+                selectedOption === 'A'
+                  ? 'bg-red-950 border-amber-400 text-amber-200 ring-2 ring-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                  : 'bg-[#1f0b0b] border-red-900 text-red-200 hover:border-red-600'
+              }`}
+            >
+              <span className="text-[10px] font-mono text-red-400">选项 A</span>
+              <span>两个数不同</span>
+            </button>
+
+            <button
+              onClick={() => handleSelectOption('B')}
+              className={`p-4 rounded-2xl border-2 font-serif font-black text-xs transition-all shadow-md flex flex-col items-center justify-center gap-1 ${
+                selectedOption === 'B'
+                  ? 'bg-red-950 border-amber-400 text-amber-200 ring-2 ring-amber-500/60 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                  : 'bg-[#1f0b0b] border-red-900 text-red-200 hover:border-red-600'
+              }`}
+            >
+              <span className="text-[10px] font-mono text-emerald-400">选项 B (正解)</span>
+              <span>两个数相同</span>
+            </button>
+          </div>
+
+          {/* Standardized Confirm Button */}
+          <div className="w-full z-10 pt-1">
+            <button
+              onClick={handleConfirmOption}
+              disabled={!selectedOption}
+              className={`w-full py-3 rounded-2xl font-serif font-black text-xs border-2 shadow-2xl transition-all flex items-center justify-center gap-1.5 ${
+                selectedOption
+                  ? 'bg-gradient-to-r from-red-800 via-red-700 to-amber-800 hover:brightness-110 text-white border-amber-400 active:scale-98 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
+                  : 'bg-[#1a0808] text-[#5c3030] border-[#2d1212] cursor-not-allowed'
+              }`}
+            >
+              <CheckCircle2 className="w-4 h-4 text-[#ffe89c]" />
+              <span>确认答案 · 助俳优领取赏钱</span>
+            </button>
+          </div>
+
+          {/* Interactive Mode: Jade dancer with 3-level progressive hints */}
+          <UnifiedDialogueBox
+            isInteractiveMode={true}
+            hints={[
+              '汉代语言习惯中，常用‘又’字连接千、百与零头数额。',
+              '‘五千又四百’中的‘又’相当于现代汉语中的‘加’或‘零’，并非指两个不同的数字。',
+              '正确答案为「两个数相同」——五千四百与五千又四百在汉代均代表同一数值 5400。',
+            ]}
+            errorTip={errorTip}
+            onClearError={() => setErrorTip('')}
+          />
+        </div>
+      )}
+
+      {/* STEP 4: 成功反馈对白 */}
+      {phase === 'success_dialogue' && (
+        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
+            <div className="w-20 h-20 rounded-full bg-emerald-950 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse">
+              <Sparkles className="w-10 h-10 text-emerald-300" />
+            </div>
+            <div className="text-center">
+              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
+                新记忆已收录 · 记忆卡 04
+              </span>
+              <h3 className="text-base font-black text-[#ffe89c] mt-2">
+                卡片 04「百戏娱民」已点亮
+              </h3>
+            </div>
+          </div>
+
+          <UnifiedDialogueBox
+            dialogues={DIALOGUES_STAGE4_SUCCESS}
+            currentIndex={0}
+            onNext={() => {
+              setPhase('transition');
+            }}
+          />
+        </div>
+      )}
+
+      {/* STEP 5: 过场 PAGE｜盛宴散场 · 前往长乐展厅交互区域 */}
+      {phase === 'transition' && (
+        <HallTransitionPage
+          targetHallName="前往：长乐展厅交互区域"
+          subtitle="钟鼓声渐远，盛宴终有散场。公元前 45 年，广阳顷王刘建薨逝……"
+          themeColor="silver"
+          onContinue={() => {
+            onNextPage();
           }}
-          restorationLevel={isSuccess ? 4 : 3}
         />
       )}
     </div>

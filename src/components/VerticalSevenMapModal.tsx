@@ -141,7 +141,7 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
   onClose,
 }) => {
   return (
-    <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-3 select-none animate-fade-in font-serif">
+    <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 select-none animate-fade-in font-serif overflow-hidden">
       {/* Header */}
       <div className="bg-[#1c130d] border-2 border-[#5c4033] rounded-2xl p-3 flex items-center justify-between shadow-2xl shrink-0">
         <div>
