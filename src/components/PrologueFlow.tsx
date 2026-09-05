@@ -1,321 +1,473 @@
 import React, { useState, useEffect } from 'react';
-import { Sparkles, ArrowRight, Clock, Compass, Shield, BookOpen } from 'lucide-react';
 import { soundFX } from '../utils/soundEngine';
-import { ASSETS } from '../data/museumData';
-import { UnifiedDialogueBox } from './UnifiedDialogueBox';
-import { DialogueLine } from '../types';
+import { HanMuseumTopBar } from './HanLinearDecorations';
+import { MuseumTombBackdrop } from './MuseumTombBackdrop';
+import tombDarkBg from '../assets/images/tomb_jade_dancer_dark_1788598149842.jpg';
 
 interface PrologueFlowProps {
   onStartChapter1: () => void;
 }
 
-type PrologueStep = 'cover' | 'museum_intro' | 'time_travel' | 'dancer_awakening';
+type PrologueStep = 'cover' | 'narration' | 'dancer_awakening';
 
 export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) => {
   const [step, setStep] = useState<PrologueStep>('cover');
-  const [introLineIdx, setIntroLineIdx] = useState<number>(0);
+  const [isGateOpening, setIsGateOpening] = useState<boolean>(false);
 
-  const INTRO_LINES = [
-    '欢迎来到北京大葆台西汉墓遗址博物馆。',
-    '这里建在西汉广阳王刘建与王后的墓葬遗址之上。',
-    '1974 年墓葬被发现，这里完整揭示了“黄肠题凑”等汉代王陵制度。',
-    '今天，千余件汉代文物仍在这里保存着两千年前的生活与记忆。',
-  ];
+  // Eyelid vertical blink state: 0 = closed, 1 = first opening, 2 = blink close, 3 = fully open, 4 = hidden
+  const [eyeStage, setEyeStage] = useState<number>(0);
+  const [isEyeAnimationActive, setIsEyeAnimationActive] = useState<boolean>(false);
 
-  const TIME_TRAVEL_LINES = [
-    '现在，让时间倒流。',
-    '当你再次睁开眼睛，你已来到两千年前的广阳国。',
-    '一尊沉睡在墓中的玉舞人正在苏醒。',
-    '她记得舞蹈，却忘记了自己从哪里来、属于谁。',
-  ];
-
-  const AWAKENING_DIALOGUES: DialogueLine[] = [
-    {
-      speaker: 'dancer',
-      speakerName: '玉舞人',
-      text: '我是谁……？我记得自己是一块玉，也记得曾经跳舞。',
-    },
-    {
-      speaker: 'dancer',
-      speakerName: '玉舞人',
-      text: '我好像属于一组玉佩，可其他记忆全乱了。你愿意陪我把它们找回来吗？',
-    },
-    {
-      speaker: 'narrator',
-      speakerName: '旁白',
-      text: '别发呆了，跟上脚步。前面的战鼓声，像是出了大事。',
-    },
-  ];
-  const [dialogueIdx, setDialogueIdx] = useState<number>(0);
-
-  // Handle Cover Step -> Museum Intro
-  const handleStartMuseum = () => {
+  // Step 1: Open Gate Animation & transition to narration
+  const handleOpenTombGate = () => {
+    if (isGateOpening) return;
+    setIsGateOpening(true);
     soundFX.playStoneDrum();
-    setStep('museum_intro');
+    soundFX.playBronzeChime();
+
+    setTimeout(() => {
+      setStep('narration');
+      setIsGateOpening(false);
+    }, 1100);
   };
 
-  // Advance Intro lines
+  // Step 2 -> Step 3: Close eyes and enter awakening
+  const handleProceedToAwakening = () => {
+    soundFX.playBronzeChime();
+    setStep('dancer_awakening');
+  };
+
+  // Vertical eye blink effect: blinks ONCE only
   useEffect(() => {
-    if (step === 'museum_intro') {
-      const interval = setInterval(() => {
-        setIntroLineIdx((prev) => {
-          if (prev < INTRO_LINES.length - 1) {
-            soundFX.playStoneDrum();
-            return prev + 1;
-          }
-          return prev;
-        });
-      }, 1500);
-      return () => clearInterval(interval);
-    }
-  }, [step, INTRO_LINES.length]);
+    if (step !== 'dancer_awakening') return;
+
+    setEyeStage(0);
+    setIsEyeAnimationActive(true);
+
+    // Initial eye opening (vertical)
+    const t1 = setTimeout(() => {
+      soundFX.playBronzeChime();
+      setEyeStage(1); // vertical slit opens with blur
+    }, 400);
+
+    // Blink once: briefly close slightly
+    const t2 = setTimeout(() => {
+      setEyeStage(2); // blink once
+    }, 1600);
+
+    // Reopen fully into crystal clear view
+    const t3 = setTimeout(() => {
+      soundFX.playMemoryRestore();
+      setEyeStage(3); // fully open
+    }, 2100);
+
+    // Hide overlay completely
+    const t4 = setTimeout(() => {
+      setEyeStage(4);
+      setIsEyeAnimationActive(false);
+    }, 2900);
+
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+    };
+  }, [step]);
+
+  const handleSkipEyeAnimation = () => {
+    setEyeStage(4);
+    setIsEyeAnimationActive(false);
+  };
 
   return (
-    <div className="relative w-full h-full bg-[#0d0906] text-[#e6d5b8] font-serif overflow-hidden select-none flex flex-col justify-between">
-      {/* PAGE 01: 封面：现代大葆台实景 */}
+    <div className="relative w-full h-full text-[#E6D3AA] font-serif overflow-hidden select-none flex flex-col justify-between bg-[#110907]">
+      {/* =========================================================================
+          PAGE 01: 封面页 · 大葆台 (红棕深黑色调，墓门开启交互，无边框无角线)
+          ========================================================================= */}
       {step === 'cover' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-6 animate-fade-in">
-          {/* Background Real Museum Photo */}
-          <div
-            className="absolute inset-0 bg-cover bg-center filter brightness-50 contrast-110"
-            style={{ backgroundImage: `url(${ASSETS.museumExterior})` }}
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/70" />
+        <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-3 pb-2 overflow-hidden">
+          {/* Base Red-Brown Dark Black Backdrop */}
+          <MuseumTombBackdrop palette="prologue" pattern="cloud" spotlight={true} intensity="subtle" />
 
-          {/* Top Badge */}
-          <div className="relative z-10 flex items-center justify-between">
-            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-amber-500/60 shadow-md">
-              <Compass className="w-3.5 h-3.5 text-amber-400 animate-spin-slow" />
-              <span className="text-[10px] font-mono text-amber-200">
-                北京大葆台西汉墓遗址博物馆
-              </span>
-            </div>
-          </div>
+          {/* Top Museum Header */}
+          <HanMuseumTopBar />
 
-          {/* Center Main Title */}
-          <div className="relative z-10 text-center space-y-4 my-auto">
-            <div className="w-16 h-16 mx-auto rounded-full bg-amber-950/70 border-2 border-amber-400/90 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.6)] animate-pulse">
-              <Sparkles className="w-8 h-8 text-amber-300" />
-            </div>
+          {/* Center Main Calligraphy & Title Block */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center px-4 my-auto">
+            {/* Grand Ancient Calligraphy: 大 葆 台 (字号缩小10%，增加字间距) */}
+            <h1 className="text-[33px] sm:text-[40px] font-black text-[#F1D98D] tracking-[0.42em] font-serif pl-[0.42em] drop-shadow-[0_4px_18px_rgba(0,0,0,0.85)] filter">
+              大 葆 台
+            </h1>
 
-            <div className="space-y-2">
-              <h1 className="text-2xl sm:text-3xl font-black text-[#ffe89c] tracking-widest leading-tight">
-                汉代生命观数字舞蹈体验
-              </h1>
-              <p className="text-xs text-amber-300/90 tracking-widest font-mono">
-                只要记忆清晰，历史就不曾沉睡
-              </p>
-            </div>
-          </div>
+            {/* Subtitle: 北京大葆台西汉墓遗址博物馆 */}
+            <p className="text-xs sm:text-sm text-[#E6D3AA]/95 font-serif tracking-[0.24em] mt-3 pl-[0.24em] drop-shadow">
+              北京大葆台西汉墓遗址博物馆
+            </p>
 
-          {/* Bottom Enter Button */}
-          <div className="relative z-10 w-full max-w-xs mx-auto">
-            <button
-              onClick={handleStartMuseum}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-amber-700 hover:brightness-110 text-black font-serif font-black text-sm shadow-[0_0_25px_rgba(245,158,11,0.6)] active:scale-95 transition-all flex items-center justify-center gap-2 group"
-            >
-              <span>进入大葆台</span>
-              <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-            </button>
-          </div>
-        </div>
-      )}
+            {/* English Translation */}
+            <p className="text-[8.5px] text-[#A89078] tracking-[0.3em] uppercase font-sans mt-2 opacity-80 pl-[0.3em]">
+              BEIJING DABAOTAI WESTERN HAN TOMB SITE MUSEUM
+            </p>
 
-      {/* PAGE 02: 场馆介绍：逐行文字自然渐现（去除卡片边框，沉浸慢读） */}
-      {step === 'museum_intro' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-6 bg-gradient-to-b from-[#140b06] via-[#090503] to-black animate-fade-in">
-          {/* Top Title */}
-          <div className="relative z-10 flex items-center gap-2 border-b border-[#3d2b1f]/60 pb-2">
-            <BookOpen className="w-4 h-4 text-amber-400" />
-            <h2 className="text-xs font-black text-[#ffe89c] tracking-widest">
-              场馆引言 · 大葆台西汉王陵
-            </h2>
-          </div>
-
-          {/* Center Lines Fade-in without boxes (左侧对齐，慢读排版) */}
-          <div className="relative z-10 my-auto space-y-6 max-w-xs mx-auto py-2 text-left pl-3 border-l border-amber-500/30">
-            {INTRO_LINES.map((line, idx) => (
-              <p
-                key={idx}
-                className={`text-[13px] sm:text-[14px] leading-relaxed tracking-wider font-serif transition-all duration-1000 ${
-                  idx <= introLineIdx
-                    ? 'opacity-100 translate-y-0 text-[#f7ecd7] filter drop-shadow-[0_2px_8px_rgba(245,158,11,0.2)]'
-                    : 'opacity-0 translate-y-3 text-transparent'
+            {/* 
+              ===================================================================
+              【入墓墓穴门开启交互】：两侧有纹路勾勒出的墓穴门，点击时两侧墓门缓慢分开
+              ===================================================================
+            */}
+            <div className="mt-9 flex items-center justify-center relative">
+              {/* Left Tomb Stone Door */}
+              <div
+                className={`transition-all duration-1000 ease-out flex items-center pointer-events-none select-none ${
+                  isGateOpening ? '-translate-x-20 opacity-0' : 'translate-x-0 opacity-100'
                 }`}
               >
-                {line}
-              </p>
-            ))}
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  fill="none"
+                  className="text-[#C8943D] filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+                >
+                  {/* Outer Door Frame with Arch */}
+                  <path
+                    d="M38 4 L8 4 C5 4 4 6 4 9 L4 40 L38 40"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                  {/* Archaic Cloud Lines on Door Panel */}
+                  <path
+                    d="M10 12 C18 10, 22 18, 30 16 C34 14, 36 12, 38 12"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeOpacity="0.75"
+                  />
+                  <path
+                    d="M10 24 C16 22, 24 30, 32 26 C35 24, 37 22, 38 22"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeOpacity="0.75"
+                  />
+                  {/* Pushou Bronze Ring Stud */}
+                  <circle cx="28" cy="22" r="3.5" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M28 25.5 L28 32" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              </div>
+
+              {/* Center Trigger: 入 墓 (无边框，四角无横线) */}
+              <button
+                onClick={handleOpenTombGate}
+                disabled={isGateOpening}
+                className="relative mx-2 px-6 py-2.5 bg-gradient-to-r from-[#2A160E] via-[#3E2114] to-[#2A160E] text-[#F1D98D] font-serif font-bold text-xs tracking-[0.38em] pl-[0.48em] shadow-[0_0_24px_rgba(200,148,61,0.22)] hover:shadow-[0_0_28px_rgba(200,148,61,0.4)] active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-sm"
+              >
+                <span>入 墓</span>
+              </button>
+
+              {/* Right Tomb Stone Door */}
+              <div
+                className={`transition-all duration-1000 ease-out flex items-center pointer-events-none select-none ${
+                  isGateOpening ? 'translate-x-20 opacity-0' : 'translate-x-0 opacity-100'
+                }`}
+              >
+                <svg
+                  width="44"
+                  height="44"
+                  viewBox="0 0 44 44"
+                  fill="none"
+                  className="text-[#C8943D] filter drop-shadow-[0_2px_6px_rgba(0,0,0,0.7)]"
+                >
+                  {/* Outer Door Frame with Arch */}
+                  <path
+                    d="M6 4 L36 4 C39 4 40 6 40 9 L40 40 L6 40"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinecap="round"
+                  />
+                  {/* Archaic Cloud Lines on Door Panel */}
+                  <path
+                    d="M34 12 C26 10, 22 18, 14 16 C10 14, 8 12, 6 12"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeOpacity="0.75"
+                  />
+                  <path
+                    d="M34 24 C28 22, 20 30, 12 26 C9 24, 7 22, 6 22"
+                    stroke="currentColor"
+                    strokeWidth="1.1"
+                    strokeOpacity="0.75"
+                  />
+                  {/* Pushou Bronze Ring Stud */}
+                  <circle cx="16" cy="22" r="3.5" stroke="currentColor" strokeWidth="1.2" />
+                  <path d="M16 25.5 L16 32" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                </svg>
+              </div>
+            </div>
           </div>
 
-          {/* Bottom Continue to Time Travel */}
-          <div className="relative z-10 w-full max-w-xs mx-auto">
-            <button
-              onClick={() => {
-                soundFX.playMemoryRestore();
-                setStep('time_travel');
-              }}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:brightness-110 border border-amber-400/80 text-black text-xs font-serif font-black flex items-center justify-center gap-2 active:scale-95 transition-all shadow-[0_0_20px_rgba(245,158,11,0.4)]"
-            >
-              <span>开启时间倒流 · 穿越广阳</span>
-              <ArrowRight className="w-4 h-4 text-black" />
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* PAGE 03: 穿越页：时间倒流 + 睁眼第一视角（一开一合、模糊与微弱光源交替） */}
-      {step === 'time_travel' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-6 bg-black text-[#ffe89c] animate-fade-in overflow-hidden">
-          {/* First-person Eye Opening & Closing Eyelid Animation Overlay */}
-          <div className="absolute inset-0 pointer-events-none z-20 overflow-hidden">
-            {/* Top Eyelid */}
-            <div className="absolute inset-x-0 top-0 h-1/2 bg-black transition-all duration-1000 animate-[pulse_3s_ease-in-out_infinite] opacity-80" />
-            {/* Bottom Eyelid */}
-            <div className="absolute inset-x-0 bottom-0 h-1/2 bg-black transition-all duration-1000 animate-[pulse_3s_ease-in-out_infinite] opacity-80" />
-            {/* Blurry Vignette & Faint Light Leak */}
-            <div className="absolute inset-0 bg-radial from-amber-400/20 via-black/60 to-black backdrop-blur-[2px] animate-pulse" />
-          </div>
-
-          {/* Black & Gold Time Vortex Background Effects */}
-          <div className="absolute inset-0 pointer-events-none opacity-40">
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border-2 border-dashed border-amber-500 animate-[spin_12s_linear_infinite_reverse]" />
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full border border-amber-300 animate-ping opacity-30" />
-          </div>
-
-          {/* Top Badge */}
-          <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/60 shadow-md w-fit">
-            <Clock className="w-3.5 h-3.5 text-amber-400 animate-pulse" />
-            <span className="text-[10px] font-mono text-amber-200">
-              TIME REVERSAL · 逆流两千年
+          {/* Bottom Footer Note */}
+          <div className="relative z-10 pb-2 text-center">
+            <span className="text-[9px] text-[#8C7662] tracking-widest font-mono">
+              ◇ 西汉广阳顷王刘建遗址 沉浸式探秘体验 ◇
             </span>
           </div>
+        </div>
+      )}
 
-          {/* Center Lines & Counter-Clockwise Spinning Clock */}
-          <div className="relative z-10 my-auto text-center space-y-4 max-w-xs mx-auto">
-            {/* Counter-Clockwise Time-Reversal Animated Clock */}
-            <div className="relative w-24 h-24 mx-auto rounded-full bg-amber-950/70 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_40px_rgba(245,158,11,0.8)]">
-              {/* Outer Counter-Clockwise Ring */}
-              <div className="absolute inset-1 rounded-full border border-dashed border-amber-300 animate-[spin_4s_linear_infinite_reverse]" />
-              
-              {/* Clock Face SVG with Reverse Moving Hands */}
-              <svg viewBox="0 0 100 100" className="w-14 h-14">
-                <circle cx="50" cy="50" r="44" fill="none" stroke="#f59e0b" strokeWidth="3" />
-                {/* 12 Ticks */}
-                {[...Array(12)].map((_, i) => (
-                  <line
-                    key={i}
-                    x1="50"
-                    y1="12"
-                    x2="50"
-                    y2="16"
-                    stroke="#ffe89c"
-                    strokeWidth="2"
-                    transform={`rotate(${i * 30} 50 50)`}
-                  />
-                ))}
-                {/* Hour Hand Rotating Reverse */}
-                <line
-                  x1="50"
-                  y1="50"
-                  x2="50"
-                  y2="28"
-                  stroke="#ffe89c"
-                  strokeWidth="3.5"
-                  strokeLinecap="round"
-                  className="origin-[50px_50px] animate-[spin_6s_linear_infinite_reverse]"
-                />
-                {/* Minute Hand Rotating Faster Reverse */}
-                <line
-                  x1="50"
-                  y1="50"
-                  x2="50"
-                  y2="18"
-                  stroke="#34d399"
-                  strokeWidth="2.5"
-                  strokeLinecap="round"
-                  className="origin-[50px_50px] animate-[spin_2s_linear_infinite_reverse]"
-                />
-                <circle cx="50" cy="50" r="4" fill="#f59e0b" />
-              </svg>
-            </div>
+      {/* =========================================================================
+          PAGE 02: 旁白页 (文字左侧对齐，墓室极暗实景，中央隐约玉舞人局部轮廓)
+          ========================================================================= */}
+      {step === 'narration' && (
+        <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-4 pb-4 overflow-hidden">
+          {/* Background: 墓室深处极暗实景，中央隐约出现玉舞人的局部轮廓 */}
+          <div className="absolute inset-0 z-0">
+            <img
+              src={tombDarkBg}
+              alt="墓室深处"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover brightness-[0.45] contrast-125"
+            />
+            {/* Deep dark red-brown vignette overlay */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#110907]/90 via-[#110907]/50 to-[#110907]/95" />
+            <div className="absolute inset-0 bg-radial-vignette opacity-80" />
+          </div>
 
-            <div className="space-y-2">
-              {TIME_TRAVEL_LINES.map((line, idx) => (
-                <p key={idx} className="text-[12px] text-[#f2e6d0] leading-relaxed tracking-wider font-serif">
-                  {line}
+          {/* Top Museum Header */}
+          <div className="relative z-20">
+            <HanMuseumTopBar
+              onSkip={handleProceedToAwakening}
+              showSkip={true}
+              skipLabel="跳过"
+            />
+          </div>
+
+          {/* Center Narration Text (左侧对齐) */}
+          <div className="relative z-20 my-auto px-4 max-w-sm">
+            <div className="flex flex-col text-left space-y-3.5">
+              <p className="text-base sm:text-lg font-serif text-[#F1D98D] tracking-widest leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                欢迎各位
+              </p>
+              <p className="text-sm sm:text-base font-serif text-[#E6D3AA] tracking-wider leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                来到我国第一座汉代遗址类博物馆
+              </p>
+              <p className="text-sm sm:text-base font-serif text-[#E6D3AA] tracking-wider leading-relaxed drop-shadow-[0_2px_8px_rgba(0,0,0,0.9)]">
+                来到这座扎根于西汉广阳王刘建及其王后墓葬的遗址
+              </p>
+              <div className="pt-2">
+                <p className="text-sm sm:text-base font-serif text-[#F1D98D] tracking-widest leading-relaxed drop-shadow">
+                  现在
                 </p>
-              ))}
+                <p className="text-sm sm:text-base font-serif text-[#E6D3AA] tracking-widest leading-relaxed drop-shadow">
+                  请闭上双眼
+                </p>
+                <p className="text-xs sm:text-sm font-serif text-[#C8943D] tracking-[0.25em] leading-relaxed drop-shadow mt-1">
+                  时间正缓缓倒流...
+                </p>
+              </div>
             </div>
           </div>
 
-          {/* Bottom Button */}
-          <div className="relative z-10 w-full max-w-xs mx-auto">
+          {/* Bottom Action: 闭上双眼 · 时间倒流 (无边框) */}
+          <div className="relative z-20 w-full flex justify-center pb-2">
             <button
-              onClick={() => {
-                soundFX.playBronzeChime();
-                setStep('dancer_awakening');
-              }}
-              className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 hover:brightness-110 text-black font-serif font-black text-xs shadow-[0_0_20px_rgba(52,211,153,0.7)] active:scale-95 transition-all flex items-center justify-center gap-2"
+              onClick={handleProceedToAwakening}
+              className="relative px-8 py-2.5 bg-gradient-to-r from-[#2A160E]/95 via-[#3E2114]/95 to-[#2A160E]/95 text-[#F1D98D] font-serif font-bold text-xs tracking-[0.3em] pl-[0.4em] shadow-[0_0_20px_rgba(0,0,0,0.8)] hover:shadow-[0_0_25px_rgba(200,148,61,0.3)] active:scale-95 transition-all cursor-pointer rounded-sm"
             >
-              <span>睁开双眼 · 唤醒玉舞人</span>
-              <Sparkles className="w-4 h-4" />
+              <span>闭上双眼 · 倒流溯源</span>
             </button>
           </div>
         </div>
       )}
 
-      {/* PAGE 04: 序章：玉舞人苏醒 */}
+      {/* =========================================================================
+          PAGE 03: 玉舞人苏醒页 (竖向睁眼模糊特效，眨眼一次，玉舞人由下往上被照亮，左侧对齐对话框)
+          ========================================================================= */}
       {step === 'dancer_awakening' && (
-        <div className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-gradient-to-b from-[#091710] via-[#050e0a] to-[#020504] animate-fade-in pb-36">
-          {/* Top Right Progress Indicator (首次出现 记忆 0/7) */}
-          <div className="absolute top-3.5 right-3.5 z-20 flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#17100b] border border-emerald-500 text-emerald-300 text-[10px] font-mono shadow-md">
-            <Sparkles className="w-3 h-3 text-emerald-400 animate-pulse" />
-            <span>◇ 记忆 0/7</span>
-          </div>
+        <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-3 pb-2 overflow-hidden">
+          {/* Background: 在同一张图的基础上，玉舞人身影变清晰，由下往上被照亮 */}
+          <div className="absolute inset-0 z-0 overflow-hidden">
+            <img
+              src={tombDarkBg}
+              alt="墓室玉舞人"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover brightness-[0.7] contrast-110"
+            />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#110907]/80 via-transparent to-[#110907]/90" />
 
-          {/* Center Stage: Jade Dancer Awakening Silhouette */}
-          <div className="relative z-10 my-auto flex flex-col items-center justify-center space-y-4">
-            <div className="relative w-44 h-56 flex items-center justify-center animate-pulse">
-              <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_0_25px_rgba(52,211,153,0.8)]">
-                <path
-                  d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                  fill="none"
-                  stroke="#a7f3d0"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                />
-                <circle cx="50" cy="18" r="6" fill="#ffffff" />
-              </svg>
+            {/* 玉青色只存在于玉舞人：从下往上的极其微弱的玉青色聚光 */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div 
+                className="w-64 h-80 rounded-full bg-gradient-to-t from-[#79B9A1]/30 via-[#79B9A1]/12 to-transparent blur-3xl animate-pulse"
+                style={{ animationDuration: '4s' }}
+              />
             </div>
 
-            {/* "前往战场" button placed cleanly above the dialogue area */}
-            {dialogueIdx >= AWAKENING_DIALOGUES.length - 1 && (
-              <button
-                onClick={() => {
-                  soundFX.playStoneDrum();
-                  onStartChapter1();
-                }}
-                className="px-6 py-2.5 rounded-full bg-amber-500 hover:bg-amber-400 text-black font-serif font-black text-xs shadow-[0_0_20px_rgba(245,158,11,0.8)] animate-bounce flex items-center gap-1.5 z-20"
-              >
-                <span>开始寻忆 · 前往战场</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            )}
+            {/* 微弱尘埃浮动粒子 */}
+            <div className="absolute inset-0 pointer-events-none opacity-40">
+              <span className="absolute top-[28%] left-[35%] w-1 h-1 rounded-full bg-[#79B9A1] blur-[0.5px] animate-ping" style={{ animationDuration: '3s' }} />
+              <span className="absolute top-[42%] right-[32%] w-1 h-1 rounded-full bg-[#E6D3AA] blur-[0.5px] animate-pulse" style={{ animationDuration: '2.5s' }} />
+              <span className="absolute top-[55%] left-[45%] w-1.5 h-1.5 rounded-full bg-[#79B9A1]/80 blur-[0.5px] animate-pulse" style={{ animationDuration: '3.8s' }} />
+              <span className="absolute top-[68%] right-[40%] w-1 h-1 rounded-full bg-[#E6D3AA]/70 blur-[0.5px] animate-ping" style={{ animationDuration: '4.2s' }} />
+            </div>
           </div>
 
-          {/* Bottom Unified Dialogue Box */}
-          <UnifiedDialogueBox
-            dialogues={AWAKENING_DIALOGUES}
-            currentIndex={dialogueIdx}
-            onNext={() => {
-              if (dialogueIdx < AWAKENING_DIALOGUES.length - 1) {
-                setDialogueIdx((prev) => prev + 1);
-              } else {
-                onStartChapter1();
-              }
-            }}
-          />
+          {/* 
+            =====================================================================
+            【第一视角竖向睁眼动画特效】：
+            - 竖向睁眼 (Top lid & Bottom lid)
+            - 模糊感 (Backdrop blur)
+            - 眨眼一次 (Blink once only)
+            ===================================================================== 
+          */}
+          {isEyeAnimationActive && (
+            <div
+              onClick={handleSkipEyeAnimation}
+              className={`absolute inset-0 z-50 overflow-hidden pointer-events-auto cursor-pointer transition-opacity duration-700 ${
+                eyeStage === 4 ? 'opacity-0 pointer-events-none' : 'opacity-100'
+              }`}
+            >
+              {/* Blurred Lens Atmosphere */}
+              <div
+                className="absolute inset-0 transition-all pointer-events-none"
+                style={{
+                  backdropFilter:
+                    eyeStage === 0
+                      ? 'blur(22px) brightness(0.12)'
+                      : eyeStage === 1
+                      ? 'blur(8px) brightness(0.7)'
+                      : eyeStage === 2
+                      ? 'blur(12px) brightness(0.35)' // blink once
+                      : eyeStage === 3
+                      ? 'blur(0px) brightness(1)'
+                      : 'none',
+                  transitionDuration: eyeStage === 2 ? '280ms' : '700ms',
+                }}
+              />
+
+              {/* Upper Eyelid (竖向向上开启) */}
+              <div
+                className="absolute top-0 left-0 right-0 bg-[#0A0402] transition-all ease-out"
+                style={{
+                  height:
+                    eyeStage === 0
+                      ? '50%'
+                      : eyeStage === 1
+                      ? '10%'
+                      : eyeStage === 2
+                      ? '34%' // blink once
+                      : '0%',
+                  borderBottomLeftRadius: '50% 28px',
+                  borderBottomRightRadius: '50% 28px',
+                  boxShadow: '0 20px 40px 15px rgba(0,0,0,0.98)',
+                  transitionDuration: eyeStage === 2 ? '280ms' : '650ms',
+                }}
+              />
+
+              {/* Lower Eyelid (竖向向下开启) */}
+              <div
+                className="absolute bottom-0 left-0 right-0 bg-[#0A0402] transition-all ease-out"
+                style={{
+                  height:
+                    eyeStage === 0
+                      ? '50%'
+                      : eyeStage === 1
+                      ? '10%'
+                      : eyeStage === 2
+                      ? '34%' // blink once
+                      : '0%',
+                  borderTopLeftRadius: '50% 28px',
+                  borderTopRightRadius: '50% 28px',
+                  boxShadow: '0 -20px 40px 15px rgba(0,0,0,0.98)',
+                  transitionDuration: eyeStage === 2 ? '280ms' : '650ms',
+                }}
+              />
+            </div>
+          )}
+
+          {/* Top Museum Header */}
+          <div className="relative z-20">
+            <HanMuseumTopBar
+              onSkip={onStartChapter1}
+              showSkip={true}
+              skipLabel="跳过"
+            />
+          </div>
+
+          {/* Center Stage: Jade Dancer softly revealed from darkness */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 my-auto">
+            {/* Visual Jade Dancer Glow */}
+            <div className="relative flex items-center justify-center h-48 w-44">
+              <svg viewBox="0 0 100 130" className="w-36 h-48 filter drop-shadow-[0_0_24px_rgba(121,185,161,0.6)]">
+                <path
+                  d="M50 15 C35 30, 20 60, 28 85 C35 110, 65 125, 80 105 C95 85, 85 50, 68 40 C52 30, 40 55, 45 75 C50 95, 70 100, 75 90"
+                  fill="none"
+                  stroke="#79B9A1"
+                  strokeWidth="3.2"
+                  strokeLinecap="round"
+                  opacity="0.9"
+                />
+                <path
+                  d="M52 18 C46 25, 54 30, 48 38 C40 48, 28 58, 18 46 C10 36, 22 22, 32 26 C40 30, 46 38, 48 48 C50 62, 42 78, 38 95 C32 112, 50 124, 62 120 C74 116, 68 98, 60 84 C70 78, 86 64, 88 45 C90 26, 70 18, 58 30 C52 36, 60 52, 52 64"
+                  fill="none"
+                  stroke="#79B9A1"
+                  strokeWidth="2.2"
+                  strokeLinecap="round"
+                  opacity="0.8"
+                />
+                <circle cx="52" cy="18" r="5" fill="#79B9A1" />
+              </svg>
+            </div>
+          </div>
+
+          {/* 
+            =====================================================================
+            【玉舞人对话框】：文字要求左侧对齐，内容如下：
+            你已进入
+            公元前两千年
+            你从沉睡的玉舞人身躯中苏醒
+            温润的玉封存着两千年前的汉代记忆。
+            但你记不清了——你是谁，你从哪里来，你属于谁。
+            =====================================================================
+          */}
+          <div className="relative z-30 w-full mb-1">
+            <div className="w-full bg-[#180C09]/95 p-3.5 rounded-md shadow-2xl backdrop-blur-md">
+              {/* Speaker Header */}
+              <div className="flex items-center gap-2 mb-2 pb-1.5 border-b border-[#C8943D]/20">
+                <span className="w-1.5 h-1.5 rounded-full bg-[#79B9A1]" />
+                <span className="text-xs font-serif font-black text-[#79B9A1] tracking-widest">
+                  玉舞人
+                </span>
+                <span className="text-[9px] font-mono text-[#A89078]">
+                  西汉白玉舞人 · 幽宫苏醒
+                </span>
+              </div>
+
+              {/* Dialogue Content - Left Aligned */}
+              <div className="text-left space-y-1 text-xs sm:text-[13px] font-serif text-[#E6D3AA] leading-relaxed tracking-wider drop-shadow">
+                <p>你已进入</p>
+                <p className="text-[#F1D98D] font-bold">公元前两千年</p>
+                <p>你从沉睡的玉舞人身躯中苏醒</p>
+                <p>温润的玉封存着两千年前的汉代记忆。</p>
+                <p className="text-[#E6D3AA]/85 pt-0.5">
+                  但你记不清了——你是谁，你从哪里来，你属于谁。
+                </p>
+              </div>
+
+              {/* Action Button: 唤醒记忆 · 踏入大汉 (无边框) */}
+              <div className="mt-3 pt-2 flex justify-end">
+                <button
+                  onClick={() => {
+                    soundFX.playStoneDrum();
+                    soundFX.playBronzeChime();
+                    onStartChapter1();
+                  }}
+                  className="px-4 py-1.5 bg-[#2E170E] hover:bg-[#3E2114] text-[#F1D98D] font-serif font-bold text-xs tracking-widest active:scale-95 transition-all cursor-pointer rounded-sm"
+                >
+                  <span>唤醒记忆 · 踏入大汉 ➔</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>

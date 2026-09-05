@@ -1,0 +1,112 @@
+<!--
+  =============================================================================
+  微信小程序 Xr-frame 3D 模型预览页面模板 (大葆台汉墓重点玉器纵深展柜)
+  文件：pages/relic_xr/index.wxml
+  支持：.glb 模型加载、单指拖拽 3D 旋转、双指捏合缩放、环境光照与阴影
+  =============================================================================
+-->
+<view class="xr-page-container">
+  <!-- 顶部文物说明与切换栏 -->
+  <view class="relic-header">
+    <view class="relic-tag">{{currentRelic.tag}}</view>
+    <view class="relic-title">{{currentRelic.name}}</view>
+    <view class="relic-dynasty">{{currentRelic.dynasty}}</view>
+  </view>
+
+  <!-- 3D Xr-frame 核心视口 -->
+  <view class="xr-canvas-wrap">
+    <xr-scene
+      id="xr-scene"
+      bind:ready="handleSceneReady"
+      bind:touch-shape="handleTouchShape"
+    >
+      <!-- 1. 资产加载器：🚨 在此注册 4 个 .glb 模型的存放位置 -->
+      <xr-assets>
+        <!-- 螭虎纹玉佩 -->
+        <xr-asset-load
+          type="gltf"
+          asset-id="chihu_pendant"
+          src="{{modelUrls.chihu_pendant}}"
+        />
+        <!-- 龙凤纹韘形佩 -->
+        <xr-asset-load
+          type="gltf"
+          asset-id="she_pendant"
+          src="{{modelUrls.she_pendant}}"
+        />
+        <!-- 龙纹玉璜 -->
+        <xr-asset-load
+          type="gltf"
+          asset-id="dragon_huang"
+          src="{{modelUrls.dragon_huang}}"
+        />
+        <!-- 白玉舞人 -->
+        <xr-asset-load
+          type="gltf"
+          asset-id="jade_dancer"
+          src="{{modelUrls.jade_dancer}}"
+        />
+      </xr-assets>
+
+      <!-- 2. 博物馆柔光环境与平行光 -->
+      <xr-env env-data="xr-frame-team-workspace-day" sky-type="color" sky-color="0.05 0.03 0.02" />
+      <xr-light type="ambient" color="1 0.95 0.88" intensity="1.2" />
+      <xr-light type="directional" rotation="45 35 0" color="1 0.9 0.75" intensity="2.5" />
+      <xr-light type="directional" rotation="-30 -40 0" color="0.7 0.9 0.85" intensity="1.0" />
+
+      <!-- 3. 主摄像机 (支持视角观察) -->
+      <xr-camera
+        id="camera"
+        position="0 0 3"
+        clear-color="0.05 0.03 0.02 1"
+        target="relic-node"
+        background="default"
+      />
+
+      <!-- 4. 重点玉器 3D 节点 (绑定手势交互：旋转 + 缩放) -->
+      <!-- touch-agent: 启用手势代理，实现手指拖拽旋转与双指缩放 -->
+      <xr-node
+        id="relic-node"
+        node-id="relic-node"
+        position="0 0 0"
+        rotation="{{modelRotation}}"
+        scale="{{modelScale}} {{modelScale}} {{modelScale}}"
+      >
+        <!-- 动态加载当前选中文物的 GLB 模型 -->
+        <xr-gltf
+          model="{{activeAssetId}}"
+          anim-autoplay
+        />
+      </xr-node>
+    </xr-scene>
+
+    <!-- 手势交互透明覆盖层 (处理 touch 拖拽旋转与捏合缩放) -->
+    <view
+      class="gesture-overlay"
+      catchtouchstart="onTouchStart"
+      catchtouchmove="onTouchMove"
+      catchtouchend="onTouchEnd"
+    />
+  </view>
+
+  <!-- 底部操作与展品自述提示 -->
+  <view class="relic-footer">
+    <view class="gesture-hint">
+      <text class="hint-icon">👆</text>
+      <text class="hint-text">单指拖拽 3D 旋转 · 双指缩放鉴赏玉质纹理</text>
+    </view>
+
+    <!-- 四大玉器快速切换按钮 -->
+    <view class="relic-tabs">
+      <view
+        wx:for="{{relicList}}"
+        wx:key="id"
+        class="tab-item {{item.id === activeRelicId ? 'active' : ''}}"
+        bindtap="switchRelic"
+        data-id="{{item.id}}"
+      >
+        {{item.name}}
+      </view>
+    </view>
+  </view>
+</view>

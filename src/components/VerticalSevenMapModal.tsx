@@ -2,6 +2,7 @@ import React from 'react';
 import { SectionKey, JadeFragmentId } from '../types';
 import { Sparkles, X, CheckCircle2, ChevronRight, Compass, Shield, Gem, Eye, Activity, Wind, Hammer, Star } from 'lucide-react';
 import { soundFX } from '../utils/soundEngine';
+import { HanPlaqueButton } from './HanPlaqueButton';
 
 interface VerticalSevenMapModalProps {
   activeSection: SectionKey;
@@ -141,27 +142,27 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
   onClose,
 }) => {
   return (
-    <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col justify-between p-3 select-none animate-fade-in font-serif overflow-hidden">
+    <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col justify-between p-3 select-none animate-fade-in font-serif overflow-hidden">
       {/* Header */}
-      <div className="bg-[#1c130d] border-2 border-[#5c4033] rounded-2xl p-3 flex items-center justify-between shadow-2xl shrink-0">
+      <div className="bg-[#2A1710] border border-[#B28A4A] rounded-xl p-3 flex items-center justify-between shadow-xl shrink-0">
         <div>
-          <div className="flex items-center gap-1.5 text-[9px] font-mono text-[#a3805d] uppercase tracking-widest">
-            <Compass className="w-3.5 h-3.5 text-[#ffe89c]" />
+          <div className="flex items-center gap-1.5 text-[9px] font-mono text-[#B28A4A] uppercase tracking-widest">
+            <Compass className="w-3.5 h-3.5 text-[#D6A84B]" />
             <span>EXHIBITION HALL DIRECTORY</span>
           </div>
-          <h3 className="text-sm font-black text-[#e6d5b8] tracking-wider flex items-center gap-2">
+          <h3 className="text-sm font-black text-[#E6C875] tracking-wider flex items-center gap-2">
             <span>地图目录</span>
-            <span className="text-[10px] text-[#a3805d] font-normal">（三大展厅与七关时空）</span>
+            <span className="text-[10px] text-[#D9C6A2]/70 font-normal">（三大展厅与七关时空）</span>
           </h3>
         </div>
 
         <div className="flex items-center gap-2">
-          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#0e241b] border border-emerald-500 text-emerald-300 font-bold">
+          <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-[#170E09] border border-[#719783] text-[#719783] font-bold">
             已修复 {unlockedFragments.length}/7
           </span>
           <button
             onClick={onClose}
-            className="p-1 rounded-full bg-[#291b12] text-[#d2b48c] hover:text-white border border-[#4a3424] active:scale-95"
+            className="p-1 rounded-full bg-[#170E09] text-[#D9C6A2] hover:text-[#E6C875] border border-[#B28A4A]/50 active:scale-95"
             title="关闭"
           >
             <X className="w-4 h-4" />
@@ -170,15 +171,15 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
       </div>
 
       {/* Hall Groups Scrolling Area */}
-      <div className="flex-1 overflow-y-auto my-2.5 px-0.5 space-y-3.5 scrollbar-none">
+      <div className="flex-1 overflow-y-auto my-2.5 px-0.5 space-y-3 scrollbar-none">
         {HALL_SECTIONS.map((hall) => (
           <div
             key={hall.id}
-            className="relative rounded-2xl bg-[#17100b] border-2 border-[#3d2b1f] p-3 shadow-xl overflow-hidden group"
+            className="relative rounded-xl bg-[#2A1710]/95 border border-[#B28A4A]/60 p-3 shadow-xl overflow-hidden group"
           >
-            {/* Translucent Watermark in top-right occupying approx 2/3 space, subtle color */}
+            {/* Translucent Watermark in top-right */}
             <div
-              className="absolute top-0 right-0 pointer-events-none select-none font-serif font-black text-right text-[42px] sm:text-[50px] leading-none tracking-widest text-[#3d2b1f]/35 pr-2 pt-1 uppercase z-0"
+              className="absolute top-0 right-0 pointer-events-none select-none font-serif font-black text-right text-[42px] sm:text-[50px] leading-none tracking-widest text-[#B28A4A]/10 pr-2 pt-1 uppercase z-0"
               style={{
                 fontFamily: '"Songti SC", "Noto Serif SC", serif',
                 writingMode: 'horizontal-tb',
@@ -190,14 +191,14 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
             </div>
 
             {/* Hall Header */}
-            <div className="relative z-10 border-b border-[#2e1e14] pb-1.5 mb-2 flex items-center justify-between">
+            <div className="relative z-10 border-b border-[#6B3025]/50 pb-1.5 mb-2 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <span className="w-1.5 h-3.5 bg-[#d2b48c] rounded-full" />
-                <h4 className="text-xs font-black text-[#ffe89c] tracking-wider">
+                <span className="w-1.5 h-3.5 bg-[#D6A84B] rounded-full" />
+                <h4 className="text-xs font-black text-[#E6C875] tracking-wider">
                   {hall.hallName}
                 </h4>
               </div>
-              <span className="text-[8px] font-mono text-[#8c7561]">
+              <span className="text-[8px] font-mono text-[#B28A4A]">
                 {hall.hallSub}
               </span>
             </div>
@@ -218,10 +219,10 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
                     }}
                     className={`p-2.5 rounded-xl border transition-all duration-200 cursor-pointer flex items-center justify-between ${
                       isCurrent
-                        ? 'bg-[#291b12] border-[#ffe89c] shadow-[0_0_12px_rgba(255,232,156,0.3)] scale-[1.01]'
+                        ? 'bg-[#6B3025]/50 border-[#D6A84B] shadow-md ring-1 ring-[#D6A84B]/40'
                         : isDone
-                        ? 'bg-[#0f1d18]/80 border-[#2f533e] hover:border-[#68d391]'
-                        : 'bg-[#140e0a]/80 border-[#2b1b12] hover:border-[#5c4033]'
+                        ? 'bg-[#170E09]/90 border-[#719783]/60 hover:border-[#719783]'
+                        : 'bg-[#170E09]/80 border-[#6B3025]/40 hover:border-[#B28A4A]'
                     }`}
                   >
                     <div className="flex items-center gap-2.5">
@@ -229,25 +230,25 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
                       <div
                         className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 border ${
                           isDone
-                            ? 'bg-[#1a382b] border-[#68d391] text-[#68d391]'
+                            ? 'bg-[#170E09] border-[#719783] text-[#719783]'
                             : isCurrent
-                            ? 'bg-amber-600 border-[#ffe89c] text-white animate-pulse'
-                            : 'bg-[#241a13] border-[#4a3424] text-[#a3805d]'
+                            ? 'bg-[#6B3025] border-[#D6A84B] text-[#E6C875]'
+                            : 'bg-[#170E09] border-[#6B3025] text-[#B28A4A]'
                         }`}
                       >
-                        {isDone ? <CheckCircle2 className="w-4 h-4" /> : ch.icon}
+                        {isDone ? <CheckCircle2 className="w-4 h-4 text-[#719783]" /> : ch.icon}
                       </div>
 
                       <div>
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[11px] font-black text-[#e6d5b8] font-serif">
+                          <span className="text-[11px] font-black text-[#E6C875] font-serif">
                             {ch.name}
                           </span>
-                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-black/40 text-[#8c7561]">
+                          <span className="text-[8px] font-mono px-1 py-0.2 rounded bg-[#170E09] text-[#B28A4A] border border-[#6B3025]/40">
                             {ch.depth}
                           </span>
                         </div>
-                        <p className="text-[9px] text-[#a3805d] leading-tight mt-0.5 line-clamp-1">
+                        <p className="text-[9px] text-[#D9C6A2]/80 leading-tight mt-0.5 line-clamp-1">
                           {ch.desc}
                         </p>
                       </div>
@@ -255,15 +256,15 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
 
                     <div className="shrink-0 ml-1.5 flex items-center">
                       {isDone ? (
-                        <span className="text-[9px] text-[#68d391] font-mono font-bold">
+                        <span className="text-[9px] text-[#719783] font-mono font-bold">
                           已通关
                         </span>
                       ) : isCurrent ? (
-                        <span className="text-[9px] text-[#ffe89c] font-mono font-bold animate-pulse">
+                        <span className="text-[9px] text-[#E6C875] font-mono font-bold">
                           进行中
                         </span>
                       ) : (
-                        <ChevronRight className="w-3.5 h-3.5 text-[#5c4033] group-hover:text-[#d2b48c]" />
+                        <ChevronRight className="w-3.5 h-3.5 text-[#6B3025] group-hover:text-[#D6A84B]" />
                       )}
                     </div>
                   </div>
@@ -275,12 +276,13 @@ export const VerticalSevenMapModal: React.FC<VerticalSevenMapModalProps> = ({
       </div>
 
       {/* Footer Return Button */}
-      <button
+      <HanPlaqueButton
         onClick={onClose}
-        className="w-full py-2.5 bg-[#241a13] hover:bg-[#3d2b1f] text-[#ffe89c] font-serif font-black rounded-2xl border-2 border-[#5c4033] text-xs shadow-xl active:scale-98 transition-all flex items-center justify-center gap-1 shrink-0"
+        size="md"
+        className="w-full shrink-0"
       >
-        <span>返回游戏</span>
-      </button>
+        返回当前展厅
+      </HanPlaqueButton>
     </div>
   );
 };

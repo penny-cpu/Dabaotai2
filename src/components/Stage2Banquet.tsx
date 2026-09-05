@@ -1,10 +1,23 @@
 import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, CheckCircle2, ArrowRight, Play, Eye, BookOpen, Layers } from 'lucide-react';
+import { Sparkles, CheckCircle2, ArrowRight, Layers } from 'lucide-react';
 import { DialogueLine } from '../types';
 import { UnifiedDialogueBox } from './UnifiedDialogueBox';
-import { RightTopActions } from './RightTopActions';
-import { HallTransitionPage } from './HallTransitionPage';
+import { HanMuseumTopBar, HanCloudTitle } from './HanLinearDecorations';
+import { HanPlaqueButton } from './HanPlaqueButton';
+import { JADE_IMAGES } from '../data/jadeImages';
+import { STAGE_VIDEOS } from '../data/videoAssets';
+import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
+import { MuseumTombBackdrop } from './MuseumTombBackdrop';
+import { MuseumAccessionRecord } from './MuseumAccessionRecord';
+import { BambooSlipCollector } from './BambooSlipCollector';
+import { CHAPTER_BACKGROUNDS, CHAPTER_PAGE_BACKGROUNDS } from '../config/assetRegistry';
+import { ChapterVideoPageView } from './ChapterVideoPageView';
+
+// =========================================================================
+// 🚨【第二章各页面背景底图路径配置中心 (方便一键查找与替换)】🚨
+// =========================================================================
+const STAGE2_BACKGROUNDS = CHAPTER_PAGE_BACKGROUNDS.stage2;
 
 interface Stage2BanquetProps {
   onUnlockFragment: () => void;
@@ -20,52 +33,57 @@ interface JadeCandidate {
   motif: string;
   isCorrect: boolean;
   desc: string;
+  imageUrl: string;
 }
 
 const JADE_CANDIDATES: JadeCandidate[] = [
   {
     id: 'jade_01_dragon_beast',
     name: '龙凤纹神兽白玉佩',
-    material: '白玉质，温润纯净',
-    shape: '整体近圆形，镂空回旋',
-    motif: '透雕龙凤游丝，内有一只有角有翼的神兽',
+    material: '白玉质 · 镂空透雕',
+    shape: '圆形双面回旋透雕',
+    motif: '透雕龙凤游丝 · 内有翼兽',
     isCorrect: true,
     desc: '大葆台王后墓核心组玉佩，雕工极尽精巧，龙凤与翼兽腾跃回环。',
+    imageUrl: JADE_IMAGES.jade_01_dragon_beast,
   },
   {
     id: 'jade_02_plain_huang',
     name: '素面青玉璜',
-    material: '青玉质，深绿带斑',
+    material: '青玉质 · 深绿微斑',
     shape: '弧形半璧状',
-    motif: '素面无纹，两端穿孔',
+    motif: '素面无纹 · 两端穿孔',
     isCorrect: false,
     desc: '常见礼玉璜，非王后墓主佩饰核心。',
+    imageUrl: JADE_IMAGES.jade_02_plain_huang,
   },
   {
     id: 'jade_03_zhuque_bi',
     name: '朱雀纹青玉璧',
-    material: '青白玉质',
-    shape: '正圆有孔',
-    motif: '单体朱雀展翅刻线',
+    material: '青白玉 · 祭天礼器',
+    shape: '正圆有孔平雕',
+    motif: '单体朱雀展翼浮雕',
     isCorrect: false,
     desc: '祭天礼玉，非随身佩戴之组玉佩。',
+    imageUrl: JADE_IMAGES.jade_03_zhuque_bi,
   },
   {
     id: 'jade_04_cuo_jin_pei',
     name: '错金兽面玉勒',
-    material: '黄玉质',
-    shape: '圆柱形管状',
-    motif: '错金兽面云纹',
+    material: '黄玉质 · 错金工艺',
+    shape: '圆柱管状玉勒',
+    motif: '错金兽面卷云纹',
     isCorrect: false,
-    desc: '串饰管状佩件，非近圆形镂空主佩。',
+    desc: '圆柱形玉勒，佩饰点缀，非核心镂雕大件。',
+    imageUrl: JADE_IMAGES.jade_04_cuo_jin_pei,
   },
 ];
 
 const DIALOGUES_STAGE2_KING: DialogueLine[] = [
   {
-    speaker: 'player',
-    speakerName: '广阳王刘建',
-    text: '欢迎来到广阳。这里商旅往来、田野丰饶，朝堂、市井与钟鼓共同构成一日生活。祭祀、朝会与宴飨，都离不开礼与乐。文舞敬天地，武舞卫疆土。既然来了，就赴一场广阳宴乐吧。',
+    speaker: 'king',
+    speakerName: '广阳顷王',
+    text: '孤承大汉天威，治西汉广阳国。宴享四方宾客，当奏九韶之乐、列钟鼎之馔。诸卿请入席！',
   },
 ];
 
@@ -73,7 +91,7 @@ const DIALOGUES_STAGE2_AFTER_VIDEO: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我的玉佩！我碰不到它……它来自王后墓，和我非常熟悉。帮我找出它。',
+    text: '我记得宴席上有一件重要的组玉佩，是王后的心爱之物，也是大汉礼乐的核心标志。你能帮我在这些出土玉器中找到它吗？',
   },
 ];
 
@@ -81,7 +99,7 @@ const DIALOGUES_STAGE2_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '找到了。原来我不是一个人。我与这些玉器都来自王后墓，也曾属于同一套佩玉记忆。',
+    text: '正是这件龙凤纹神兽白玉佩！镂空雕琢，龙凤盘旋，佩戴在身上步履铿锵。汉代的礼乐记忆又苏醒了一块！',
   },
 ];
 
@@ -93,31 +111,35 @@ export const Stage2Banquet: React.FC<Stage2BanquetProps> = ({
   const [phase, setPhase] = useState<
     | 'king_welcome'
     | 'banquet_video'
+    | 'knowledge_archive'
     | 'dialogue_preshow'
     | 'interactive'
     | 'success_dialogue'
     | 'knowledge_flipbook'
     | 'shooting_star'
-    | 'transition'
   >('king_welcome');
+
   const [selectedJadeId, setSelectedJadeId] = useState<string | null>(null);
+  const [hoveredJadeId, setHoveredJadeId] = useState<string | null>(null);
   const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
-  const [revealedSlips, setRevealedSlips] = useState<number>(1); // 1: top slip shown, 2: both top and bottom slips shown
+  const [revealedSlips, setRevealedSlips] = useState<number>(1);
 
   useEffect(() => {
-    soundFX.playBronzeChime();
+    soundFX.playStoneDrum();
   }, []);
 
   const handleSelectJade = (id: string) => {
     soundFX.playStoneDrum();
     setSelectedJadeId(id);
+    setErrorTip('');
   };
 
   const handleConfirmJade = () => {
     if (!selectedJadeId) return;
-    const item = JADE_CANDIDATES.find((j) => j.id === selectedJadeId);
-    if (item?.isCorrect) {
+
+    const candidate = JADE_CANDIDATES.find((c) => c.id === selectedJadeId);
+    if (candidate && candidate.isCorrect) {
       soundFX.playBronzeChime();
       soundFX.playMemoryRestore();
       setErrorTip('');
@@ -126,371 +148,391 @@ export const Stage2Banquet: React.FC<Stage2BanquetProps> = ({
       setPhase('success_dialogue');
     } else {
       soundFX.playGlitchStatic();
-      setErrorTip('再想想……这件玉器形制似乎并非王后随身核心组玉佩，请推敲纹样特征。');
-      setTimeout(() => {
-        setErrorTip('');
-      }, 4000);
+      setErrorTip('此玉虽美，但非大葆台王后墓规格最高的透雕龙凤主佩，再观察一番……');
     }
   };
 
-  const handleAdvanceBambooSlip = () => {
+  const handleNextSlip = () => {
+    soundFX.playStoneDrum();
     if (revealedSlips === 1) {
-      soundFX.playSandScratch();
       setRevealedSlips(2);
     } else {
-      // Finished both slips -> trigger Shooting Star Effect across starry night
       soundFX.playBronzeChime();
       setPhase('shooting_star');
       setTimeout(() => {
-        setPhase('transition');
-      }, 2200);
+        onNextPage();
+      }, 1600);
     }
   };
 
   return (
-    <div
-      className={`relative w-full h-full text-[#d2b48c] flex flex-col justify-between overflow-hidden font-serif select-none transition-colors duration-700 ${
-        isSuccess ? 'bg-[#1c150c]' : 'bg-[#0f0b07]'
-      }`}
-    >
-      {/* Top Bar */}
-      <div className="p-2.5 bg-[#1f140c] border-b border-[#3d2b1f] flex items-center justify-between z-10 shadow-md">
-        <div>
-          <span className="text-[8px] tracking-[0.25em] uppercase text-[#a3805d] font-mono">
-            CHAPTER 02 · 宴飨 · 组玉佩
-          </span>
-          <h2 className="text-xs sm:text-sm font-black text-[#ffe89c] tracking-widest title-drop-shadow">
-            第二章｜宴乐 · 组玉佩
-          </h2>
-        </div>
-      </div>
+    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
+      {/* Visual Background: 宴乐深棕＋玉青＋金 */}
+      <MuseumTombBackdrop palette="banquet" pattern="weave" spotlight={true} intensity="subtle" />
 
-      {/* STEP 1: PAGE 09 广阳王致意对白 */}
+      {/* STEP 1: PAGE 09 广阳王致意对白 (引导页：底图汉代宴乐画像砖局部，遮罩25%，取消发光icon) */}
       {phase === 'king_welcome' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-4">
-            <div className="w-24 h-24 rounded-full bg-amber-950/80 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_35px_rgba(245,158,11,0.6)] animate-pulse">
-              <Sparkles className="w-12 h-12 text-amber-300" />
-            </div>
-            <div className="text-center space-y-1">
-              <span className="text-[10px] font-mono text-amber-400">大汉广阳国 · 钟鸣鼎食</span>
-              <h3 className="text-base font-black text-[#ffe89c]">文舞敬天 · 广阳盛宴</h3>
-            </div>
+        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-0 animate-fade-in overflow-hidden">
+          {/* 汉代宴乐画像砖局部底图 (遮罩统一25%) */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img
+              src={CHAPTER_BACKGROUNDS.stage2_banquet_guide}
+              alt="汉代宴乐画像砖"
+              className="w-full h-full object-cover object-center opacity-85"
+            />
+            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0806] via-transparent to-[#0B0806]/60" />
           </div>
 
-          <UnifiedDialogueBox
-            dialogues={DIALOGUES_STAGE2_KING}
-            currentIndex={0}
-            onNext={() => {
-              soundFX.playStoneDrum();
-              setPhase('banquet_video');
-            }}
-          />
-        </div>
-      )}
+          <HanMuseumTopBar />
 
-      {/* STEP 2: PAGE 10 宴乐视频 */}
-      {phase === 'banquet_video' && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex flex-col items-center justify-between p-4 animate-fade-in font-serif select-none">
-          <div className="text-center mt-2">
-            <span className="text-[9px] font-mono text-amber-300 tracking-widest bg-amber-950/80 px-3 py-1 rounded-full border border-amber-500">
-              DANCE VIDEO · 宴乐与组玉佩
+          <div className="relative z-10 pt-1 pb-1">
+            <HanCloudTitle title="第二章 · 宴乐与组玉佩" />
+          </div>
+
+          <div className="relative z-10 my-auto flex flex-col items-center justify-center space-y-1 text-center">
+            <span className="text-[11px] font-mono tracking-widest text-[#C8943D] uppercase">
+              文舞敬天 · 广阳盛宴
             </span>
-            <h3 className="text-base font-black text-[#ffe89c] mt-2">
-              观看宴乐 · 裙裾舒展，玉佩相鸣
+            <h3 className="text-xl sm:text-2xl font-black text-[#F1D98D] tracking-[0.2em] drop-shadow-md">
+              宴乐与组玉佩
             </h3>
+            <p className="text-[10px] text-[#E6D3AA]/80 max-w-xs leading-relaxed mt-1">
+              大汉宗室广阳国，钟鸣鼎食，王后佩鸣。
+            </p>
           </div>
 
-          <div className="relative w-full max-w-xs aspect-[4/5] rounded-3xl overflow-hidden border-2 border-amber-600 shadow-2xl bg-[#1c130d] flex items-center justify-center">
-            <div className="w-40 h-48 rounded-2xl bg-amber-950/50 border border-amber-500/60 flex flex-col items-center justify-center p-3 text-center space-y-2">
-              <Sparkles className="w-10 h-10 text-amber-300 animate-pulse" />
-              <span className="text-xs font-black text-amber-200">
-                大汉宴飨 · 佩鸣舞起
-              </span>
-              <p className="text-[10px] text-amber-100/80 leading-relaxed">
-                “舞者缓步徐行，身上组玉佩轻击作响，节律铿锵如琴瑟。”
+          <div className="relative z-30 w-full">
+            <UnifiedDialogueBox
+              dialogues={DIALOGUES_STAGE2_KING}
+              currentIndex={0}
+              onNext={() => {
+                soundFX.playStoneDrum();
+                setPhase('banquet_video');
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* STEP 2: 宴乐视频 (全屏无边框舞蹈页面) */}
+      {phase === 'banquet_video' && (
+        <ChapterVideoPageView
+          chapterNumber="02"
+          englishTitle="COURT BANQUET & JADE"
+          chineseTitle="宴 乐 汉 仪"
+          subtitle="大汉宴飨 · 佩鸣舞起"
+          videoSrc={STAGE_VIDEOS.stage2_banquet.url}
+          videoAssetPathHint="public/assets/videos/banquet_dance.mp4"
+          // 🚨【PAGE 1: 宴乐视频播放页背景底图 - 80% 遮罩 (可直接替换)】🚨
+          bgImage={STAGE2_BACKGROUNDS.page1_video}
+          palette="banquet"
+          completeButtonText="完成观看 · 步入知识典藏"
+          onSkip={() => {
+            setPhase('knowledge_archive');
+          }}
+          onComplete={() => {
+            setPhase('knowledge_archive');
+          }}
+        />
+      )}
+
+      {/* STEP 2.5: 知识典藏 (宴乐 / 组玉佩名词解释页面，玄棕底色，左侧金线/玉青线展签风格) */}
+      {phase === 'knowledge_archive' && (
+        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden font-serif select-none">
+          <HanMuseumTopBar />
+
+          <div className="relative z-10 pt-1 pb-1">
+            <HanCloudTitle title="知识典藏" />
+            <p className="text-center text-[10px] text-[#A89078] tracking-[0.2em] mt-0.5">
+              汉代礼乐制度 · 宴饮组佩展签释义
+            </p>
+          </div>
+
+          <div className="relative my-auto flex flex-col space-y-3 px-2 max-w-sm mx-auto w-full">
+            {/* 卡片 1: 宴乐 (玄棕背景，左侧金线) */}
+            <div className="relative p-3.5 rounded-xl bg-[#160E0A] border-0 border-l-4 border-[#D6A84B] shadow-lg flex flex-col space-y-1.5 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-serif font-black text-[#F1D98D] tracking-widest flex items-center gap-1.5">
+                  <span className="text-[#D6A84B] text-[10px]">❖</span>
+                  宴乐之礼
+                </span>
+                <span className="text-[8.5px] font-mono text-[#D6A84B]/80 tracking-wider">
+                  COURT BANQUET
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-[#E6D3AA]/90 font-serif">
+                汉代诸侯王以宴乐招待宾客、彰显宗室威仪。席间钟鸣鼎食，设雅乐九奏、列武舞与杂技，既是宗法礼制的核心表达，亦是汉代贵族生活繁华的集大成者。
               </p>
+              <div className="pt-1 flex items-center justify-between text-[8px] text-[#8C6D46] font-mono border-t border-[#D6A84B]/15">
+                <span>展签藏号 · EX-HAN-02-A</span>
+                <span>大葆台西汉王陵遗址</span>
+              </div>
             </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-transparent to-transparent" />
+
+            {/* 卡片 2: 组玉佩 (玄棕背景，左侧玉青线) */}
+            <div className="relative p-3.5 rounded-xl bg-[#160E0A] border-0 border-l-4 border-[#79B9A1] shadow-lg flex flex-col space-y-1.5 transition-all">
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm font-serif font-black text-[#79B9A1] tracking-widest flex items-center gap-1.5">
+                  <span className="text-[#79B9A1] text-[10px]">❖</span>
+                  王后组玉佩
+                </span>
+                <span className="text-[8.5px] font-mono text-[#79B9A1]/80 tracking-wider">
+                  ROYAL SUITE OF JADES
+                </span>
+              </div>
+              <p className="text-[11px] leading-relaxed text-[#E6D3AA]/90 font-serif">
+                西汉诸侯王与王后最高等级随身礼玉，由珩、璜、琚、瑀、冲牙与神兽佩等数十件精美玉件以丝组贯穿连缀。佩者行步舒缓，环佩相撞发出清脆节律，非盛典仪轨不可轻易佩挂。
+              </p>
+              <div className="pt-1 flex items-center justify-between text-[8px] text-[#558071] font-mono border-t border-[#79B9A1]/15">
+                <span>展签藏号 · EX-HAN-02-B</span>
+                <span>大葆台王后墓出土</span>
+              </div>
+            </div>
           </div>
 
-          <button
-            onClick={() => {
-              soundFX.playStoneDrum();
-              setPhase('dialogue_preshow');
-            }}
-            className="w-full max-w-xs py-3 bg-amber-600 hover:bg-amber-500 text-black font-black rounded-2xl text-xs shadow-2xl flex items-center justify-center gap-1.5 active:scale-95 transition-all"
-          >
-            <span>完成观看 · 寻觅王后组玉佩</span>
-            <ArrowRight className="w-4 h-4" />
-          </button>
+          <div className="relative z-30 w-full max-w-xs mx-auto pb-1">
+            <HanPlaqueButton
+              onClick={() => {
+                soundFX.playStoneDrum();
+                setPhase('dialogue_preshow');
+              }}
+              size="md"
+              className="w-full"
+              rightIcon={<ArrowRight className="w-4 h-4 text-[#D6A84B]" />}
+            >
+              继续前行 · 寻访遗失组玉佩
+            </HanPlaqueButton>
+          </div>
         </div>
       )}
 
-      {/* STEP 3: PAGE 10 玉舞人发现玉佩对白 */}
+      {/* STEP 3: PAGE 10 玉佩缺失页面 (底图：王后腰部服饰特写，虚线空位，无中央圆圈icon) */}
       {phase === 'dialogue_preshow' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
-            <div className="w-20 h-20 rounded-full bg-amber-950 border-2 border-amber-500 flex items-center justify-center shadow-[0_0_20px_rgba(245,158,11,0.5)]">
-              <Layers className="w-10 h-10 text-amber-400" />
-            </div>
-            <div className="text-center text-[11px] text-[#c2a385]">
-              展柜灯光聚焦，四件出土汉代玉器正散发着幽幽古光
-            </div>
+        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-0 animate-fade-in overflow-hidden">
+          {/* 王后腰部特写底图 */}
+          <div className="absolute inset-0 z-0 pointer-events-none">
+            <img
+              src={CHAPTER_BACKGROUNDS.stage2_queen_skirt}
+              alt="王后下半身服饰特写"
+              className="w-full h-full object-cover object-center opacity-80"
+            />
+            <div className="absolute inset-0 bg-black/25" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0806] via-transparent to-[#0B0806]/70" />
           </div>
 
-          <UnifiedDialogueBox
-            dialogues={DIALOGUES_STAGE2_AFTER_VIDEO}
-            currentIndex={0}
-            onNext={() => {
-              setPhase('interactive');
-            }}
-          />
+          <HanMuseumTopBar />
+
+          <div className="relative z-10 my-auto flex flex-col items-center justify-center space-y-1 text-center">
+            <span className="text-[9.5px] font-mono tracking-widest text-[#F1D98D] bg-black/50 px-2.5 py-0.5 rounded-full border-0">
+              ❖ 王后组玉佩 · 虚位以待
+            </span>
+            <p className="text-[10px] text-[#E6D3AA]/90 drop-shadow-md">
+              腰间佩玉空悬，惟余虚线佩影与幽幽环佩遗响
+            </p>
+          </div>
+
+          <div className="relative z-30 w-full">
+            <UnifiedDialogueBox
+              dialogues={DIALOGUES_STAGE2_AFTER_VIDEO}
+              currentIndex={0}
+              onNext={() => {
+                setPhase('interactive');
+              }}
+            />
+          </div>
         </div>
       )}
 
-      {/* STEP 4: PAGE 11 交互：四选一玉佩 (清晰放置于玉舞人对话框上方，绝不遮挡) */}
+      {/* STEP 4: PAGE 11 交互：四选一玉佩 (抽屉形式，去除 pb-36，内容完整呈现在屏幕内) */}
       {phase === 'interactive' && (
-        <div className="flex-1 relative overflow-hidden flex flex-col justify-start space-y-2 p-3 animate-fade-in pb-36 sm:pb-40">
-          {/* Top Title Prompt */}
-          <div className="text-center py-0.5">
-            <span className="text-[10px] font-black text-[#ffe89c] bg-[#24170e] px-3 py-1 rounded-full border border-amber-600/70 shadow-sm">
-              从四件汉玉中选出王后墓「镂空龙凤纹神兽白玉佩」
-            </span>
+        <div className="relative z-10 w-full h-full flex flex-col justify-between p-2.5 pb-2 animate-fade-in overflow-hidden">
+          <HanMuseumTopBar />
+
+          <div className="relative z-10 pt-0.5 pb-0.5">
+            <HanCloudTitle title="寻找王后组玉佩" />
           </div>
 
-          {/* 4 Jade Cards 2x2 Grid */}
-          <div className="grid grid-cols-2 gap-2 my-auto">
+          {/* 4 Jade Options - 紧凑高度 h-28 sm:h-30, 留足空间给确认按键与提示框 */}
+          <div className="grid grid-cols-2 gap-1.5 my-1 px-1">
             {JADE_CANDIDATES.map((jade) => {
               const isSelected = selectedJadeId === jade.id;
+              const isHovered = hoveredJadeId === jade.id;
+              const isDrawerOpen = isSelected || isHovered;
+
               return (
                 <div
                   key={jade.id}
-                  onClick={() => handleSelectJade(jade.id)}
-                  className={`p-2 rounded-2xl border-2 transition-all cursor-pointer flex flex-col justify-between space-y-1 shadow-md ${
+                  onClick={() => {
+                    handleSelectJade(jade.id);
+                    setHoveredJadeId(jade.id);
+                  }}
+                  onMouseEnter={() => setHoveredJadeId(jade.id)}
+                  onMouseLeave={() => setHoveredJadeId(null)}
+                  onTouchStart={() => setHoveredJadeId(jade.id)}
+                  className={`relative h-28 sm:h-30 rounded-lg border transition-all duration-300 cursor-pointer flex flex-col justify-between overflow-hidden shadow-md select-none group ${
                     isSelected
-                      ? 'bg-[#2e1d13] border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.4)] scale-102 ring-2 ring-amber-500/40'
-                      : 'bg-[#150e09]/90 border-[#3d2b1f] hover:border-amber-600/70'
+                      ? 'bg-gradient-to-b from-[#351E13] to-[#1F1008] border-[#D6A84B] shadow-[0_0_16px_rgba(214,168,75,0.4)]'
+                      : isHovered
+                      ? 'bg-gradient-to-b from-[#2B170E] to-[#180C07] border-[#D6A84B]/80 shadow-[0_0_12px_rgba(214,168,75,0.25)]'
+                      : 'bg-[#160D09]/95 border-[#6E3024]/70 hover:border-[#D6A84B]/60'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <span className="text-xs font-black text-[#ffe89c]">
-                      {jade.name}
-                    </span>
-                    {isSelected && (
-                      <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    )}
+                  {/* Top Text Info */}
+                  <div className="p-1.5 pb-0 z-10 relative">
+                    <div className="flex items-start justify-between gap-1">
+                      <span className="text-[9.5px] sm:text-[10px] font-serif font-black text-[#F1D98D] leading-tight truncate">
+                        {jade.name}
+                      </span>
+                      {isSelected ? (
+                        <CheckCircle2 className="w-3 h-3 text-[#79B9A1] shrink-0 animate-bounce" />
+                      ) : (
+                        <span className="text-[7.5px] font-mono text-[#A89078] shrink-0 opacity-60">
+                          抽屉
+                        </span>
+                      )}
+                    </div>
+                    <div className="space-y-0 text-[7.5px] text-[#A89078] mt-0.5">
+                      <p className="truncate">❖ {jade.material}</p>
+                      <p className="truncate">❖ {jade.motif}</p>
+                    </div>
                   </div>
-                  <div className="space-y-0.5 text-[8px] text-[#c2a385]">
-                    <p>❖ {jade.material}</p>
-                    <p>❖ {jade.shape}</p>
-                    <p className="line-clamp-1">❖ {jade.motif}</p>
+
+                  {/* Bottom Drawer Chamber */}
+                  <div className="relative w-full h-14 sm:h-16 overflow-hidden flex flex-col justify-end items-center">
+                    <div className="absolute inset-x-0 bottom-0 h-4 bg-gradient-to-t from-[#0D0704] via-[#1E110A] to-transparent z-20 pointer-events-none flex flex-col items-center justify-end pb-0.5">
+                      <div className="w-6 h-0.5 rounded-full bg-[#D6A84B]/40 group-hover:bg-[#D6A84B]/80 transition-colors shadow-sm" />
+                    </div>
+
+                    <div
+                      className={`absolute bottom-0.5 z-10 flex flex-col items-center justify-center transition-all duration-400 ease-out transform ${
+                        isDrawerOpen
+                          ? 'translate-y-0 opacity-100 scale-100'
+                          : 'translate-y-8 opacity-30 scale-75'
+                      }`}
+                    >
+                      <div className="relative flex items-center justify-center">
+                        {isDrawerOpen && (
+                          <div className="absolute inset-0 bg-radial from-[#F1D98D]/30 via-[#79B9A1]/20 to-transparent blur-md pointer-events-none animate-pulse" />
+                        )}
+                        <img
+                          src={jade.imageUrl}
+                          alt={jade.name}
+                          className="w-11 h-11 sm:w-12 sm:h-12 object-contain filter drop-shadow-[0_0_8px_rgba(241,217,141,0.6)]"
+                        />
+                      </div>
+                      <span
+                        className={`text-[6.5px] font-mono tracking-wider transition-opacity duration-300 ${
+                          isDrawerOpen ? 'text-[#F1D98D] opacity-100' : 'opacity-0'
+                        }`}
+                      >
+                        {isSelected ? '已选定此玉' : '抽屉已展开'}
+                      </span>
+                    </div>
+
+                    {!isDrawerOpen && (
+                      <div className="z-10 pb-1 text-[6.5px] text-[#8C6D46] font-mono flex items-center gap-0.5 animate-pulse pointer-events-none">
+                        <span>↑ 触碰抽屉</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               );
             })}
           </div>
 
-          {/* Standardized Confirm Button - firmly placed ABOVE UnifiedDialogueBox */}
-          <div className="w-full z-10 pt-0.5 mb-1">
-            <button
+          {/* Standardized Confirm Button - 上移到选项正下方，去除边框四角 */}
+          <div className="w-full z-10 my-1 max-w-xs mx-auto px-1">
+            <HanPlaqueButton
               onClick={handleConfirmJade}
               disabled={!selectedJadeId}
-              className={`w-full py-2.5 rounded-2xl font-serif font-black text-xs border-2 shadow-2xl transition-all flex items-center justify-center gap-1.5 ${
-                selectedJadeId
-                  ? 'bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:brightness-110 text-black border-amber-400 active:scale-98 shadow-[0_0_15px_rgba(245,158,11,0.4)]'
-                  : 'bg-[#1a120b] text-[#554030] border-[#291b12] cursor-not-allowed'
-              }`}
+              size="md"
+              className="w-full"
+              leftIcon={<CheckCircle2 className="w-4 h-4 text-[#D6A84B]" />}
             >
-              <CheckCircle2 className="w-4 h-4 text-black" />
-              <span>确认选择 · 找回王后组玉佩</span>
-            </button>
+              确认选择 · 找回王后组玉佩
+            </HanPlaqueButton>
           </div>
 
-          {/* Interactive Mode: Jade Dancer with companion 3-level progressive hints */}
-          <UnifiedDialogueBox
-            isInteractiveMode={true}
-            hints={[
-              '王后墓出土的组玉佩核心在于形制高贵，图案兼备龙与凤之祥瑞神兽。',
-              '该玉佩质地为温润白玉，器身采用镂空透雕技法雕琢龙凤纠结、神兽回首。',
-              '正确选项为「镂空龙凤纹神兽白玉佩」，是王后墓中规格最高的佩玉精粹。',
-            ]}
-            errorTip={errorTip}
-            onClearError={() => setErrorTip('')}
-          />
+          <div className="relative z-40 w-full shrink-0">
+            <UnifiedDialogueBox
+              isInteractiveMode={true}
+              hints={[
+                '王后墓出土的组玉佩核心在于形制高贵，图案兼备龙与凤之祥瑞神兽。',
+                '该玉佩质地为温润白玉，器身采用镂空透雕技法雕琢龙凤纠结、神兽回首。',
+                '正确选项为「龙凤纹神兽白玉佩」，是王后墓中规格最高的佩玉精粹。',
+              ]}
+              errorTip={errorTip}
+              onClearError={() => setErrorTip('')}
+            />
+          </div>
         </div>
       )}
 
       {/* STEP 5: 成功反馈对白 */}
       {phase === 'success_dialogue' && (
-        <div className="relative w-full h-full flex flex-col justify-between p-4 animate-fade-in">
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-3">
-            <div className="w-20 h-20 rounded-full bg-emerald-950 border-2 border-emerald-500 flex items-center justify-center shadow-[0_0_25px_rgba(52,211,153,0.8)] animate-pulse">
-              <Sparkles className="w-10 h-10 text-emerald-300" />
+        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
+          <HanMuseumTopBar />
+
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
+            <div className="w-18 h-18 rounded-full bg-[#1E2E20] border-0 flex items-center justify-center shadow-[0_0_20px_rgba(121,185,161,0.6)] animate-pulse">
+              <Sparkles className="w-9 h-9 text-[#79B9A1]" />
             </div>
             <div className="text-center">
-              <span className="text-[10px] font-mono text-emerald-400 bg-emerald-950/80 px-3 py-1 rounded-full border border-emerald-500">
-                新记忆已收录 · 记忆卡 02
+              <span className="text-[9.5px] font-mono text-[#79B9A1] bg-[#121E14] px-3 py-0.5 rounded-full border-0">
+                新记忆已收录 · 记忆竹简 02
               </span>
-              <h3 className="text-base font-black text-[#ffe89c] mt-2">
-                卡片 02「王后组玉佩」已点亮
+              <h3 className="text-sm font-black text-[#F1D98D] mt-1.5">
+                记忆竹简 02「王后组玉佩」已收录
               </h3>
             </div>
           </div>
 
-          <UnifiedDialogueBox
-            dialogues={DIALOGUES_STAGE2_SUCCESS}
-            currentIndex={0}
-            onNext={() => {
-              setPhase('knowledge_flipbook');
+          <div className="relative z-30 w-full">
+            <UnifiedDialogueBox
+              dialogues={DIALOGUES_STAGE2_SUCCESS}
+              currentIndex={0}
+              onNext={() => {
+                setPhase('knowledge_flipbook');
+              }}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* STEP 6: 记忆恢复 · 竹简收集 */}
+      {phase === 'knowledge_flipbook' && (
+        <div className="fixed inset-0 z-50 bg-[#0B0806]/95 backdrop-blur-md flex flex-col items-center justify-center p-2 animate-fade-in select-none font-serif">
+          <BambooSlipCollector
+            stageNumber={2}
+            customBgType="dancer_shadow"
+            onProceed={() => {
+              onUnlockFragment();
+              setPhase('shooting_star');
+              setTimeout(() => {
+                onNextPage();
+              }, 1200);
             }}
           />
         </div>
       )}
 
-      {/* STEP 6: 汉代竹简／典籍折页名词解释（上下双联折页，依序点开） */}
-      {phase === 'knowledge_flipbook' && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-center p-3 animate-fade-in select-none font-serif">
-          {/* Bamboo Slip / Han Folding Scroll Book Container */}
-          <div
-            className="relative w-full max-w-xs min-h-[420px] bg-gradient-to-b from-[#2a1a10] via-[#1e120a] to-[#120a05] border-2 border-amber-600/80 rounded-3xl p-4 shadow-[0_0_40px_rgba(245,158,11,0.35)] flex flex-col justify-between text-center transition-all duration-500"
-            style={{
-              backgroundImage: 'radial-gradient(#3d2b1f 1px, transparent 0)',
-              backgroundSize: '12px 12px',
-            }}
-          >
-            {/* Top Slip Header */}
-            <div className="flex items-center justify-between border-b border-[#5c4033] pb-2.5">
-              <div className="flex items-center gap-1.5 text-xs font-mono text-amber-400">
-                <BookOpen className="w-4 h-4 text-amber-400" />
-                <span className="font-bold font-serif">汉代竹简典籍 · 礼乐释义</span>
-              </div>
-              <span className="text-[9px] font-mono px-2 py-0.5 rounded-full bg-[#17100b] text-amber-300 border border-amber-700">
-                已展开 {revealedSlips} / 2
-              </span>
-            </div>
-
-            {/* Vertical Stack: Two Bamboo Slips (上下两联) */}
-            <div className="my-auto py-2 space-y-3 text-left">
-              {/* Slip 1: 【名词解释 · 宴乐】 */}
-              <div className="relative rounded-2xl bg-gradient-to-br from-[#24150b] to-[#140b05] border-2 border-amber-600/70 p-3 shadow-md space-y-1.5 animate-fade-in">
-                <div className="flex items-center justify-between border-b border-[#4d3221] pb-1">
-                  <div className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                    <h4 className="text-xs font-black text-[#ffe89c]">
-                      【名词解释 · 宴乐】
-                    </h4>
-                  </div>
-                  <span className="text-[8px] font-mono text-amber-400/70">卷上 · 礼制</span>
-                </div>
-                <p className="text-[11px] text-[#f2e6d0] leading-relaxed">
-                  宴乐是汉代宫廷与诸侯王贵族宴饮中的综合性礼乐活动。
-                </p>
-                <p className="text-[9.5px] text-[#c2a385] leading-relaxed">
-                  它不仅融汇了钟磬和鸣、长袖乐舞与宾主礼仪，更在欢聚中确立了汉家天下的礼制秩序与等级仪范。
-                </p>
-              </div>
-
-              {/* Slip 2: 【名词解释 · 组玉佩】 (Revealed on 2nd tap) */}
-              {revealedSlips >= 2 ? (
-                <div className="relative rounded-2xl bg-gradient-to-br from-[#1d2719] to-[#0f170e] border-2 border-emerald-500/70 p-3 shadow-md space-y-1.5 animate-slide-up">
-                  <div className="flex items-center justify-between border-b border-[#2d4734] pb-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                      <h4 className="text-xs font-black text-[#ffe89c]">
-                        【名词解释 · 组玉佩】
-                      </h4>
-                    </div>
-                    <span className="text-[8px] font-mono text-emerald-400/70">卷下 · 佩饰</span>
-                  </div>
-                  <p className="text-[11px] text-[#f2e6d0] leading-relaxed">
-                    组玉佩是由珩、璜、璧、佩、舞人等多件珍贵玉器以丝绦串联而成的礼制佩饰。
-                  </p>
-                  <p className="text-[9.5px] text-[#c2a385] leading-relaxed">
-                    汉代王侯行步徐行，玉件互相撞击发出的清脆韵律，既用以节制行止，亦寄托了君子如玉的高尚德行。
-                  </p>
-                </div>
-              ) : (
-                /* Unrevealed Placeholder showing folded bamboo roll */
-                <div
-                  onClick={handleAdvanceBambooSlip}
-                  className="rounded-2xl border-2 border-dashed border-[#5c4033] bg-[#140c07]/60 p-3.5 flex items-center justify-center gap-2 text-center cursor-pointer hover:border-amber-500 transition-all active:scale-98 group"
-                >
-                  <Layers className="w-4 h-4 text-amber-500 group-hover:scale-110 transition-transform" />
-                  <span className="text-[11px] font-serif text-amber-400/90 group-hover:text-amber-200">
-                    点击翻开下一折 · 组玉佩释义
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {/* Bottom Advancement Button */}
-            <button
-              onClick={handleAdvanceBambooSlip}
-              className="w-full py-3 bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 hover:brightness-110 text-black font-serif font-black rounded-2xl text-xs shadow-lg transition-all active:scale-95 flex items-center justify-center gap-1.5"
-            >
-              <span>{revealedSlips === 1 ? '展开下一折 · 组玉佩 ➔' : '合上典籍 · 化作星辰 ➔'}</span>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 6.5: 流星划过夜空动画特效 (Point 6 Ending) */}
+      {/* STEP 7: 流星划过夜空动画 */}
       {phase === 'shooting_star' && (
-        <div className="fixed inset-0 z-50 bg-black flex flex-col items-center justify-center p-6 animate-fade-in overflow-hidden">
-          {/* Starry Night Sky with Shooting Stars */}
-          <div className="absolute inset-0 bg-radial from-[#121c24] via-black to-black">
-            {/* Stars */}
-            {[...Array(40)].map((_, i) => (
-              <div
-                key={i}
-                className="absolute rounded-full bg-white animate-pulse"
-                style={{
-                  width: `${Math.random() * 2.5 + 1}px`,
-                  height: `${Math.random() * 2.5 + 1}px`,
-                  left: `${Math.random() * 100}%`,
-                  top: `${Math.random() * 100}%`,
-                  opacity: Math.random() * 0.8 + 0.2,
-                  animationDuration: `${Math.random() * 3 + 1}s`,
-                }}
-              />
-            ))}
-
-            {/* Grand Golden Shooting Star Streak */}
-            <div
-              className="absolute w-72 h-[3px] bg-gradient-to-r from-transparent via-amber-300 to-white shadow-[0_0_20px_#ffe89c] transform -rotate-45"
-              style={{
-                top: '20%',
-                left: '-10%',
-                animation: 'shooting-star 1.8s ease-out forwards',
-              }}
-            />
-          </div>
-
-          <div className="relative z-10 text-center space-y-3">
-            <div className="w-16 h-16 mx-auto rounded-full bg-amber-950/70 border-2 border-amber-400 flex items-center justify-center shadow-[0_0_30px_rgba(245,158,11,0.8)] animate-pulse">
-              <Sparkles className="w-8 h-8 text-amber-300" />
+        <div className="fixed inset-0 z-50 bg-[#080503] flex flex-col items-center justify-center animate-fade-in">
+          <div className="relative w-full h-full overflow-hidden flex flex-col items-center justify-center">
+            <div className="absolute top-1/4 left-0 w-48 h-0.5 bg-gradient-to-r from-transparent via-[#F1D98D] to-transparent transform -rotate-12 animate-pulse" />
+            <div className="text-center space-y-2 z-10">
+              <Sparkles className="w-8 h-8 text-[#F1D98D] mx-auto animate-spin" />
+              <h3 className="text-base font-serif font-black text-[#F1D98D]">
+                组玉佩声清鸣 · 汉室星图流转
+              </h3>
+              <p className="text-xs text-[#A89078]">
+                正步入第三展厅……
+              </p>
             </div>
-            <h3 className="text-base font-black text-[#ffe89c] tracking-widest font-serif">
-              星汉灿烂 · 灵玉归位
-            </h3>
-            <p className="text-xs text-[#c2a385] font-serif">
-              古籍合拢，流星划破长空，引领你步入更深处的文物展柜……
-            </p>
           </div>
         </div>
-      )}
-
-      {/* STEP 7: 前往重点文物展柜过场 */}
-      {phase === 'transition' && (
-        <HallTransitionPage
-          targetHallName="下一站：重点文物展柜"
-          subtitle="玉器自述与纵深记忆空间探索"
-          themeColor="jade"
-          onContinue={() => {
-            onNextPage();
-          }}
-        />
       )}
     </div>
   );

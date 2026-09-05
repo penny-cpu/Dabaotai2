@@ -1,95 +1,176 @@
 import React, { useEffect } from 'react';
-import { Compass, Sparkles, ArrowRight, MapPin } from 'lucide-react';
+import { ArrowRight, MoreHorizontal, Circle } from 'lucide-react';
 import { soundFX } from '../utils/soundEngine';
+import bgImage from '../assets/images/dabaotai_hall_entrance_bg.jpg';
 
 interface HallTransitionPageProps {
   targetHallName: string;
   subtitle?: string;
+  buttonText?: string;
   themeColor?: 'gold' | 'red' | 'silver' | 'wood' | 'blue' | 'jade';
   onContinue: () => void;
   autoForwardMs?: number;
 }
 
+/* =========================================================================
+   🚨【“进入XX展厅” 页面背景与 60% 遮罩配置 (参考图2)】🚨
+   =========================================================================
+   背景图片路径：src/assets/images/dabaotai_hall_entrance_bg.jpg
+   遮罩标准：严格设定 60% 黑色/古铜暗调遮罩 (bg-black/60)
+   顶部：大葆台博物馆中英文铭牌与小程序胶囊控制台
+   中央：大葆台汉代古壁画与浮雕透光玉舞人，加持大葆台汉风书法排版
+   底部：经典大汉祥云金边椭圆药丸按钮“进入XX展厅 / 进入记忆”
+   ========================================================================= */
+
 export const HallTransitionPage: React.FC<HallTransitionPageProps> = ({
   targetHallName,
-  subtitle = '两千年汉代时空移步换景',
-  themeColor = 'gold',
+  subtitle = '北京大葆台汉墓博物馆 · 两千年沉浸记忆',
+  buttonText,
   onContinue,
-  autoForwardMs = 3200,
+  autoForwardMs,
 }) => {
   useEffect(() => {
     soundFX.playStoneDrum();
-    const timer = setTimeout(() => {
-      onContinue();
-    }, autoForwardMs);
-    return () => clearTimeout(timer);
+    if (autoForwardMs && autoForwardMs > 0) {
+      const timer = setTimeout(() => {
+        onContinue();
+      }, autoForwardMs);
+      return () => clearTimeout(timer);
+    }
   }, [autoForwardMs, onContinue]);
 
-  const getThemeStyles = () => {
-    switch (themeColor) {
-      case 'red':
-        return 'from-[#2b0808] via-[#1a0505] to-[#0a0202] border-red-500/70 text-red-300';
-      case 'silver':
-        return 'from-[#1a1c24] via-[#0d0e14] to-[#05060a] border-slate-400/70 text-slate-200';
-      case 'wood':
-        return 'from-[#2d1b0e] via-[#1a0e06] to-[#0d0703] border-amber-600/70 text-amber-200';
-      case 'blue':
-        return 'from-[#081226] via-[#040914] to-[#02040a] border-blue-400/70 text-blue-200';
-      case 'jade':
-        return 'from-[#0b2416] via-[#06140c] to-[#020804] border-emerald-400/70 text-emerald-200';
-      case 'gold':
-      default:
-        return 'from-[#2d1f0c] via-[#1c1205] to-[#0a0602] border-amber-400/70 text-amber-200';
-    }
-  };
+  const displayButtonText = buttonText || (targetHallName ? `进入${targetHallName}` : '进入记忆');
 
   return (
-    <div className={`relative w-full h-full bg-gradient-to-b ${getThemeStyles()} flex flex-col items-center justify-between p-6 overflow-hidden select-none font-serif animate-fade-in`}>
-      {/* Background Ripple & Light Trails */}
-      <div className="absolute inset-0 pointer-events-none opacity-25">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 rounded-full border border-current animate-ping opacity-20" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full border border-current animate-spin-slow opacity-15" />
-      </div>
+    <div className="relative w-full h-full flex flex-col justify-between overflow-hidden select-none font-serif text-[#E6D3AA] animate-fade-in">
+      {/* 
+        =======================================================================
+        【背景图与 60% 遮罩 (严格参考图2)】
+        =======================================================================
+      */}
+      <div
+        className="absolute inset-0 bg-cover bg-center filter brightness-95 contrast-105"
+        style={{ backgroundImage: `url(${bgImage})` }}
+      />
+      {/* 🚨 60% 遮罩层 (Mask 60%) */}
+      <div className="absolute inset-0 bg-black/60 pointer-events-none" />
+      {/* 附加微量青铜暗调暗角，营造极具历史厚重感的博物馆地宫氛围 */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#140C07]/50 via-transparent to-[#0A0503]/80 pointer-events-none" />
 
-      {/* Top Badge */}
-      <div className="relative z-10 flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/60 border border-current/40 shadow-md">
-        <Compass className="w-3.5 h-3.5 animate-spin-slow" />
-        <span className="text-[10px] font-mono tracking-widest uppercase">
-          展厅时空流转 · 过场导览
-        </span>
-      </div>
-
-      {/* Center Destination Title */}
-      <div className="relative z-10 text-center space-y-4 max-w-xs my-auto">
-        <div className="w-16 h-16 mx-auto rounded-full bg-black/50 border-2 border-current flex items-center justify-center shadow-[0_0_25px_rgba(245,158,11,0.5)] animate-bounce">
-          <MapPin className="w-8 h-8 text-current" />
+      {/* 
+        =======================================================================
+        顶部栏：大葆台博物馆中英文 Logo 与微信小程序胶囊操作钮 (参考图2)
+        =======================================================================
+      */}
+      <div className="relative z-10 w-full pt-3 px-4 flex items-center justify-between pointer-events-none">
+        {/* 左侧：大葆台博物馆中英文铭章 */}
+        <div className="flex items-center gap-2">
+          {/* 古典座椅铜印 Logo */}
+          <div className="w-7 h-7 rounded-sm border border-[#D6A84B]/80 bg-[#2A160E]/80 flex items-center justify-center p-0.5 shadow-md">
+            <svg viewBox="0 0 24 24" className="w-5 h-5 text-[#F1D98D] stroke-current fill-none" strokeWidth="1.5">
+              <path d="M4 19h16M7 19v-4h10v4M6 10h12v5H6zM8 5h8v5H8z" />
+            </svg>
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-serif font-black tracking-widest text-[#F1D98D] drop-shadow">
+              大葆台博物馆
+            </span>
+            <span className="text-[7.5px] font-mono tracking-wider text-[#A89078] uppercase scale-90 -ml-1">
+              DABAOTAI MUSEUM
+            </span>
+          </div>
         </div>
 
-        <div className="space-y-1.5">
-          <div className="text-xs font-mono tracking-widest text-amber-400/80">
-            FORWARD TO NEXT EXHIBIT
+        {/* 右侧：小程序胶囊操作条 (Capsule control) */}
+        <div className="flex items-center gap-2 px-2.5 py-1 rounded-full bg-black/40 border border-[#D6A84B]/40 shadow-inner">
+          <MoreHorizontal className="w-3.5 h-3.5 text-[#F1D98D]" />
+          <div className="w-[1px] h-3 bg-[#D6A84B]/40" />
+          <Circle className="w-3 h-3 text-[#F1D98D] fill-[#F1D98D]/40" />
+        </div>
+      </div>
+
+      {/* 
+        =======================================================================
+        中央展厅主视觉与文字排版 (完全契合图2艺术构图)
+        =======================================================================
+      */}
+      <div className="relative z-10 my-auto flex flex-col items-center justify-center text-center px-6 space-y-4">
+        {/* 透光温润玉舞人主图腾 (带金芒光晕) */}
+        <div className="relative flex items-center justify-center mb-1">
+          <div className="absolute w-36 h-36 rounded-full bg-[#D6A84B]/15 blur-2xl pointer-events-none animate-pulse" />
+          <div className="w-24 h-24 rounded-full border border-[#D6A84B]/40 bg-[#1A0E08]/60 backdrop-blur-sm flex items-center justify-center shadow-[0_0_35px_rgba(214,168,75,0.3)]">
+            {/* 翘袖折腰白玉舞人剪影徽章 */}
+            <svg viewBox="0 0 100 120" className="w-20 h-20 filter drop-shadow-[0_0_12px_rgba(241,217,141,0.6)]">
+              <path
+                d="M50 22 Q32 46 42 70 Q52 88 45 106"
+                stroke="#F1D98D"
+                strokeWidth="4.5"
+                fill="none"
+                strokeLinecap="round"
+              />
+              <path
+                d="M42 38 Q78 14 90 8 M38 48 Q15 68 10 90"
+                stroke="#F1D98D"
+                strokeWidth="5"
+                fill="none"
+                strokeLinecap="round"
+              />
+              <circle cx="50" cy="15" r="6" fill="#F1D98D" />
+            </svg>
           </div>
-          <h2 className="text-xl sm:text-2xl font-black text-[#ffe89c] tracking-widest">
-            {targetHallName}
-          </h2>
-          <p className="text-[11px] text-[#c2a385] leading-relaxed">
-            {subtitle}
+        </div>
+
+        {/* 殿堂级大汉书法标题：大 葆 台 */}
+        <div className="space-y-1">
+          <h1 className="text-4xl sm:text-5xl font-serif font-black tracking-[0.35em] text-[#F1D98D] drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] ml-3">
+            大葆台
+          </h1>
+          <p className="text-xs sm:text-sm font-serif tracking-[0.25em] text-[#D6A84B] font-bold mt-1">
+            北京大葆台汉墓博物馆
+          </p>
+          <p className="text-[9px] font-mono tracking-[0.3em] text-[#A89078] uppercase pt-1">
+            E N T E R &nbsp; T H E &nbsp; M E M O R Y
           </p>
         </div>
+
+        {/* 当前进入的具体展厅副标题 */}
+        {targetHallName && (
+          <div className="inline-block px-3.5 py-1 rounded-full bg-[#1C0E07]/80 border border-[#D6A84B]/60 shadow-lg mt-2">
+            <span className="text-[11px] font-serif text-[#FFE89E] tracking-widest font-bold">
+              ✦ 即将步入：{targetHallName} ✦
+            </span>
+          </div>
+        )}
       </div>
 
-      {/* Bottom Continue Button */}
-      <div className="relative z-10 w-full max-w-xs">
+      {/* 
+        =======================================================================
+        底部：经典大汉祥云纹金边椭圆药丸按钮 (完全对应图2的“进入记忆”按钮)
+        =======================================================================
+      */}
+      <div className="relative z-10 w-full max-w-xs mx-auto pb-10 px-4 flex flex-col items-center">
         <button
           onClick={() => {
-            soundFX.playStoneDrum();
+            soundFX.playBronzeChime();
             onContinue();
           }}
-          className="w-full py-3 bg-black/70 hover:bg-black/90 text-[#ffe89c] rounded-2xl border border-amber-500/80 text-xs font-serif font-black shadow-lg flex items-center justify-center gap-2 group active:scale-95 transition-all"
+          className="group relative w-full py-3.5 px-8 rounded-full border-2 border-[#D6A84B] bg-gradient-to-r from-[#2E1A11]/90 via-[#3D2319]/95 to-[#2E1A11]/90 hover:from-[#3D2319] hover:to-[#4A2B1E] text-[#F1D98D] text-base font-serif font-bold tracking-[0.25em] shadow-[0_0_30px_rgba(214,168,75,0.4)] active:scale-95 transition-all flex items-center justify-center gap-2 overflow-hidden"
         >
-          <span>立即前往</span>
-          <ArrowRight className="w-4 h-4 text-amber-400 group-hover:translate-x-1 transition-transform" />
+          {/* 左侧祥云微卷装饰 */}
+          <span className="text-xs text-[#D6A84B]/80 font-serif">《</span>
+
+          <span>{displayButtonText}</span>
+
+          {/* 右侧祥云微卷装饰 */}
+          <span className="text-xs text-[#D6A84B]/80 font-serif">》</span>
+
+          {/* 流光悬浮动效 */}
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 pointer-events-none" />
         </button>
+
+        <span className="text-[9px] font-mono text-[#A89078] tracking-widest mt-2 opacity-75">
+          点击按钮开启两千年沉睡时空
+        </span>
       </div>
     </div>
   );

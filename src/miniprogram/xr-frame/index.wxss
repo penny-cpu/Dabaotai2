@@ -1,0 +1,120 @@
+/**
+ * 微信小程序 Xr-frame 3D 页面样式
+ */
+.xr-page-container {
+  width: 100vw;
+  height: 100vh;
+  background: radial-gradient(circle at center, #1f120a 0%, #0c0704 100%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.relic-header {
+  padding: 30rpx 40rpx 10rpx;
+  text-align: center;
+  z-index: 10;
+}
+
+.relic-tag {
+  display: inline-block;
+  font-size: 20rpx;
+  color: #f1d98d;
+  background: rgba(46, 26, 17, 0.8);
+  border: 1rpx solid #d6a84b;
+  padding: 4rpx 20rpx;
+  border-radius: 40rpx;
+  margin-bottom: 12rpx;
+}
+
+.relic-title {
+  font-size: 38rpx;
+  font-weight: bold;
+  color: #f1d98d;
+  letter-spacing: 4rpx;
+  text-shadow: 0 0 20rpx rgba(214, 168, 75, 0.4);
+}
+
+.relic-dynasty {
+  font-size: 22rpx;
+  color: #a89078;
+  margin-top: 6rpx;
+}
+
+/* 3D 视口容器 */
+.xr-canvas-wrap {
+  position: relative;
+  width: 100vw;
+  height: 60vh;
+  margin: auto 0;
+}
+
+#xr-scene {
+  width: 100%;
+  height: 100%;
+}
+
+.gesture-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 20;
+}
+
+.relic-footer {
+  padding: 20rpx 30rpx 50rpx;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20rpx;
+  z-index: 10;
+}
+
+.gesture-hint {
+  display: flex;
+  align-items: center;
+  gap: 10rpx;
+  background: rgba(20, 12, 7, 0.75);
+  border: 1rpx solid rgba(214, 168, 75, 0.4);
+  padding: 8rpx 24rpx;
+  border-radius: 40rpx;
+}
+
+.hint-icon {
+  font-size: 24rpx;
+}
+
+.hint-text {
+  font-size: 20rpx;
+  color: #e6d3aa;
+}
+
+.relic-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 16rpx;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.tab-item {
+  font-size: 22rpx;
+  color: #a89078;
+  background: rgba(30, 17, 10, 0.7);
+  border: 1rpx solid #8c6d46;
+  padding: 12rpx 24rpx;
+  border-radius: 12rpx;
+  transition: all 0.3s ease;
+}
+
+.tab-item.active {
+  color: #120a07;
+  font-weight: bold;
+  background: linear-gradient(135deg, #f1d98d, #d6a84b);
+  border-color: #fff;
+  box-shadow: 0 0 20rpx rgba(214, 168, 75, 0.6);
+}

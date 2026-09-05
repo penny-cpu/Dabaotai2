@@ -3,6 +3,7 @@ import { UserInteractionTrackPoint } from '../types';
 import { soundFX } from '../utils/soundEngine';
 import { ASSETS } from '../data/museumData';
 import { Sparkles, RotateCcw, Download, CheckCircle2, Sunset, RefreshCw } from 'lucide-react';
+import { HanPlaqueButton } from './HanPlaqueButton';
 
 interface Page9EpiloguePostcardProps {
   onRestartHome: () => void;
@@ -221,24 +222,26 @@ export const Page9EpiloguePostcard: React.FC<Page9EpiloguePostcardProps> = ({
 
         {/* Action Buttons */}
         <div className="space-y-2">
-          <button
+          <HanPlaqueButton
             onClick={() => {
               soundFX.playStoneDrum();
               setShowPostcardModal(true);
             }}
-            className="w-full py-2.5 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1.5 active:scale-98 transition-all"
+            size="md"
+            className="w-full"
+            leftIcon={<Sparkles className="w-4 h-4 text-[#D6A84B]" />}
           >
-            <Sparkles className="w-3.5 h-3.5 text-[#d2b48c]" />
-            <span>查看【个人记忆长卷明信片】(支持翻转)</span>
-          </button>
+            查看【个人记忆长卷明信片】(支持翻转)
+          </HanPlaqueButton>
 
-          <button
+          <HanPlaqueButton
             onClick={handleTriggerSunset}
-            className="w-full py-2 bg-[#1a120b] hover:bg-[#291a11] text-[#e6d5b8] font-serif font-bold rounded-2xl border border-[#3d2b1f] text-[11px] flex items-center justify-center gap-1.5 transition-colors"
+            size="sm"
+            className="w-full"
+            leftIcon={<Sunset className="w-4 h-4 text-[#D6A84B]" />}
           >
-            <Sunset className="w-3.5 h-3.5 text-amber-400" />
-            <span>走出大葆台 · 眺望现代晚霞与归途</span>
-          </button>
+            走出大葆台 · 眺望现代晚霞与归途
+          </HanPlaqueButton>
         </div>
       </div>
 
@@ -285,17 +288,18 @@ export const Page9EpiloguePostcard: React.FC<Page9EpiloguePostcardProps> = ({
 
             {/* Modal Controls */}
             <div className="flex items-center gap-2 w-full">
-              <button
+              <HanPlaqueButton
                 onClick={handleSavePostcard}
-                className="flex-1 py-2 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-xl border border-[#d2b48c] text-[11px] flex items-center justify-center gap-1 shadow-md"
+                size="sm"
+                className="flex-1"
+                leftIcon={<Download className="w-3.5 h-3.5 text-[#D6A84B]" />}
               >
-                <Download className="w-3.5 h-3.5" />
-                <span>{savedSuccess ? '已保存至相册 ✓' : '保存明信片'}</span>
-              </button>
+                {savedSuccess ? '已保存至相册 ✓' : '保存明信片'}
+              </HanPlaqueButton>
 
               <button
                 onClick={() => setShowPostcardModal(false)}
-                className="py-2 px-3 bg-[#1a120b] text-[#c2a385] rounded-xl border border-[#3d2b1f] text-xs font-serif"
+                className="py-2 px-3 bg-[#1a120b] text-[#c2a385] hover:text-[#ffe89c] rounded-xl border border-[#3d2b1f] text-xs font-serif active:scale-95"
               >
                 关闭
               </button>
@@ -330,33 +334,35 @@ export const Page9EpiloguePostcard: React.FC<Page9EpiloguePostcardProps> = ({
             <p className="text-[11px] text-[#c2a385] font-serif leading-relaxed">
               穿过两千年的时光隧道，从幽深的王陵地下重新回到阳光温暖的现代大葆台。
             </p>
-            <button
+            <HanPlaqueButton
               onClick={() => {
                 soundFX.playStoneDrum();
                 setShowSunsetExit(false);
                 onRestartHome();
               }}
-              className="w-full py-3 bg-[#3d2b1f] hover:bg-[#5c4033] text-[#ffe89c] font-serif font-black rounded-2xl border-2 border-[#d2b48c] text-xs shadow-2xl flex items-center justify-center gap-1.5 active:scale-95"
+              size="md"
+              className="w-full"
+              leftIcon={<RotateCcw className="w-4 h-4 text-[#D6A84B]" />}
             >
-              <RotateCcw className="w-4 h-4 text-[#ffe89c]" />
-              <span>首尾循环 · 重新开始探索旅程</span>
-            </button>
+              首尾循环 · 重新开始探索旅程
+            </HanPlaqueButton>
           </div>
         </div>
       )}
 
       {/* Bottom Footer Restart Button */}
       <div className="p-2.5 bg-[#241a13] border-t border-[#3d2b1f] z-10">
-        <button
+        <HanPlaqueButton
           onClick={() => {
             soundFX.playStoneDrum();
             onRestartHome();
           }}
-          className="w-full py-2.5 px-4 bg-[#1a120b] hover:bg-[#2c1d12] text-[#d2b48c] font-serif font-bold text-xs rounded-2xl border border-[#3d2b1f] flex items-center justify-center gap-2 transition-colors"
+          size="sm"
+          className="w-full"
+          leftIcon={<RotateCcw className="w-3.5 h-3.5 text-[#D6A84B]" />}
         >
-          <RotateCcw className="w-3.5 h-3.5 text-[#d2b48c]" />
-          <span>重新探索大葆台 (回到首页风吹沙)</span>
-        </button>
+          重新探索大葆台 (回到首页风吹沙)
+        </HanPlaqueButton>
       </div>
     </div>
   );

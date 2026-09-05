@@ -2,51 +2,240 @@
 
 @layer base {
   body {
-    background-color: #1a120b;
-    color: #d2b48c;
-    font-family: Georgia, Cambria, "Times New Roman", Times, "Songti SC", "SimSun", serif;
+    background-color: var(--bg-deep, #0B0806);
+    color: var(--text-main, #E6D3AA);
+    font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, Cambria, "Times New Roman", serif;
   }
 }
 
+/* ==========================================================================
+   DABAOTAI HAN TOMB MUSEUM DESIGN SYSTEM V2.0 (MUSEUM CURATORIAL SPEC)
+   六级色彩系统与比例规范:
+   - 玄黑 (约55%): #0B0806 → #1A100B (深沉地宫墓室底色，非死黑)
+   - 深棕 (约25%): #1F1610 / #2A1B14 (漆器与夯土木质基底)
+   - 朱砂 (约8%):  #9E2A1C / #B93A2B (严禁大面积铺陈！仅限：当前章节、关键确认按钮、已唤醒状态、印章、文物编号)
+   - 暗金 (约8%):  #8E703B / #A88950 (沉稳哑光青铜暗金，不发光)
+   - 玉青 (约4%):  #466B5E / #588373 (汉代高古温润玉色点缀)
+   ========================================================================== */
+:root {
+  --bg-deep: #0B0806;          /* 第一层: 玄黑墓室基底 */
+  --bg-chamber: #1A100B;       /* 第一层渐变收束 */
+  --bg-card: #1F1610;          /* 展陈基座/卡片深棕 */
+  --bg-card-hover: #2A1B14;    /* 交互微高亮深棕 */
+  --cinnabar: #B93A2B;         /* 朱砂红: 核心标识/确认/印章 */
+  --cinnabar-deep: #9E2A1C;    /* 深朱砂红: 按钮背景/印泥 */
+  --gold-muted: #8E703B;       /* 暗金: 边框/标线/哑光装饰 (无发光) */
+  --gold-bronze: #A88950;      /* 熟铜暗金: 文字标头 */
+  --jade: #588373;             /* 玉青: 汉代玉器节点/说明 */
+  --jade-deep: #466B5E;        /* 深玉青: 辅助点缀 */
+  --text-main: #E6D3AA;        /* 汉简米白: 展陈正文 */
+  --text-muted: #8F7C6B;       /* 灰褐/泥金: 次要说明与未解锁状态 */
+
+  /* Compatibility aliases */
+  --color-tomb-deep: #0B0806;
+  --color-earth-umber: #1F1610;
+  --color-faded-cinnabar: #5C251E;
+  --color-cinnabar-red: #B93A2B;
+  --color-terracotta: #2A1B14;
+  --color-antique-gold: #8E703B;
+  --color-imperial-gold: #A88950;
+  --color-pale-gold: #E6D3AA;
+  --color-archival-paper: #E6D3AA;
+  --color-celadon-jade: #588373;
+}
+
 .title-drop-shadow {
-  filter: drop-shadow(2px 2px 0px #000);
+  filter: drop-shadow(1px 1px 0px #0B0806);
+}
+
+/* ==========================================================================
+   UI 底色背景“三层背景”体系
+   第一层｜玄黑墓室 #0B0806 → #1A100B (静穆幽深)
+   第二层｜极弱汉代纹样 (局部出现、大尺度、透明度 2%—5%)
+   第三层｜考古光 (文物后方从上方45°落下的一束极弱极弱的展柜顶光)
+   ========================================================================== */
+
+/* 第一层: 玄黑墓室标准地宫渐变 */
+.han-mural-wall-bg,
+.han-tomb-chamber-bg {
+  background-color: #0B0806;
+  background-image: linear-gradient(180deg, #0B0806 0%, #120B08 45%, #1A100B 100%);
+}
+
+.han-cloud-bg {
+  background-color: #0B0806;
+  background-image: linear-gradient(180deg, #0B0806 0%, #140C08 60%, #1B110B 100%);
+}
+
+/* 汉代壁画粗粝砂石磨砂暗层 (参考壁画砂石粗粝古朴感觉，双层分形噪点砂粒) */
+.han-mural-texture,
+.han-sandstone-texture {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.22;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='sandstoneGrit'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0.85  0 0 0 0 0.75  0 0 0 0 0.6  0 0 0 0.7 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23sandstoneGrit)'/%3E%3C/svg%3E");
+}
+
+/* 全局砂石古朴磨砂覆层 (色相不变，饱和度适度收敛古拙) */
+.han-app-sandbox-grain {
+  filter: saturate(0.92);
+}
+
+/* 第三层: 考古展柜微弱顶光束 (从上方 45° 倾泻的极弱极弱暖光，非霓虹发光) */
+.archaeology-spotlight {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 65% 55% at 50% 0%,
+    rgba(224, 196, 144, 0.08) 0%,
+    rgba(168, 137, 80, 0.03) 45%,
+    transparent 75%
+  );
+}
+
+.archaeology-spotlight-45deg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 70% 60% at 75% 5%,
+    rgba(224, 196, 144, 0.09) 0%,
+    rgba(168, 137, 80, 0.02) 50%,
+    transparent 80%
+  );
+}
+
+/* 考古展签质感底板 */
+.archaeology-card-texture {
+  background-color: #1F1610;
+  border: 1px solid rgba(142, 112, 59, 0.35);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* Cinnabar Seal Stamp (朱砂印章样式: 纯正朱砂红，收敛无荧光) */
+.han-seal-stamp {
+  border: 1.5px solid #9E2A1C;
+  color: #B93A2B;
+  background-color: rgba(158, 42, 28, 0.08);
+}
+
+/* 哑光暗金边线 */
+.han-gold-border {
+  border: 1px solid rgba(142, 112, 59, 0.4);
+}
+
+/* ==========================================================================
+   HAN DYNASTY INSCRIPTION PLAQUE BUTTONS (削减50%发光，回归漆器与朱砂暗金)
+   ========================================================================== */
+
+/* 关键确认按钮: 规范使用朱砂红 (#9E2A1C), 绝无泛黄荧光 */
+.primary-button,
+.han-plaque-btn,
+.han-btn-primary {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid #B93A2B;
+  background: linear-gradient(180deg, #9E2A1C 0%, #781F14 100%);
+  color: #F8E8C8;
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 0 16px;
+  user-select: none;
+}
+
+.primary-button:hover:not(:disabled),
+.han-plaque-btn:hover:not(:disabled),
+.han-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #B93A2B 0%, #8C2317 100%);
+  border-color: #D24A3A;
+  color: #FFFFFF;
+  transform: translateY(-1px);
+}
+
+.primary-button:active:not(:disabled),
+.han-plaque-btn:active:not(:disabled),
+.han-btn-primary:active:not(:disabled) {
+  background: #781F14;
+  transform: translateY(1px) scale(0.99);
+}
+
+.primary-button:disabled,
+.han-plaque-btn:disabled,
+.han-btn-primary:disabled {
+  background: #1F1610;
+  border-color: #38251C;
+  color: #5C4C42;
+  opacity: 0.6;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* 次要操作按钮: 沉稳深棕 + 暗金边线 */
+.han-btn-secondary,
+.han-plaque-secondary {
+  min-height: 42px;
+  border-radius: 10px;
+  border: 1px solid rgba(142, 112, 59, 0.45);
+  background: linear-gradient(180deg, #261912 0%, #1A100B 100%);
+  color: #E6D3AA;
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.35);
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 0 14px;
+}
+
+.han-btn-secondary:hover:not(:disabled),
+.han-plaque-secondary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #332017 0%, #22150E 100%);
+  border-color: rgba(168, 137, 80, 0.65);
+  color: #F1D98D;
+}
+
+/* 哑光暗金按钮: 纯粹古朴暗金 */
+.han-btn-gold,
+.han-plaque-gold {
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid #A88950;
+  background: linear-gradient(180deg, #3A271A 0%, #26180F 100%);
+  color: #F1D98D;
+  font-weight: 700;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  font-family: "Noto Serif SC", "Songti SC", "SimSun", Georgia, serif;
+}
+
+.han-btn-gold:hover:not(:disabled),
+.han-plaque-gold:hover:not(:disabled) {
+  border-color: #C8A362;
+  color: #FFF2CC;
+  transform: translateY(-1px);
 }
 
 /* Sand Grit Friction Hover Micro-Interaction Animation */
 @keyframes sand-grit-shake {
   0% { transform: translate(0, 0) rotate(0deg); }
-  20% { transform: translate(-1.5px, 0.5px) rotate(-0.6deg); }
-  40% { transform: translate(1.5px, -0.5px) rotate(0.6deg); }
-  60% { transform: translate(-1px, 0.5px) rotate(-0.3deg); }
-  80% { transform: translate(1px, -0.5px) rotate(0.3deg); }
+  20% { transform: translate(-1px, 0.5px) rotate(-0.5deg); }
+  40% { transform: translate(1px, -0.5px) rotate(0.5deg); }
+  60% { transform: translate(-0.8px, 0.3px) rotate(-0.2deg); }
+  80% { transform: translate(0.8px, -0.3px) rotate(0.2deg); }
   100% { transform: translate(0, 0) rotate(0deg); }
-}
-
-/* Archaeological Site Grainy Noise Jitter Animation */
-@keyframes grainy-noise-jitter {
-  0%, 100% { transform: translate(0, 0); }
-  10% { transform: translate(-2%, -3%); }
-  20% { transform: translate(3%, 1%); }
-  30% { transform: translate(-1%, 4%); }
-  40% { transform: translate(2%, -2%); }
-  50% { transform: translate(-3%, 2%); }
-  60% { transform: translate(1%, -4%); }
-  70% { transform: translate(-2%, 3%); }
-  80% { transform: translate(3%, -1%); }
-  90% { transform: translate(-1%, 2%); }
-}
-
-.sand-grain-noise {
-  position: absolute;
-  top: -20%;
-  left: -20%;
-  width: 140%;
-  height: 140%;
-  pointer-events: none;
-  opacity: 0.22;
-  mix-blend-mode: overlay;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-  animation: grainy-noise-jitter 0.7s steps(2) infinite;
 }
 
 /* Global button hover tactile friction effect */
@@ -57,21 +246,22 @@ button:hover:not(:disabled),
 
 /* Custom Scrollbar for Archaeology Soil View */
 ::-webkit-scrollbar {
-  width: 5px;
-  height: 5px;
+  width: 4px;
+  height: 4px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1a120b;
+  background: #160D09;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #3d2b1f;
-  border-radius: 4px;
+  background: #3A2116;
+  border: 1px solid #6E3024;
+  border-radius: 2px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #d2b48c;
+  background: #A9782B;
 }
 
 /* Floating Wind Blowing Leaves Keyframes */
@@ -199,8 +389,35 @@ button:hover:not(:disabled),
   animation: bird-fly-across-2 17s ease-out infinite 4s;
 }
 
-.animate-sunlight {
-  animation: sunlight-glow 6s ease-in-out infinite;
+/* Han Dynasty Linear Cloud Flourish & Mural Relief Design Classes */
+.han-linear-border {
+  border: 1px solid rgba(142, 112, 59, 0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
+
+.han-dialogue-linear-box {
+  background: linear-gradient(180deg, rgba(15, 10, 7, 0.94) 0%, rgba(26, 16, 11, 0.96) 100%);
+  border: 1px solid rgba(142, 112, 59, 0.35);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(8px);
+}
+
+/* Linear Button Style */
+.han-linear-btn {
+  border: 1px solid rgba(142, 112, 59, 0.5);
+  background: linear-gradient(180deg, rgba(38, 25, 18, 0.85) 0%, rgba(22, 14, 10, 0.92) 100%);
+  color: #E6D3AA;
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.4);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.han-linear-btn:hover:not(:disabled) {
+  border-color: #A88950;
+  color: #F1D98D;
+  background: linear-gradient(180deg, rgba(50, 32, 22, 0.9) 0%, rgba(32, 20, 14, 0.98) 100%);
+  transform: translateY(-1px);
+}
+
+
 
 

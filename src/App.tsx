@@ -147,6 +147,7 @@ export default function App() {
   return (
     <PhoneFrame
       activeSection={activeSection}
+      unlockedFragments={unlockedFragments}
       onSelectSection={triggerSectionChange}
       onOpenMapModal={() => setShowMapModal(true)}
     >

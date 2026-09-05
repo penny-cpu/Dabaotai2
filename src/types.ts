@@ -19,7 +19,7 @@ export type SectionKey =
   | 'pendant'
   | 'epilogue';
 
-export type SpeakerRole = 'dancer' | 'pushou' | 'player' | 'corruptor' | 'narrator';
+export type SpeakerRole = 'dancer' | 'pushou' | 'player' | 'corruptor' | 'narrator' | 'king';
 
 export interface DialogueLine {
   speaker: SpeakerRole;

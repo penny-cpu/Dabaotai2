@@ -1,6 +1,6 @@
 {
   "name": "规则怪谈降临大葆台",
-  "description": "规则怪谈降临大葆台——我有玉舞人通三代：大葆台汉墓博物馆沉浸式轻量化移动端交互小游戏",
+  "description": "大葆台西汉墓遗址博物馆数字化展陈：进入一座汉墓，逐件唤醒被封存两千年的礼仪、舞蹈、器物和宇宙观。",
   "requestFramePermissions": ["camera"],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

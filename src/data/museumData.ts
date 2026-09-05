@@ -6,6 +6,7 @@ import hanWuDanceImg from '../assets/images/han_wu_dance_1786614702286.jpg';
 import hanLifeScrollImg from '../assets/images/han_life_scroll_1786614713000.jpg';
 import dabaotaiMuseumExteriorImg from '../assets/images/dabaotai_museum_exterior_1787849371431.jpg';
 import dabaotaiMuseumSunsetImg from '../assets/images/dabaotai_museum_sunset_1787849384519.jpg';
+import guangyangBattleAltarImg from '../assets/images/guangyang_battle_altar_1788172530676.jpg';
 
 export const ASSETS = {
   underLayer: dabaotaiUnderLayerImg,
@@ -14,6 +15,7 @@ export const ASSETS = {
   lifeScroll: hanLifeScrollImg,
   museumExterior: dabaotaiMuseumExteriorImg,
   museumSunset: dabaotaiMuseumSunsetImg,
+  guangyangBattleAltar: guangyangBattleAltarImg,
 };
 
 export const RELICS_DATA: Relic[] = [
