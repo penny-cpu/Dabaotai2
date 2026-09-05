@@ -62,6 +62,37 @@ export default function App() {
     triggerSectionChange(nextKey);
   };
 
+  // Safe Rollback Mechanism: 快捷撤回上一章并安全回滚未落定的状态与碎片
+  const handleRollbackPreviousChapter = () => {
+    const chapterToFragmentMap: Partial<Record<SectionKey, JadeFragmentId>> = {
+      weapon: 'frag_right_sleeve',
+      banquet: 'frag_chest_pendant',
+      jade_sphere: 'frag_chest_pendant',
+      gallery: 'frag_left_sleeve',
+      baixi: 'frag_robe_skirt',
+      funerary: 'frag_waist',
+      huangchang: 'frag_body_core',
+      ascension: 'frag_head_halo',
+    };
+
+    const currIdx = SECTION_ORDER.indexOf(activeSection);
+    if (currIdx <= 1) {
+      // 回到序章
+      triggerSectionChange('prologue_flow');
+      setUnlockedFragments([]);
+      return;
+    }
+
+    const prevSection = SECTION_ORDER[currIdx - 1];
+    // 回滚当前章节解锁的碎片状态，确保数据一致
+    const currentFrag = chapterToFragmentMap[activeSection];
+    if (currentFrag) {
+      setUnlockedFragments((prev) => prev.filter((id) => id !== currentFrag));
+    }
+
+    triggerSectionChange(prevSection);
+  };
+
   const renderActivePage = () => {
     switch (activeSection) {
       case 'prologue_flow':
@@ -155,7 +186,7 @@ export default function App() {
         onClick={(e) => handleTrackAction(e.clientX, e.clientY, 'tap')}
         className="relative w-full h-full flex flex-col justify-between overflow-hidden bg-[#0d0906]"
       >
-        {/* Top Right Circular Actions: 地图目录 & 记忆碎片 */}
+        {/* Top Right Circular Actions: 地图目录 & 记忆碎片 & 快捷撤回上一章 */}
         {activeSection !== 'prologue_flow' && (
           <RightTopActions
             currentChapterKey={activeSection}
@@ -163,6 +194,8 @@ export default function App() {
             totalChapters={7}
             unlockedCardIds={unlockedFragments}
             onOpenMapModal={() => setShowMapModal(true)}
+            canRollback={activeSection !== 'prologue_flow'}
+            onRollbackChapter={handleRollbackPreviousChapter}
           />
         )}
 

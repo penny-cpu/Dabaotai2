@@ -155,13 +155,13 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
                 </svg>
               </div>
 
-              {/* Center Trigger: 入 墓 (无边框，四角无横线) */}
+              {/* Center Trigger: 入 墓 (居中无偏移，无边框，四角无横线) */}
               <button
                 onClick={handleOpenTombGate}
                 disabled={isGateOpening}
-                className="relative mx-2 px-6 py-2.5 bg-gradient-to-r from-[#2A160E] via-[#3E2114] to-[#2A160E] text-[#F1D98D] font-serif font-bold text-xs tracking-[0.38em] pl-[0.48em] shadow-[0_0_24px_rgba(200,148,61,0.22)] hover:shadow-[0_0_28px_rgba(200,148,61,0.4)] active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-sm"
+                className="relative mx-2 px-6 py-2.5 bg-gradient-to-r from-[#2A160E] via-[#3E2114] to-[#2A160E] text-[#F1D98D] font-serif font-bold text-xs shadow-[0_0_24px_rgba(200,148,61,0.22)] hover:shadow-[0_0_28px_rgba(200,148,61,0.4)] active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-sm"
               >
-                <span>入 墓</span>
+                <span className="tracking-[0.38em] text-center ml-[0.38em]">入 墓</span>
               </button>
 
               {/* Right Tomb Stone Door */}

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { BookOpen, Compass, X, Sparkles, Rotate3d, CheckCircle2, ChevronRight } from 'lucide-react';
+import { BookOpen, Compass, X, Sparkles, Rotate3d, CheckCircle2, ChevronRight, RotateCcw, AlertTriangle } from 'lucide-react';
 import { MEMORY_CARDS_DATA, MemoryCardItem } from '../data/memoryCardsData';
 import { soundFX } from '../utils/soundEngine';
 import { HanPlaqueButton } from './HanPlaqueButton';
@@ -11,6 +11,8 @@ interface RightTopActionsProps {
   unlockedCardIds?: string[];
   showPlusOneAnimation?: boolean;
   onOpenMapModal?: () => void;
+  canRollback?: boolean;
+  onRollbackChapter?: () => void;
 }
 
 export const RightTopActions: React.FC<RightTopActionsProps> = ({
@@ -20,10 +22,13 @@ export const RightTopActions: React.FC<RightTopActionsProps> = ({
   unlockedCardIds = [],
   showPlusOneAnimation = false,
   onOpenMapModal,
+  canRollback = false,
+  onRollbackChapter,
 }) => {
   const [showMemoryBook, setShowMemoryBook] = useState<boolean>(false);
   const [selectedCard, setSelectedCard] = useState<MemoryCardItem | null>(null);
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false);
+  const [showRollbackConfirm, setShowRollbackConfirm] = useState<boolean>(false);
 
   const handleOpenMemoryBook = () => {
     soundFX.playBronzeChime();
@@ -82,7 +87,62 @@ export const RightTopActions: React.FC<RightTopActionsProps> = ({
             记忆竹简
           </span>
         </button>
+
+        {/* 3. Fast Rollback Button (快捷撤回上一章) */}
+        {canRollback && onRollbackChapter && (
+          <button
+            id="btn_top_rollback"
+            onClick={() => {
+              soundFX.playStoneDrum();
+              setShowRollbackConfirm(true);
+            }}
+            className="w-10 h-10 rounded-full bg-[#2A150D]/95 hover:bg-[#4A1E14] border border-[#8C4A32] text-[#E6D3AA] flex flex-col items-center justify-center shadow-md active:scale-95 transition-all group backdrop-blur-md"
+            title="快捷撤回上一章"
+          >
+            <RotateCcw className="w-3.5 h-3.5 text-[#E66A55] group-hover:-rotate-45 transition-transform" />
+            <span className="text-[6.5px] font-serif tracking-tighter text-[#E6D3AA] font-black scale-90">
+              撤回前章
+            </span>
+          </button>
+        )}
       </div>
+
+      {/* Chapter Rollback Confirmation Dialog */}
+      {showRollbackConfirm && (
+        <div className="absolute inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fade-in">
+          <div className="w-full max-w-xs bg-[#1A0F0A] border-2 border-[#8C4A32] rounded-2xl p-4 shadow-2xl text-[#E6D3AA] font-serif flex flex-col items-center text-center space-y-3">
+            <div className="w-10 h-10 rounded-full bg-[#2E150F] border border-[#8C4A32] flex items-center justify-center">
+              <RotateCcw className="w-5 h-5 text-[#E66A55]" />
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-black text-[#F1D98D] tracking-wider">
+                确认撤回上一章节？
+              </h4>
+              <p className="text-[10px] text-[#C4A98B] leading-relaxed">
+                执行安全回滚后，当前章节的游戏状态及未落定的碎片进度将被重置，时空将回溯至上一章。
+              </p>
+            </div>
+            <div className="w-full flex gap-2 pt-1">
+              <button
+                onClick={() => setShowRollbackConfirm(false)}
+                className="flex-1 py-2 rounded-xl bg-black/50 border border-[#5A3B2A] text-[11px] text-[#A89078] hover:text-[#E6D3AA] active:scale-95 transition-all"
+              >
+                取消
+              </button>
+              <button
+                onClick={() => {
+                  soundFX.playBronzeChime();
+                  setShowRollbackConfirm(false);
+                  if (onRollbackChapter) onRollbackChapter();
+                }}
+                className="flex-1 py-2 rounded-xl bg-gradient-to-r from-[#5C2318] to-[#8C3424] border border-[#C85A42] text-[11px] font-bold text-[#FFF1DC] shadow-lg active:scale-95 transition-all"
+              >
+                确认回滚
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Slide-in Memory Book (7张记忆卡册) */}
       {showMemoryBook && (

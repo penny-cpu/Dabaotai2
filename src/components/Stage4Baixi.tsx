@@ -88,22 +88,24 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
 
   return (
     <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
-      {/* Visual Background: 百戏暖赭＋暗金 */}
-      <MuseumTombBackdrop palette="baixi" pattern="brick" spotlight={true} intensity="subtle" />
+      {/* 🚨【第四章全局通用背景底图：汉代悱忧空中抛接跳丸壁画，保留底纹样式，全章统一应用，90% 遮罩】🚨 */}
+      {/* 代码引用路径：STAGE4_BACKGROUNDS.page0_guide (即 CHAPTER_PAGE_BACKGROUNDS.stage4) */}
+      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <img
+          src={STAGE4_BACKGROUNDS.page0_guide}
+          alt="汉代悱忧抛接跳丸壁画底图"
+          className="w-full h-full object-cover filter brightness-75 contrast-105 saturate-80"
+        />
+        {/* 90% 遮罩效果 (黑曜石色调沉浸遮罩) */}
+        <div className="absolute inset-0 bg-[#0B0806]/90 backdrop-blur-[0.5px]" />
+      </div>
 
-      {/* STEP 0: 引导页 - 汉代百戏杂技画像砖局部背景底图 */}
+      {/* Visual Background: 百戏暖赭＋暗金 (保留砂石粗粝古朴质感底纹) */}
+      <MuseumTombBackdrop palette="baixi" pattern="brick" spotlight={false} intensity="subtle" />
+
+      {/* STEP 0: 引导页 - 汉代百戏跳丸画像底图 (全章通用底图引用: STAGE4_BACKGROUNDS.page0_guide) */}
       {phase === 'guide' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-4 animate-fade-in overflow-hidden">
-          {/* 背景底图 */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <img
-              src={CHAPTER_BACKGROUNDS.stage4_baixi_guide}
-              alt="汉代百戏画像砖"
-              className="w-full h-full object-cover filter brightness-[0.55] contrast-110 saturate-90 scale-105 transition-transform duration-1000 ease-out"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#0B0806] via-[#0B0806]/60 to-[#0B0806]/40" />
-          </div>
-
           <HanMuseumTopBar />
 
           {/* 标题 & 小字 */}
@@ -146,7 +148,7 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
         </div>
       )}
 
-      {/* STEP 1: PAGE 14 百戏视频 (统一戈舞规格：全屏无边框页面，上下渐隐) */}
+      {/* STEP 1: PAGE 14 百戏视频 (80% 遮罩，底图引用: STAGE4_BACKGROUNDS.page1_video) */}
       {phase === 'video_preshow' && (
         <ChapterVideoPageView
           chapterNumber="04"
@@ -170,7 +172,7 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
         />
       )}
 
-      {/* STEP 2: 俳优对白 */}
+      {/* STEP 2: 俳优对白 (底图引用: STAGE4_BACKGROUNDS.page3_dialogue，已去掉中间发光icon，90%遮罩) */}
       {phase === 'dialogue_paiyou' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
@@ -179,14 +181,15 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
             <HanCloudTitle title="百戏与跳丸" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#2E1A11] border border-[#D6A84B]/40 relative flex items-center justify-center shadow-[0_0_20px_rgba(214,168,75,0.3)]">
-              <Dices className="w-8 h-8 text-[#F1D98D]" />
-            </div>
-            <div className="text-center space-y-0.5">
-              <span className="text-[9.5px] font-mono text-[#C8943D]">广阳市民乐舞 · 跳丸弄球</span>
-              <h3 className="text-sm font-black text-[#F1D98D]">百戏娱民 · 热闹欢腾</h3>
-            </div>
+          {/* 纯净居中诗意文字，去掉中间发光icon */}
+          <div className="relative my-auto flex flex-col items-center justify-center space-y-2 text-center px-4">
+            <span className="text-[11px] font-mono text-[#C8943D] tracking-widest">广阳市民乐舞 · 弄丸飞剑</span>
+            <h3 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-wider drop-shadow-md">
+              百戏娱民 · 热闹欢腾
+            </h3>
+            <p className="text-xs font-serif text-[#C4A98B] max-w-xs leading-relaxed">
+              汉代俳优飞腾跳丸，空中盘旋如星。热闹市井欢歌之中，亦暗含古代算数之严谨。
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -205,7 +208,7 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
         </div>
       )}
 
-      {/* STEP 3: 交互：跳丸数字谜题 (汉代算筹竹简视觉，7颗真实质感蹴丸PNG，木牍答案选定朱砂盖【录】，无高亮确认按钮) */}
+      {/* STEP 3: 交互：跳丸数字谜题 (底图引用: STAGE4_BACKGROUNDS.page2_cuju_game，7颗真实质感蹴丸PNG，木牍答案选定朱砂盖【录】) */}
       {phase === 'interactive' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-2.5 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
@@ -215,7 +218,7 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
           </div>
 
           {/* Top: 汉代算筹与竹简视觉 · 7颗真实质感蹴丸图片 */}
-          <div className="relative w-full py-2 px-1 rounded-xl bg-[#1C100A] border-y border-[#4A2612] flex flex-col items-center justify-center overflow-hidden shadow-inner">
+          <div className="relative w-full py-2 px-1 rounded-xl bg-[#1C100A]/90 border-y border-[#4A2612] flex flex-col items-center justify-center overflow-hidden shadow-inner">
             {/* 竹简细竖纹背景 */}
             <div className="absolute inset-0 bg-[repeating-linear-gradient(90deg,transparent,transparent_22px,rgba(0,0,0,0.4)_23px)] pointer-events-none opacity-60" />
 

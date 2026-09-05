@@ -11,6 +11,8 @@ import {
   Search,
   Scan,
   Zap,
+  Flashlight,
+  Move,
 } from 'lucide-react';
 import { DialogueLine } from '../types';
 import { UnifiedDialogueBox } from './UnifiedDialogueBox';
@@ -43,6 +45,10 @@ export interface FuneraryArtifact {
   isCorrect: boolean;
   desc: string;
   tag: string;
+  // 画像石生活情态壁画中的相对位置 (百分比)
+  muralX: number;
+  muralY: number;
+  sceneRole: string;
 }
 
 const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
@@ -52,8 +58,11 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     material: '泥质灰陶 · 朱墨彩绘',
     motif: '壶腹彩绘灵动飞禽与流转云气纹',
     isCorrect: true,
-    tag: '核心随葬礼器',
+    tag: '核心随葬礼器 (正解)',
     desc: '大葆台汉墓出土代表性陶制随葬礼器，通体以朱墨彩绘翻卷回旋之流云与仙禽神兽。生前用于宴饮盛酒，身后随葬以期通达仙境，完美凝固了大汉生死长乐的云气祈愿。',
+    muralX: 52,
+    muralY: 48,
+    sceneRole: '侍臣恭捧朱墨流云礼酒壶',
   },
   {
     id: 'xing_yun_mirror',
@@ -63,6 +72,9 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     isCorrect: false,
     tag: '随葬铜镜',
     desc: '铜铸随葬照人铜镜，镜背虽铸有星云纹，但非泥质朱墨彩绘之盛酒礼器。',
+    muralX: 24,
+    muralY: 34,
+    sceneRole: '贵妇对镜梳妆照容颜',
   },
   {
     id: 'gui_feng_bi',
@@ -72,6 +84,9 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     isCorrect: false,
     tag: '祭天礼玉',
     desc: '诸侯王侯祭天礼玉与佩饰，质地温润，但非翻卷朱墨云气的陶制随葬礼壶。',
+    muralX: 78,
+    muralY: 32,
+    sceneRole: '宗庙祭台悬挂礼玉璧',
   },
   {
     id: 'lacquer_yushang',
@@ -81,6 +96,9 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     isCorrect: false,
     tag: '宴饮漆器',
     desc: '宴饮所用双耳羽觞漆杯，造型轻巧，但非大葆台送葬礼乐核心陶制容礼器。',
+    muralX: 36,
+    muralY: 65,
+    sceneRole: '乐人筵席双手进爵酒',
   },
   {
     id: 'pottery_dancer',
@@ -90,6 +108,9 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     isCorrect: false,
     tag: '随葬陶俑',
     desc: '随葬乐舞人偶，塑长袖翻卷之态，陪伴墓主灵魂升天，但非容酒承礼之云纹陶壶。',
+    muralX: 82,
+    muralY: 66,
+    sceneRole: '袖舞侍女翩跹翘袖折腰',
   },
   {
     id: 'bronze_bell',
@@ -99,6 +120,9 @@ const FUNERARY_ARTIFACTS: FuneraryArtifact[] = [
     isCorrect: false,
     tag: '宗庙乐悬',
     desc: '诸侯王送葬金石乐悬，音律宏亮庄严肃穆，非彩绘泥质陶器。',
+    muralX: 18,
+    muralY: 72,
+    sceneRole: '乐师悬挂击奏金石钟',
   },
 ];
 
@@ -149,6 +173,11 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
   const [selectedArtifact, setSelectedArtifact] = useState<FuneraryArtifact | null>(null);
   const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
+
+  // 🔦 考古暖光手电筒状态 (默认开启或点击开关，滑动/移动照亮壁画，点击辨识)
+  const [isTorchOn, setIsTorchOn] = useState<boolean>(true);
+  const [torchPos, setTorchPos] = useState<{ x: number; y: number }>({ x: 50, y: 50 });
+  const muralContainerRef = useRef<HTMLDivElement | null>(null);
 
   // Photo / Camera Recognition Modal State
   const [showPhotoModal, setShowPhotoModal] = useState<boolean>(false);
@@ -329,9 +358,20 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         </div>
       )}
 
-      {/* STEP 1: 前置对白 */}
+      {/* STEP 1: 前置对白 (送葬队伍启行·生前盛宴长乐，底图80%遮罩，与对白文字精准匹配) */}
       {phase === 'intro' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
+          {/* 🚨【第五章送葬袖舞与长乐前置对白背景底图：送葬队伍启行·汉代车马送葬画像，80% 遮罩】🚨 */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img
+              src={STAGE5_BACKGROUNDS.page0_guide}
+              alt="送葬队伍长乐未央画像壁画"
+              className="w-full h-full object-cover filter brightness-70 contrast-110 saturate-85"
+            />
+            {/* 80% 遮罩 */}
+            <div className="absolute inset-0 bg-[#0B0806]/80 backdrop-blur-[0.5px]" />
+          </div>
+
           <HanMuseumTopBar />
 
           <div className="relative z-10 pt-1 pb-1">
@@ -387,9 +427,20 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         />
       )}
 
-      {/* STEP 3: 线索对白 */}
+      {/* STEP 3: 线索对白 (底图引用: STAGE5_BACKGROUNDS.page3_dialogue，80%遮罩，与玉舞人朱墨云气对白匹配) */}
       {phase === 'dialogue_anomaly' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
+          {/* 🚨【对白背景底图：送葬队伍朱墨长袖云气画像石，80%遮罩】🚨 */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img
+              src={STAGE5_BACKGROUNDS.page3_dialogue}
+              alt="送葬队伍长袖与长乐背景"
+              className="w-full h-full object-cover filter brightness-70 contrast-110 saturate-85"
+            />
+            {/* 80% 遮罩 */}
+            <div className="absolute inset-0 bg-[#0B0806]/80 backdrop-blur-[0.5px]" />
+          </div>
+
           <HanMuseumTopBar />
 
           <div className="relative z-10 pt-1 pb-1">
@@ -419,31 +470,100 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         </div>
       )}
 
-      {/* STEP 4: 交互输入 (昏暗墓室手电筒考古探照，5-7件文物剪影显形，微透考古辨识框，照片/图录移至下方，平行上移防遮挡) */}
+      {/* STEP 4: 交互输入：画像石生活情态壁画 + 考古暖光手电筒移动探照甄别 (去除上方6个孤立卡片框) */}
       {phase === 'interactive_input' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-2 pb-1 overflow-hidden">
+        <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-2 pb-1 overflow-hidden select-none">
           <HanMuseumTopBar />
 
           <div className="relative z-10 pt-0.5 pb-0.5">
             <HanCloudTitle title="寻找送葬礼乐文物" />
           </div>
 
-          {/* 昏暗墓室氛围 + 6件随葬文物剪影探照区 */}
-          <div className="relative z-10 w-full max-w-sm mx-auto px-1">
-            <div className="flex items-center justify-between px-1 mb-1">
-              <span className="text-[8.5px] font-mono text-[#C8943D] flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-[#79B9A1] animate-ping" />
-                墓室暗处考古探照 · 点击显形
-              </span>
-              <span className="text-[8px] font-serif text-[#A89078]">
-                {selectedArtifact ? '已锁定文物' : '请开启手电光束'}
+          {/* 🌟 核心区域：画像石生活情态壁画探照台 (包含星云铜镜照面、朱墨陶壶、羽觞宴饮等汉代生活情态) */}
+          <div className="relative z-10 w-full max-w-sm mx-auto px-1 flex-1 flex flex-col justify-between min-h-0">
+            {/* 手电筒控制栏 & 探照提示 */}
+            <div className="flex items-center justify-between px-1 py-0.5">
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => {
+                    soundFX.playStoneDrum();
+                    setIsTorchOn((prev) => !prev);
+                  }}
+                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-serif border transition-all ${
+                    isTorchOn
+                      ? 'bg-[#F1D98D] text-[#1A0E06] border-[#F1D98D] font-bold shadow-[0_0_10px_rgba(241,217,141,0.6)]'
+                      : 'bg-[#1C100A] text-[#8C6D46] border-[#4A2612]'
+                  }`}
+                >
+                  <Flashlight className="w-3 h-3" />
+                  <span>{isTorchOn ? '暖光手电已开' : '点击开启手电'}</span>
+                </button>
+                <span className="text-[8px] font-mono text-[#79B9A1] flex items-center gap-0.5">
+                  <Move className="w-2.5 h-2.5" />
+                  滑动探照画像石
+                </span>
+              </div>
+              <span className="text-[8px] font-serif text-[#C4A98B]">
+                {selectedArtifact ? `已照见：${selectedArtifact.name}` : '探照人物手中之物'}
               </span>
             </div>
 
-            {/* 6件文物剪影排布 (昏暗墓室氛围，点击打出一束青白色手电高光) */}
-            <div className="grid grid-cols-3 gap-1.5">
+            {/* 🚨 画像石壁画探照视口容器 (点击开关暖光，拖拽/移动光束照亮壁画，点击人物所持文物选中) 🚨 */}
+            <div
+              ref={muralContainerRef}
+              onMouseMove={(e) => {
+                if (!muralContainerRef.current) return;
+                const rect = muralContainerRef.current.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                setTorchPos({ x: Math.max(5, Math.min(95, x)), y: Math.max(5, Math.min(95, y)) });
+              }}
+              onTouchMove={(e) => {
+                if (!muralContainerRef.current || e.touches.length === 0) return;
+                const rect = muralContainerRef.current.getBoundingClientRect();
+                const touch = e.touches[0];
+                const x = ((touch.clientX - rect.left) / rect.width) * 100;
+                const y = ((touch.clientY - rect.top) / rect.height) * 100;
+                setTorchPos({ x: Math.max(5, Math.min(95, x)), y: Math.max(5, Math.min(95, y)) });
+              }}
+              className="relative w-full h-[150px] sm:h-[165px] rounded-xl overflow-hidden border border-[#522D18] shadow-[inset_0_0_25px_rgba(0,0,0,0.9)] cursor-crosshair bg-[#060403]"
+            >
+              {/* 底图：容纳六个文物的画像石壁画 (生活情态：照镜、执壶、进酒、舞袖、击钟、设祭) */}
+              <img
+                src={STAGE5_BACKGROUNDS.page2_pottery_torch}
+                alt="大汉送葬礼乐画像石生活壁画"
+                className="w-full h-full object-cover filter contrast-115 select-none pointer-events-none"
+              />
+
+              {/* 沉浸暗光层 (手电未开启时全暗，开启时透过暖黄色聚光光束圈) */}
+              <div
+                className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+                style={{
+                  background: isTorchOn
+                    ? `radial-gradient(circle 85px at ${torchPos.x}% ${torchPos.y}%, rgba(255, 235, 175, 0.15) 0%, rgba(241, 217, 141, 0.08) 45%, rgba(6, 4, 3, 0.88) 75%, rgba(6, 4, 3, 0.96) 100%)`
+                    : 'rgba(6, 4, 3, 0.94)',
+                }}
+              />
+
+              {/* 暖光手电筒光晕圈 (随坐标移动) */}
+              {isTorchOn && (
+                <div
+                  className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full border border-[#F1D98D]/30 shadow-[0_0_40px_rgba(241,217,141,0.35)] mix-blend-screen transition-transform duration-75 ease-out"
+                  style={{ left: `${torchPos.x}%`, top: `${torchPos.y}%` }}
+                >
+                  <div className="w-full h-full rounded-full bg-[radial-gradient(circle,rgba(255,248,220,0.35)_0%,rgba(214,168,75,0.15)_50%,transparent_70%)]" />
+                </div>
+              )}
+
+              {/* 6 个文物在画像石生活情态中的互动触发点 (照镜、端壶、舞袖、敲钟等) */}
               {FUNERARY_ARTIFACTS.map((art) => {
                 const isSelected = selectedArtifact?.id === art.id;
+                // 计算手电光束中心与文物位置的距离
+                const dx = torchPos.x - art.muralX;
+                const dy = torchPos.y - art.muralY;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                const isIlluminated = isTorchOn && dist < 22;
+
                 return (
                   <button
                     key={art.id}
@@ -451,135 +571,111 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                       soundFX.playStoneDrum();
                       setSelectedArtifact(art);
                       setErrorTip('');
+                      // 将手电筒光束吸附移动到选中的文物上
+                      setTorchPos({ x: art.muralX, y: art.muralY });
                     }}
-                    className={`relative p-2 rounded-xl transition-all duration-300 flex flex-col items-center justify-between min-h-[64px] sm:min-h-[70px] overflow-hidden ${
+                    style={{ left: `${art.muralX}%`, top: `${art.muralY}%` }}
+                    className={`absolute -translate-x-1/2 -translate-y-1/2 group p-1 rounded-full transition-all duration-300 cursor-pointer ${
                       isSelected
-                        ? 'bg-[radial-gradient(circle_at_50%_30%,rgba(200,245,255,0.45)_0%,rgba(100,200,230,0.18)_60%,rgba(20,12,8,0.95)_100%)] border border-[#79B9A1] shadow-[0_0_20px_rgba(121,185,161,0.5)] scale-102'
-                        : 'bg-[#140C08]/90 hover:bg-[#1C110B] border border-[#3E2316]/50'
+                        ? 'scale-125 z-30'
+                        : isIlluminated
+                        ? 'scale-110 z-20'
+                        : 'scale-90 z-10 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    {/* 考古手电筒青白色聚光顶标 */}
-                    {isSelected && (
-                      <div className="absolute top-1 right-1 flex items-center gap-0.5 bg-[#E0F7FA]/90 text-black px-1 py-0.2 rounded text-[6.5px] font-bold shadow">
-                        <Zap className="w-2 h-2 text-[#00838F]" />
-                        <span>探照</span>
-                      </div>
-                    )}
-
-                    {/* 文物剪影显形 / 幽暗隐形 */}
-                    <div className="my-auto flex items-center justify-center relative w-full h-8 sm:h-9">
-                      {art.id === 'cai_hui_pot' ? (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(241,217,141,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <Disc className="w-7 h-7 sm:w-8 sm:h-8 text-[#D6A84B]" />
-                        </div>
-                      ) : art.id === 'xing_yun_mirror' ? (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(121,185,161,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-current text-[#79B9A1] flex items-center justify-center font-bold text-[8px]">
-                            镜
-                          </div>
-                        </div>
-                      ) : art.id === 'gui_feng_bi' ? (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(241,217,141,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <div className="w-6 h-6 sm:w-7 sm:h-7 rounded-full border-2 border-dashed border-[#F1D98D] flex items-center justify-center">
-                            <div className="w-2 h-2 rounded-full border border-[#F1D98D]" />
-                          </div>
-                        </div>
-                      ) : art.id === 'lacquer_yushang' ? (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(185,58,43,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <div className="w-7 h-4 rounded-[6px] border border-[#B93A2B] bg-[#B93A2B]/40 flex items-center justify-center text-[7px] text-[#F1D98D]">
-                            羽觞
-                          </div>
-                        </div>
-                      ) : art.id === 'pottery_dancer' ? (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(241,217,141,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <div className="w-6 h-7 border border-[#C8943D] rounded-t-full flex items-center justify-center text-[7px] text-[#F1D98D]">
-                            舞俑
-                          </div>
-                        </div>
-                      ) : (
-                        <div className={`transition-all duration-500 ${isSelected ? 'brightness-125 filter drop-shadow-[0_0_8px_rgba(121,185,161,0.9)]' : 'opacity-35 brightness-40 contrast-150'}`}>
-                          <div className="w-6 h-6 border-b-2 border-x border-[#79B9A1] rounded-t-sm flex items-center justify-center text-[7px] text-[#79B9A1]">
-                            钟
-                          </div>
-                        </div>
-                      )}
+                    {/* 环形光标 & 角标提示 */}
+                    <div
+                      className={`relative px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[7.5px] font-serif border backdrop-blur-xs transition-all ${
+                        isSelected
+                          ? 'bg-[#F1D98D] text-black border-[#F1D98D] font-black shadow-[0_0_12px_rgba(241,217,141,0.9)]'
+                          : isIlluminated
+                          ? 'bg-[#2E1A11]/90 text-[#F1D98D] border-[#D6A84B] shadow-[0_0_8px_rgba(214,168,75,0.7)]'
+                          : 'bg-black/80 text-[#A89078] border-[#4A2612]/60'
+                      }`}
+                    >
+                      {art.id === 'cai_hui_pot' && <Disc className="w-2.5 h-2.5 text-current animate-spin" style={{ animationDuration: '6s' }} />}
+                      <span>{art.name}</span>
                     </div>
 
-                    <span className={`text-[8.5px] sm:text-[9px] font-serif tracking-wider text-center line-clamp-1 ${isSelected ? 'text-[#F1D98D] font-bold' : 'text-[#8C6D46]'}`}>
-                      {art.name}
-                    </span>
+                    {/* 生活情态浮层标签 (在手电照射或选中时展现生活情态，如：贵妇照镜、侍臣捧壶) */}
+                    {(isSelected || isIlluminated) && (
+                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 whitespace-nowrap bg-black/90 text-[#E6D3AA] text-[7px] font-serif px-1.5 py-0.2 rounded border border-[#D6A84B]/40 shadow pointer-events-none">
+                        {art.sceneRole}
+                      </div>
+                    )}
                   </button>
                 );
               })}
             </div>
-          </div>
 
-          {/* 中间“考古辨识”框 (微透质感) */}
-          <div className="relative z-10 px-2 w-full max-w-sm mx-auto my-0.5">
-            <div className="w-full rounded-xl bg-[#160D09]/65 backdrop-blur-md border border-[#D6A84B]/20 p-2 sm:p-2.5 shadow-lg min-h-[64px] flex flex-col justify-center text-center">
-              {selectedArtifact ? (
-                <div className="space-y-0.5">
-                  <div className="flex items-center justify-center gap-2">
-                    <span className="text-[7.5px] font-mono text-[#F1D98D] bg-black/60 px-2 py-0.2 rounded-full border border-[#D6A84B]/20">
-                      {selectedArtifact.tag}
+            {/* 中间“考古辨识”框 (微透质感，清晰展示当前手电探照锁定的人物生活情态与文物属性) */}
+            <div className="relative z-10 w-full my-1">
+              <div className="w-full rounded-xl bg-[#160D09]/75 backdrop-blur-md border border-[#D6A84B]/20 p-2 shadow-lg min-h-[58px] flex flex-col justify-center text-center">
+                {selectedArtifact ? (
+                  <div className="space-y-0.5">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-[7.5px] font-mono text-[#F1D98D] bg-black/60 px-2 py-0.2 rounded-full border border-[#D6A84B]/20">
+                        {selectedArtifact.tag}
+                      </span>
+                      <h4 className="text-xs font-serif font-black text-[#F1D98D]">
+                        {selectedArtifact.name}
+                      </h4>
+                      <span className="text-[8px] text-[#79B9A1] font-medium">
+                        {selectedArtifact.sceneRole}
+                      </span>
+                    </div>
+                    <p className="text-[8px] text-[#E6D3AA]/90 line-clamp-2 leading-relaxed px-1">
+                      {selectedArtifact.desc}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center space-y-0.5 text-[#8C6D46]">
+                    <span className="text-[10px] font-serif text-[#F1D98D] font-bold flex items-center gap-1">
+                      <Flashlight className="w-3 h-3 text-[#D6A84B] animate-bounce" />
+                      移动手电光束 · 探照画像石壁画中的人物生活
                     </span>
-                    <h4 className="text-xs font-serif font-black text-[#F1D98D]">
-                      {selectedArtifact.name}
-                    </h4>
-                    <span className="text-[8.5px] text-[#79B9A1] font-medium">
-                      {selectedArtifact.material}
+                    <span className="text-[7.5px] text-[#A89078]">
+                      观察壁画中照镜、捧壶、侍酒、袖舞各情态，点击锁定通体朱墨彩绘的送葬陶壶
                     </span>
                   </div>
-                  <p className="text-[8px] text-[#E6D3AA]/90 line-clamp-2 leading-relaxed px-1">
-                    {selectedArtifact.desc}
-                  </p>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center justify-center space-y-0.5 text-[#8C6D46]">
-                  <span className="text-[11px] font-serif text-[#F1D98D] font-bold">
-                    考古手电筒待探照
-                  </span>
-                  <span className="text-[8px] text-[#A89078]">
-                    点击上方墓室暗处剪影打出手电高光，或使用下方拍照/图录挑选
-                  </span>
-                </div>
-              )}
+                )}
+              </div>
             </div>
-          </div>
 
-          {/* “照片 / 图录” 两个按键挪到“考古辨识”框的下面 */}
-          <div className="relative z-10 flex items-center justify-center gap-2 w-full max-w-sm mx-auto px-1 my-0.5">
-            <button
-              onClick={handleStartPhotoScan}
-              className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10.5px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
-            >
-              <Camera className="w-3 h-3 text-[#C8943D]" />
-              <span>拍照比对</span>
-            </button>
+            {/* “照片 / 图录” 两个按键挪到“考古辨识”框的下面 */}
+            <div className="relative z-10 flex items-center justify-center gap-2 w-full px-1 my-0.5">
+              <button
+                onClick={handleStartPhotoScan}
+                className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
+              >
+                <Camera className="w-3 h-3 text-[#C8943D]" />
+                <span>拍照比对</span>
+              </button>
 
-            <button
-              onClick={() => {
-                soundFX.playStoneDrum();
-                setShowManualModal(true);
-              }}
-              className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10.5px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
-            >
-              <Edit3 className="w-3 h-3 text-[#C8943D]" />
-              <span>图录甄别</span>
-            </button>
-          </div>
+              <button
+                onClick={() => {
+                  soundFX.playStoneDrum();
+                  setShowManualModal(true);
+                }}
+                className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
+              >
+                <Edit3 className="w-3 h-3 text-[#C8943D]" />
+                <span>图录甄别</span>
+              </button>
+            </div>
 
-          {/* 确认按钮 (平行上移，完全不被玉舞人线索聊天框遮挡) */}
-          <div className="relative z-10 py-0.5 w-full max-w-sm mx-auto px-1">
-            <HanPlaqueButton
-              onClick={handleConfirmArtifact}
-              disabled={!selectedArtifact}
-              size="sm"
-              className="w-full"
-              leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-[#D6A84B]" />}
-            >
-              确认随葬文物 · 唤醒礼乐记忆
-            </HanPlaqueButton>
+            {/* 确认按钮 (平行上移，完全不被玉舞人线索聊天框遮挡) */}
+            <div className="relative z-10 py-0.5 w-full px-1">
+              <HanPlaqueButton
+                onClick={handleConfirmArtifact}
+                disabled={!selectedArtifact}
+                size="sm"
+                className="w-full"
+                leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-[#D6A84B]" />}
+              >
+                确认随葬文物 · 唤醒礼乐记忆
+              </HanPlaqueButton>
+            </div>
           </div>
 
           <div className="relative z-40 w-full shrink-0">

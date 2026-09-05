@@ -477,27 +477,26 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
               <span>现代展厅 · 恒温恒湿特藏展柜</span>
             </div>
 
-            {/* Glowing Jade Dancer in Center */}
-            <div className="relative my-auto flex flex-col items-center justify-center space-y-1">
-              <div className="relative w-20 h-20 rounded-full bg-black/50 border-0 flex items-center justify-center shadow-[0_0_30px_rgba(121,185,161,0.6)]">
-                <svg viewBox="0 0 100 120" className="w-14 h-14 filter drop-shadow animate-pulse">
-                  <path
-                    d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                    fill="none"
-                    stroke="#79B9A1"
-                    strokeWidth="4.5"
-                    strokeLinecap="round"
-                  />
-                  <circle cx="50" cy="18" r="5" fill="#E6D3AA" />
-                </svg>
+            {/* Real Museum Case Display: 白玉舞人现代展柜摄影 */}
+            <div className="relative my-auto flex flex-col items-center justify-center space-y-1.5 w-full">
+              <div className="relative w-28 h-28 sm:w-32 sm:h-32 rounded-xl overflow-hidden border border-[#D6A84B]/40 shadow-[0_0_25px_rgba(121,185,161,0.4)] group">
+                <img
+                  src={CHAPTER_BACKGROUNDS.modern_hall_jade_dancer}
+                  alt="现代展柜中的白玉舞人"
+                  className="w-full h-full object-cover filter contrast-110 brightness-105 group-hover:scale-105 transition-transform duration-700"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                <span className="absolute bottom-1 left-2 text-[8px] font-mono text-[#F1D98D] bg-black/70 px-1.5 py-0.2 rounded border border-[#D6A84B]/30">
+                  西汉 · 白玉舞人 (特展珍品)
+                </span>
               </div>
 
               <div className="text-center">
                 <h4 className="text-xs font-serif font-black text-[#F1D98D]">
-                  白玉舞人 · 留守展厅
+                  白玉舞人 · 留守现代展厅
                 </h4>
                 <p className="text-[8.5px] text-[#E6D3AA]/80">
-                  致敬考古工作者与文物保护专家
+                  致敬考古工作者与文物保护专家 · 展柜恒温恒湿永久守护
                 </p>
               </div>
             </div>

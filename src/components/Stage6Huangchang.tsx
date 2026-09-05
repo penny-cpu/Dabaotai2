@@ -356,13 +356,13 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
             </div>
           </div>
 
-          {/* Standardized Confirm Button */}
-          <div className="w-full z-10 pt-0.5 max-w-xs mx-auto">
+          {/* 确认密码按钮：移至玉舞人对话框上方，并添加底部安全间距，彻底杜绝遮挡 */}
+          <div className="w-full z-20 pt-1 pb-1 max-w-xs mx-auto px-1">
             <HanPlaqueButton
               onClick={handleConfirmCode}
               disabled={inputDigits.length !== 5}
               size="md"
-              className="w-full"
+              className="w-full shadow-lg"
               leftIcon={<CheckCircle2 className="w-4 h-4 text-[#D6A84B]" />}
             >
               确认木牍密码 · 开启黄肠题凑守护

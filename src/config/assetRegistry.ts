@@ -33,11 +33,17 @@ import bgStage3Dance from '../assets/images/han_wu_dance_1786614702286.jpg';
 // 【第三章 · 记忆恢复页】左下角玉舞人舞姿虚影 (占1/3画面，60%遮罩)
 import silStage3JadeDancer from '../assets/images/dance_sil_qiaoxiu.png';
 
-// 【第四章 · 百戏跳丸】汉代百戏与杂耍背景底图
-import bgStage4Baixi from '../assets/images/han_life_scroll_1786614713000.jpg';
+// 【第四章 · 百戏跳丸】汉代百戏与杂耍背景底图 (参考图1/图2: 汉代悱忧向空中抛接跳丸壁画风格)
+import bgStage4Baixi from '../assets/images/han_paiyou_tiaowan_bg_1788620031860.jpg';
 
 // 【第四章 · 蹴丸资产】七颗真实质感汉代皮缝蹴丸 PNG
 import imgStage4CujuBall from '../assets/images/han_cuju_ball_1788600288945.jpg';
+
+// 【第五章 · 送葬长袖与长乐】对白页背景底图 (送葬长袖相送盛大队列画像砖壁画)
+import bgStage5IntroNarrative from '../assets/images/han_funerary_intro_bg_1788620053598.jpg';
+
+// 【第五章 · 寻找送葬礼乐文物】散落6大文物的画像石生活情态壁画底图 (观众手电筒探照)
+import bgStage5MuralArtifacts from '../assets/images/han_funerary_mural_artifacts_1788620075399.jpg';
 
 // 【第五章 · 彩绘陶壶】极暗墓室随葬品陈列空间
 import bgStage5Funerary from '../assets/images/dabaotai_under_layer_1786614680248.jpg';
@@ -53,6 +59,9 @@ import bgStage7Cosmos from '../assets/images/dabaotai_under_layer_1786614680248.
 
 // 【终章前 · 现代展厅】大葆台博物馆现代展厅实景大图 (占屏65%，玉舞人玻璃展柜为主体)
 import bgModernExhibitionHall from '../assets/images/dabaotai_modern_hall_1788600329249.jpg';
+
+// 【现代展厅 · 白玉舞人特展展示图片】(融入展厅不突兀真实特展展柜摄影)
+import imgJadeDancerModernDisplay from '../assets/images/jade_dancer_modern_museum_1788620096191.jpg';
 
 // 【通用 · 记忆恢复竹简】汉代深色雕刻竹简 (参考图1)
 import imgHanBambooSlipTexture from '../assets/images/han_bamboo_slip_1788600249113.jpg';
@@ -86,13 +95,16 @@ export const CHAPTER_BACKGROUNDS = {
   stage3_gallery: bgStage3Dance,
   stage3_dancer_shadow: silStage3JadeDancer,    // 记忆恢复左下角玉舞人剪影
   
-  // 第四章: 百戏跳丸
+  // 第四章: 百戏跳丸 (参考图1/图2 汉代悱忧抛接跳丸壁画风格，全章通用底图)
   stage4_baixi_guide: bgStage4Baixi,
+  stage4_paiyou_mural: bgStage4Baixi,           // 汉代悱忧抛接跳丸壁画风格底图
   stage4_cuju_ball: imgStage4CujuBall,          // 7颗真实质感蹴丸图片
   
   // 第五章: 送葬与彩绘陶壶
   stage5_funerary_guide: bgStage5Funerary,
-  stage5_pottery_guide: bgStage5Funerary,
+  stage5_intro_narrative: bgStage5IntroNarrative, // 送葬长袖相送盛大队列画像砖壁画
+  stage5_mural_artifacts: bgStage5MuralArtifacts, // 散落六文物的画像石生活情态壁画
+  stage5_pottery_guide: bgStage5MuralArtifacts,
   
   // 第六章: 黄肠题凑
   stage6_huangchang_guide: bgStage6Huangchang,  // 引导页: 墓道入口望向层层木椁
@@ -104,6 +116,7 @@ export const CHAPTER_BACKGROUNDS = {
   
   // 现代展厅
   modern_hall_exhibition: bgModernExhibitionHall, // 占屏65%的现代展厅大图
+  modern_hall_jade_dancer: imgJadeDancerModernDisplay, // 现代展柜中陈列的白玉舞人真实图片
   
   // 竹简纹理
   bamboo_slip_texture: imgHanBambooSlipTexture,
@@ -155,21 +168,21 @@ export const CHAPTER_PAGE_BACKGROUNDS = {
     page4_success: bgStage3Dance,           // 器灵苏醒对白页
     page5_memory_return: bgSlipStage3,      // 记忆归位页深色竹简背景图 (参考图1)
   },
-  // --- 第四章: 百戏跳丸 ---
+  // --- 第四章: 百戏跳丸 (全章通用悱忧向空中抛接跳丸底图，遮罩效果90%) ---
   stage4: {
-    page0_guide: bgStage4Baixi,             // 市井百戏长卷引导页
+    page0_guide: bgStage4Baixi,             // 市井百戏长卷引导页 (90% 遮罩)
     page1_video: bgStage4Baixi,             // 百戏杂耍视频播放页 (80% 遮罩)
-    page2_cuju_game: bgStage4Baixi,         // 七丸抛接互动游戏页
-    page3_dialogue: bgStage4Baixi,          // 市井欢腾对白页
-    page4_accession: bgStage4Baixi,         // 百戏陶俑入馆展陈页
+    page2_cuju_game: bgStage4Baixi,         // 七丸抛接互动游戏页 (90% 遮罩)
+    page3_dialogue: bgStage4Baixi,          // 市井欢腾对白页 (90% 遮罩，参考图1)
+    page4_accession: bgStage4Baixi,         // 百戏陶俑入馆展陈页 (90% 遮罩)
     page5_memory_return: bgSlipStage4,      // 记忆归位页深色竹简背景图 (参考图1)
   },
   // --- 第五章: 送葬与彩绘陶壶 ---
   stage5: {
-    page0_guide: bgStage5Funerary,          // 幽暗墓室引导页
+    page0_guide: bgStage5IntroNarrative,    // 幽暗墓室引导页
     page1_video: bgStage5Funerary,          // 送葬袖舞视频播放页 (80% 遮罩)
-    page2_pottery_torch: bgStage5Funerary,  // 考古探照解密页
-    page3_dialogue: bgStage5Funerary,       // 升仙长乐对白页
+    page2_pottery_torch: bgStage5MuralArtifacts, // 考古手电筒探照画像石壁画解密页 (容纳6个文物画像石生活情态壁画)
+    page3_dialogue: bgStage5IntroNarrative, // 送葬长袖与长乐对白页背景底图 (匹配旁白长袖相送，80% 遮罩)
     page4_accession: bgStage5Funerary,      // 彩绘云气陶壶展陈页
     page5_memory_return: bgSlipStage5,      // 记忆归位页深色竹简背景图 (参考图1)
   },
