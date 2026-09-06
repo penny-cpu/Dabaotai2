@@ -474,18 +474,19 @@ export const Stage2Banquet: React.FC<Stage2BanquetProps> = ({
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#1E2E20] border-0 flex items-center justify-center shadow-[0_0_20px_rgba(121,185,161,0.6)] animate-pulse">
-              <Sparkles className="w-9 h-9 text-[#79B9A1]" />
-            </div>
-            <div className="text-center">
-              <span className="text-[9.5px] font-mono text-[#79B9A1] bg-[#121E14] px-3 py-0.5 rounded-full border-0">
-                新记忆已收录 · 记忆竹简 02
-              </span>
-              <h3 className="text-sm font-black text-[#F1D98D] mt-1.5">
-                记忆竹简 02「王后组玉佩」已收录
-              </h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#79B9A1] tracking-[0.18em] leading-relaxed max-w-xs">
+              新记忆已收录 · 大葆台西汉宴飨礼乐重光
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              「王后组玉佩」
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              镂空透雕神兽鸣鸾 · 记忆竹简零贰已收录入册
+            </p>
           </div>
 
           <div className="relative z-30 w-full">

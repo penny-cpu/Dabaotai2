@@ -175,18 +175,19 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
             <HanCloudTitle title="第六章 · 黄肠题凑密码" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#2E1A11]/80 border-0 relative flex items-center justify-center shadow-[0_0_25px_rgba(214,168,75,0.4)] animate-pulse">
-              <span className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#C8943D]" />
-              <span className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#C8943D]" />
-              <span className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[#C8943D]" />
-              <span className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#C8943D]" />
-              <Sparkles className="w-9 h-9 text-[#F1D98D]" />
-            </div>
-            <div className="text-center space-y-0.5">
-              <span className="text-[9.5px] font-mono text-[#C8943D]">大汉天子恩赐 · 题凑礼制</span>
-              <h3 className="text-sm font-black text-[#F1D98D]">柏木成城 · 守护王陵</h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              大汉天子恩赐 · 诸侯王顶级题凑礼葬制度
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              黄肠题凑
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              以木为宫万枋成城 · 柏木题凑守护王陵千载
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -233,17 +234,19 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
             <HanCloudTitle title="第六章 · 黄肠题凑密码" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2">
-            <div className="w-16 h-16 rounded-full bg-[#2E1A11] border-0 relative flex items-center justify-center shadow-[0_0_20px_rgba(214,168,75,0.4)]">
-              <span className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#C8943D]" />
-              <span className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#C8943D]" />
-              <span className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[#C8943D]" />
-              <span className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#C8943D]" />
-              <Sparkles className="w-7 h-7 text-[#F1D98D]" />
-            </div>
-            <div className="text-center text-[10.5px] text-[#A89078]">
-              黄肠题凑木墙威严矗立，输入由舞姿报出的柏木总根数
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              柏木成城层叠垒筑 · 题凑地宫密码待启
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              木牍五数
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              黄肠题凑木墙威严 · 依照舞姿报数输入柏木总根数
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -267,50 +270,50 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
             <HanCloudTitle title="木牍计数 · 黄肠题凑" />
           </div>
 
-          {/* 5-Digit Display Slots (上方显示汉代古文字与现代对照) */}
-          <div className="flex items-center justify-center gap-2 py-1">
+          {/* 5-Digit Display Slots (上方显示汉代古文字与现代对照，紧凑高度) */}
+          <div className="flex items-center justify-center gap-1.5 py-0.5 my-0.5">
             {[0, 1, 2, 3, 4].map((slotIdx) => {
               const digit = inputDigits[slotIdx];
               return (
                 <div
                   key={slotIdx}
-                  className={`w-11 h-14 rounded-lg border-0 relative flex flex-col items-center justify-center transition-all ${
+                  className={`w-10 h-12 rounded-lg border-0 relative flex flex-col items-center justify-center transition-all ${
                     digit
-                      ? 'bg-[#3D2319] text-[#F1D98D] shadow-[0_0_12px_rgba(214,168,75,0.35)] scale-105'
+                      ? 'bg-[#3D2319] text-[#F1D98D] shadow-[0_0_10px_rgba(214,168,75,0.35)] scale-102'
                       : 'bg-[#180E09]/90 text-[#8C6D46]'
                   }`}
                 >
                   {digit ? (
                     <>
-                      <span className="text-xl font-serif font-black text-[#F1D98D] leading-none">
+                      <span className="text-base font-serif font-black text-[#F1D98D] leading-none">
                         {ANCIENT_NUM_MAP[digit]}
                       </span>
-                      <span className="text-[10px] font-mono text-[#D6A84B] opacity-80 mt-0.5">
+                      <span className="text-[9px] font-mono text-[#D6A84B] opacity-80 mt-0.5">
                         {digit}
                       </span>
                     </>
                   ) : (
-                    <span className="text-sm font-serif text-[#8C6D46] opacity-40">·</span>
+                    <span className="text-xs font-serif text-[#8C6D46] opacity-40">·</span>
                   )}
                 </div>
               );
             })}
           </div>
 
-          {/* 木牍计数键盘 (参考图3：上为木牍古文字数字，下为对应现代数字) */}
-          <div className="flex flex-col items-center w-full max-w-xs mx-auto my-auto space-y-2">
+          {/* 木牍计数键盘 (向上平移，按键紧凑适中，腾出底部空间) */}
+          <div className="flex flex-col items-center w-full max-w-xs mx-auto my-0.5 space-y-1">
             {/* 木牍数字条按键：前排 1-5 */}
             <div className="grid grid-cols-5 gap-1.5 w-full">
               {[1, 2, 3, 4, 5].map((num) => (
                 <button
                   key={num}
                   onClick={() => handleDigitPress(num)}
-                  className="relative py-2.5 px-1 rounded-lg bg-[#28150D] hover:bg-[#3D2115] border-0 text-[#F1D98D] flex flex-col items-center justify-center shadow active:scale-95 transition-all"
+                  className="relative py-1.5 px-0.5 rounded-lg bg-[#28150D] hover:bg-[#3D2115] border-0 text-[#F1D98D] flex flex-col items-center justify-center shadow active:scale-95 transition-all"
                 >
-                  <span className="text-base font-serif font-black text-[#F1D98D] leading-tight">
+                  <span className="text-sm font-serif font-black text-[#F1D98D] leading-tight">
                     {ANCIENT_NUM_MAP[num.toString()]}
                   </span>
-                  <span className="text-[10.5px] font-mono text-[#A89078] leading-tight mt-0.5">
+                  <span className="text-[9.5px] font-mono text-[#A89078] leading-tight mt-0.5">
                     {num}
                   </span>
                 </button>
@@ -323,12 +326,12 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
                 <button
                   key={num}
                   onClick={() => handleDigitPress(num)}
-                  className="relative py-2.5 px-1 rounded-lg bg-[#28150D] hover:bg-[#3D2115] border-0 text-[#F1D98D] flex flex-col items-center justify-center shadow active:scale-95 transition-all"
+                  className="relative py-1.5 px-0.5 rounded-lg bg-[#28150D] hover:bg-[#3D2115] border-0 text-[#F1D98D] flex flex-col items-center justify-center shadow active:scale-95 transition-all"
                 >
-                  <span className="text-base font-serif font-black text-[#F1D98D] leading-tight">
+                  <span className="text-sm font-serif font-black text-[#F1D98D] leading-tight">
                     {ANCIENT_NUM_MAP[num.toString()]}
                   </span>
-                  <span className="text-[10.5px] font-mono text-[#A89078] leading-tight mt-0.5">
+                  <span className="text-[9.5px] font-mono text-[#A89078] leading-tight mt-0.5">
                     {num}
                   </span>
                 </button>
@@ -336,34 +339,34 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
             </div>
 
             {/* 辅助操作栏：退格与计数状态 */}
-            <div className="flex items-center justify-between w-full px-1">
+            <div className="flex items-center justify-between w-full px-1 py-0.5">
               <button
                 onClick={handleDeleteDigit}
-                className="px-3 py-1.5 rounded-lg bg-[#1E110A] hover:bg-[#2E1A11] border-0 text-[#E6D3AA] font-serif text-xs flex items-center gap-1 active:scale-95 transition-all"
+                className="px-2.5 py-1 rounded-md bg-[#1E110A] hover:bg-[#2E1A11] border-0 text-[#E6D3AA] font-serif text-[10.5px] flex items-center gap-1 active:scale-95 transition-all"
               >
-                <Delete className="w-3.5 h-3.5 text-[#D6A84B]" />
+                <Delete className="w-3 h-3 text-[#D6A84B]" />
                 <span>木牍退格</span>
               </button>
               <button
                 onClick={() => setInputDigits([])}
-                className="px-2.5 py-1.5 text-[11px] font-serif text-[#9E8268] hover:text-[#E6D3AA] transition-colors"
+                className="px-2 py-1 text-[10.5px] font-serif text-[#9E8268] hover:text-[#E6D3AA] transition-colors"
               >
                 清空重录
               </button>
-              <span className="text-[10px] font-mono text-[#C8943D]">
+              <span className="text-[9.5px] font-mono text-[#C8943D]">
                 已录入 {inputDigits.length}/5 位
               </span>
             </div>
           </div>
 
-          {/* 确认密码按钮：移至玉舞人对话框上方，并添加底部安全间距，彻底杜绝遮挡 */}
-          <div className="w-full z-20 pt-1 pb-1 max-w-xs mx-auto px-1">
+          {/* 确认密码按钮：平移上移，完全暴露在玉舞人对话框上方 */}
+          <div className="w-full z-20 py-1 max-w-xs mx-auto px-1 mb-1">
             <HanPlaqueButton
               onClick={handleConfirmCode}
               disabled={inputDigits.length !== 5}
-              size="md"
+              size="sm"
               className="w-full shadow-lg"
-              leftIcon={<CheckCircle2 className="w-4 h-4 text-[#D6A84B]" />}
+              leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-[#D6A84B]" />}
             >
               确认木牍密码 · 开启黄肠题凑守护
             </HanPlaqueButton>

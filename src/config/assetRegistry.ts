@@ -18,6 +18,15 @@
 // 【序章/开篇】汉白玉舞人苏醒背景图
 import bgPrologue from '../assets/images/tomb_jade_dancer_dark_1788598149842.jpg';
 
+// 🚨【封面页专属背景底图 (适配大葆台汉墓幽玄石门与汉代神秘典雅氛围)】🚨
+import bgCoverTombGateway from '../assets/images/han_cover_bg_1788665898821.jpg';
+
+// 🚨【终章明信片展示页专属背景底图 (适配大汉风华典藏文创与金石红漆氛围)】🚨
+import bgPostcardAtmosphere from '../assets/images/han_postcard_bg_1788665913921.jpg';
+
+// 🚨【白玉舞人真实文物照片无背景透明 PNG 资产 (唤醒记忆页专用)】🚨
+import imgJadeDancerRealPhotoCutout from '../assets/images/jade_dancer_real_photo_cutout.png';
+
 // 【第一章 · 戈舞出征】汉代画像砖武舞背景底图
 import bgStage1Warrior from '../assets/images/han_warrior_brick_1788598169002.jpg';
 
@@ -81,8 +90,12 @@ import imgDanceLuoyi from '../assets/images/dance_sil_luoyi.png';
 import imgDanceQiaoxiu from '../assets/images/dance_sil_qiaoxiu.png';
 
 export const CHAPTER_BACKGROUNDS = {
-  // 序章
+  // 序章与封面
   prologue: bgPrologue,
+  // 🚨【封面页专属背景底图 (在代码中标注，可在此替换)】🚨
+  cover_portal_backdrop: bgCoverTombGateway,
+  // 🚨【白玉舞人真实文物无背景透明 PNG 资产 (在代码中标注，可在此替换)】🚨
+  jade_dancer_photo_cutout: imgJadeDancerRealPhotoCutout,
   
   // 第一章: 戈舞出征
   stage1_weapon: bgStage1Warrior,
@@ -120,6 +133,9 @@ export const CHAPTER_BACKGROUNDS = {
   
   // 竹简纹理
   bamboo_slip_texture: imgHanBambooSlipTexture,
+  
+  // 🚨【终章明信片展示页专属背景底图 (在代码中标注，可在此替换)】🚨
+  postcard_showcase_backdrop: bgPostcardAtmosphere,
 };
 
 // =========================================================================

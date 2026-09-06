@@ -240,10 +240,12 @@ export const Stage1Weapon: React.FC<Stage1WeaponProps> = ({
 
           {/* 
             =====================================================================
-            【居中破损画像砖底图 + 屏幕左右两旁悬浮真实文物图片(左3右3，虚线剪影，可上下滑动，居中无遮罩，上下各遮罩60%)】：
+            【居中破损画像砖底图 + 屏幕左右两旁悬浮真实文物图片(左3右3，虚线剪影，可上下滑动)】：
+            排版调整：整体适度上提，消除顶部空旷感，合理分配上下纵向节奏，
+            底部保留安全间距（mb-auto 与 pb-3），确保绝不触碰下方对白框上边界。
             =====================================================================
           */}
-          <div className="relative z-10 flex-1 flex items-center justify-between px-1 my-auto w-full">
+          <div className="relative z-10 flex-1 flex items-center justify-between px-1.5 w-full mt-1 sm:mt-2 mb-auto pb-3">
             {/* Left 3 Floating Artifacts (for '干' - 护身) */}
             <div className="flex flex-col items-center justify-center w-20 z-20">
               <button
@@ -373,8 +375,8 @@ export const Stage1Weapon: React.FC<Stage1WeaponProps> = ({
             </div>
           </div>
 
-          {/* Bottom Dialogue Box */}
-          <div className="relative z-30 w-full">
+          {/* Bottom Dialogue Box (固定于底部，拥有防触碰安全间距) */}
+          <div className="relative z-30 w-full shrink-0 mb-1">
             <UnifiedDialogueBox
               dialogues={DIALOGUES_PAGE04}
               currentIndex={0}

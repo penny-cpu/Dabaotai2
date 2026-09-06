@@ -378,18 +378,19 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
             <HanCloudTitle title="第五章 · 送葬长袖与长乐" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#2E1A11]/80 border-0 relative flex items-center justify-center shadow-[0_0_25px_rgba(214,168,75,0.4)] animate-pulse">
-              <span className="absolute top-0 left-0 w-1.5 h-1.5 border-t border-l border-[#C8943D]" />
-              <span className="absolute top-0 right-0 w-1.5 h-1.5 border-t border-r border-[#C8943D]" />
-              <span className="absolute bottom-0 left-0 w-1.5 h-1.5 border-b border-l border-[#C8943D]" />
-              <span className="absolute bottom-0 right-0 w-1.5 h-1.5 border-b border-r border-[#C8943D]" />
-              <Disc className="w-9 h-9 text-[#F1D98D]" />
-            </div>
-            <div className="text-center space-y-0.5">
-              <span className="text-[9.5px] font-mono text-[#C8943D]">大汉广阳国 · 送葬礼仪</span>
-              <h3 className="text-sm font-black text-[#F1D98D]">长乐未央 · 礼乐相送</h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              大汉广阳国 · 西汉诸侯王盛大送葬礼仪
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              长乐未央
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              生前万千盛宴欢歌 · 身后长袖翻卷礼乐相送
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -447,14 +448,19 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
             <HanCloudTitle title="第五章 · 送葬长袖与长乐" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#2E1A11]/80 border-0 relative flex items-center justify-center shadow-[0_0_25px_rgba(214,168,75,0.4)] animate-pulse">
-              <Sparkles className="w-9 h-9 text-[#F1D98D]" />
-            </div>
-            <div className="text-center space-y-0.5">
-              <span className="text-[9.5px] font-mono text-[#C8943D]">大汉送葬礼仪 · 记忆线索</span>
-              <h3 className="text-sm font-black text-[#F1D98D]">朱墨翻卷 · 云气陶壶</h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              大汉送葬礼制 · 寻觅外藏椁长乐未央线索
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              朱墨云气
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              彩绘陶壶飞禽流云 · 探照寻觅随葬礼乐之器
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -470,45 +476,59 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         </div>
       )}
 
-      {/* STEP 4: 交互输入：画像石生活情态壁画 + 考古暖光手电筒移动探照甄别 (去除上方6个孤立卡片框) */}
+      {/* STEP 4: 交互输入：画像石生活情态壁画 + 考古暖光手电筒移动探照甄别 (整体向上移位，避免偏下) */}
       {phase === 'interactive_input' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-2 pb-1 overflow-hidden select-none">
-          <HanMuseumTopBar />
+          {/* 上半部：顶部导航、云纹标题、手电与探照壁画、操作按钮组 (统一置顶上移，紧凑优雅) */}
+          <div className="w-full flex flex-col">
+            <HanMuseumTopBar />
 
-          <div className="relative z-10 pt-0.5 pb-0.5">
-            <HanCloudTitle title="寻找送葬礼乐文物" />
-          </div>
-
-          {/* 🌟 核心区域：画像石生活情态壁画探照台 (包含星云铜镜照面、朱墨陶壶、羽觞宴饮等汉代生活情态) */}
-          <div className="relative z-10 w-full max-w-sm mx-auto px-1 flex-1 flex flex-col justify-between min-h-0">
-            {/* 手电筒控制栏 & 探照提示 */}
-            <div className="flex items-center justify-between px-1 py-0.5">
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={() => {
-                    soundFX.playStoneDrum();
-                    setIsTorchOn((prev) => !prev);
-                  }}
-                  className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-serif border transition-all ${
-                    isTorchOn
-                      ? 'bg-[#F1D98D] text-[#1A0E06] border-[#F1D98D] font-bold shadow-[0_0_10px_rgba(241,217,141,0.6)]'
-                      : 'bg-[#1C100A] text-[#8C6D46] border-[#4A2612]'
-                  }`}
-                >
-                  <Flashlight className="w-3 h-3" />
-                  <span>{isTorchOn ? '暖光手电已开' : '点击开启手电'}</span>
-                </button>
-                <span className="text-[8px] font-mono text-[#79B9A1] flex items-center gap-0.5">
-                  <Move className="w-2.5 h-2.5" />
-                  滑动探照画像石
-                </span>
-              </div>
-              <span className="text-[8px] font-serif text-[#C4A98B]">
-                {selectedArtifact ? `已照见：${selectedArtifact.name}` : '探照人物手中之物'}
-              </span>
+            <div className="relative z-10 pt-0 pb-0.5">
+              <HanCloudTitle title="寻找送葬礼乐文物" />
             </div>
 
-            {/* 🚨 画像石壁画探照视口容器 (点击开关暖光，拖拽/移动光束照亮壁画，点击人物所持文物选中) 🚨 */}
+            {/* 🌟 核心区域：画像石生活情态壁画探照台 (包含星云铜镜照面、朱墨陶壶、羽觞宴饮等汉代生活情态) */}
+            <div className="relative z-10 w-full max-w-sm mx-auto px-1 flex flex-col justify-start min-h-0 pt-0.5">
+            {/* 手电筒控制栏 & 探照提示 */}
+            <div className="flex flex-col gap-1 px-1 pb-1">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <button
+                    onClick={() => {
+                      soundFX.playStoneDrum();
+                      setIsTorchOn((prev) => !prev);
+                    }}
+                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-serif border transition-all cursor-pointer ${
+                      isTorchOn
+                        ? 'bg-[#F1D98D] text-[#1A0E06] border-[#F1D98D] font-bold shadow-[0_0_10px_rgba(241,217,141,0.6)]'
+                        : 'bg-[#1C100A] text-[#8C6D46] border-[#4A2612]'
+                    }`}
+                  >
+                    <Flashlight className="w-3 h-3" />
+                    <span>{isTorchOn ? '暖光手电已开' : '点击开启手电'}</span>
+                  </button>
+                  <span className="text-[8px] font-mono text-[#79B9A1] flex items-center gap-0.5">
+                    <Move className="w-2.5 h-2.5" />
+                    滑动探照画像石
+                  </span>
+                </div>
+                <span className="text-[8px] font-serif text-[#C4A98B]">
+                  {selectedArtifact ? `已照见：${selectedArtifact.name}` : '探照人物手中之物'}
+                </span>
+              </div>
+
+              {/* 🌟 用户明确要求：“将这一页的“移动手电筒光束探照壁画人物、点击锁定朱墨彩绘云气陶壶”这一栏文字放在“暖光手电已开”的按钮下方一行，去掉这一行的边框、只保留文字” */}
+              <div className="flex items-center gap-1 text-[8.5px] font-serif text-[#F1D98D] pt-0.5">
+                <Flashlight className="w-2.5 h-2.5 text-[#D6A84B] shrink-0" />
+                <span className="leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
+                  {selectedArtifact
+                    ? `已锁定：${selectedArtifact.name}（${selectedArtifact.tag}）· ${selectedArtifact.desc}`
+                    : '移动手电筒光束探照壁画人物、点击锁定朱墨彩绘云气陶壶'}
+                </span>
+              </div>
+            </div>
+
+            {/* 🚨 画像石壁画探照视口容器 (黑框：向下拉长一倍，呈现广阔汉代生活画像石全景) 🚨 */}
             <div
               ref={muralContainerRef}
               onMouseMove={(e) => {
@@ -526,7 +546,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                 const y = ((touch.clientY - rect.top) / rect.height) * 100;
                 setTorchPos({ x: Math.max(5, Math.min(95, x)), y: Math.max(5, Math.min(95, y)) });
               }}
-              className="relative w-full h-[150px] sm:h-[165px] rounded-xl overflow-hidden border border-[#522D18] shadow-[inset_0_0_25px_rgba(0,0,0,0.9)] cursor-crosshair bg-[#060403]"
+              className="relative w-full h-[275px] sm:h-[300px] rounded-xl overflow-hidden border border-[#522D18] shadow-[inset_0_0_30px_rgba(0,0,0,0.95)] cursor-crosshair bg-[#060403]"
             >
               {/* 底图：容纳六个文物的画像石壁画 (生活情态：照镜、执壶、进酒、舞袖、击钟、设祭) */}
               <img
@@ -540,7 +560,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                 className="absolute inset-0 pointer-events-none transition-opacity duration-300"
                 style={{
                   background: isTorchOn
-                    ? `radial-gradient(circle 85px at ${torchPos.x}% ${torchPos.y}%, rgba(255, 235, 175, 0.15) 0%, rgba(241, 217, 141, 0.08) 45%, rgba(6, 4, 3, 0.88) 75%, rgba(6, 4, 3, 0.96) 100%)`
+                    ? `radial-gradient(circle 105px at ${torchPos.x}% ${torchPos.y}%, rgba(255, 235, 175, 0.16) 0%, rgba(241, 217, 141, 0.09) 45%, rgba(6, 4, 3, 0.88) 75%, rgba(6, 4, 3, 0.96) 100%)`
                     : 'rgba(6, 4, 3, 0.94)',
                 }}
               />
@@ -548,7 +568,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
               {/* 暖光手电筒光晕圈 (随坐标移动) */}
               {isTorchOn && (
                 <div
-                  className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 w-36 h-36 rounded-full border border-[#F1D98D]/30 shadow-[0_0_40px_rgba(241,217,141,0.35)] mix-blend-screen transition-transform duration-75 ease-out"
+                  className="absolute pointer-events-none -translate-x-1/2 -translate-y-1/2 w-44 h-44 rounded-full border border-[#F1D98D]/30 shadow-[0_0_45px_rgba(241,217,141,0.35)] mix-blend-screen transition-transform duration-75 ease-out"
                   style={{ left: `${torchPos.x}%`, top: `${torchPos.y}%` }}
                 >
                   <div className="w-full h-full rounded-full bg-[radial-gradient(circle,rgba(255,248,220,0.35)_0%,rgba(214,168,75,0.15)_50%,transparent_70%)]" />
@@ -608,48 +628,14 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
               })}
             </div>
 
-            {/* 中间“考古辨识”框 (微透质感，清晰展示当前手电探照锁定的人物生活情态与文物属性) */}
-            <div className="relative z-10 w-full my-1">
-              <div className="w-full rounded-xl bg-[#160D09]/75 backdrop-blur-md border border-[#D6A84B]/20 p-2 shadow-lg min-h-[58px] flex flex-col justify-center text-center">
-                {selectedArtifact ? (
-                  <div className="space-y-0.5">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="text-[7.5px] font-mono text-[#F1D98D] bg-black/60 px-2 py-0.2 rounded-full border border-[#D6A84B]/20">
-                        {selectedArtifact.tag}
-                      </span>
-                      <h4 className="text-xs font-serif font-black text-[#F1D98D]">
-                        {selectedArtifact.name}
-                      </h4>
-                      <span className="text-[8px] text-[#79B9A1] font-medium">
-                        {selectedArtifact.sceneRole}
-                      </span>
-                    </div>
-                    <p className="text-[8px] text-[#E6D3AA]/90 line-clamp-2 leading-relaxed px-1">
-                      {selectedArtifact.desc}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center space-y-0.5 text-[#8C6D46]">
-                    <span className="text-[10px] font-serif text-[#F1D98D] font-bold flex items-center gap-1">
-                      <Flashlight className="w-3 h-3 text-[#D6A84B] animate-bounce" />
-                      移动手电光束 · 探照画像石壁画中的人物生活
-                    </span>
-                    <span className="text-[7.5px] text-[#A89078]">
-                      观察壁画中照镜、捧壶、侍酒、袖舞各情态，点击锁定通体朱墨彩绘的送葬陶壶
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* “照片 / 图录” 两个按键挪到“考古辨识”框的下面 */}
-            <div className="relative z-10 flex items-center justify-center gap-2 w-full px-1 my-0.5">
+            {/* 🌟 用户明确要求：“将“拍照对比”和“图录甄别”这两个按键移动到黑框最底边的正下方，紧挨着黑框底边” */}
+            <div className="relative z-10 flex items-center justify-center gap-2 w-full px-0.5 mt-1.5">
               <button
                 onClick={handleStartPhotoScan}
-                className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
+                className="relative flex-1 py-1.5 px-2 rounded-md bg-[#26150E] hover:bg-[#381F15] border border-[#522D18] text-[#E6D3AA] font-serif text-[9.5px] font-semibold shadow active:scale-98 transition-all flex items-center justify-center gap-1 cursor-pointer"
               >
-                <Camera className="w-3 h-3 text-[#C8943D]" />
-                <span>拍照比对</span>
+                <Camera className="w-3.5 h-3.5 text-[#C8943D]" />
+                <span>拍照对比</span>
               </button>
 
               <button
@@ -657,25 +643,26 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                   soundFX.playStoneDrum();
                   setShowManualModal(true);
                 }}
-                className="relative flex-1 py-1.5 px-2 rounded-lg bg-[#26150E] hover:bg-[#381F15] border border-[#522D18]/70 text-[#E6D3AA] font-serif text-[10px] font-semibold tracking-wider shadow active:scale-98 transition-all flex items-center justify-center gap-1"
+                className="relative flex-1 py-1.5 px-2 rounded-md bg-[#26150E] hover:bg-[#381F15] border border-[#522D18] text-[#E6D3AA] font-serif text-[9.5px] font-semibold shadow active:scale-98 transition-all flex items-center justify-center gap-1 cursor-pointer"
               >
-                <Edit3 className="w-3 h-3 text-[#C8943D]" />
+                <Edit3 className="w-3.5 h-3.5 text-[#C8943D]" />
                 <span>图录甄别</span>
               </button>
             </div>
 
-            {/* 确认按钮 (平行上移，完全不被玉舞人线索聊天框遮挡) */}
-            <div className="relative z-10 py-0.5 w-full px-1">
+            {/* 🌟 用户明确要求：“将确认按钮移动到“拍照对比”这一行的正下方，紧挨着“拍照对比”按键的底边，两者之间紧留一点空隙。” */}
+            <div className="relative z-20 w-full px-0.5 mt-1">
               <HanPlaqueButton
                 onClick={handleConfirmArtifact}
                 disabled={!selectedArtifact}
                 size="sm"
-                className="w-full"
+                className="w-full shadow-lg"
                 leftIcon={<CheckCircle2 className="w-3.5 h-3.5 text-[#D6A84B]" />}
               >
                 确认随葬文物 · 唤醒礼乐记忆
               </HanPlaqueButton>
             </div>
+          </div>
           </div>
 
           <div className="relative z-40 w-full shrink-0">

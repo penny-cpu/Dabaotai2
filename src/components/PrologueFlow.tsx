@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { soundFX } from '../utils/soundEngine';
 import { HanMuseumTopBar } from './HanLinearDecorations';
 import { MuseumTombBackdrop } from './MuseumTombBackdrop';
+import { CHAPTER_BACKGROUNDS } from '../config/assetRegistry';
 import tombDarkBg from '../assets/images/tomb_jade_dancer_dark_1788598149842.jpg';
 
 interface PrologueFlowProps {
@@ -87,6 +88,23 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
           ========================================================================= */}
       {step === 'cover' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-3 pb-2 overflow-hidden">
+          {/* =========================================================================
+              🚨【代码标注位置：封面页专属背景底图】
+              在此引入汉墓神秘石门与汉代暗纹专属底图，带暗角与深色遮罩，烘托庄重幽深的地宫氛围
+              可直接在 src/config/assetRegistry.ts 中的 CHAPTER_BACKGROUNDS.cover_portal_backdrop 替换图片
+              ========================================================================= */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img
+              src={CHAPTER_BACKGROUNDS.cover_portal_backdrop}
+              alt="大葆台汉墓幽宫石门封面背景"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover brightness-[0.52] contrast-[1.15] scale-105"
+            />
+            {/* 汉代黑红漆金暗调渐变与居中暗角遮罩，保证文字和金色墓门极高对比度 */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#110907]/80 via-[#110907]/45 to-[#110907]/90" />
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,transparent_30%,rgba(17,9,7,0.85)_100%)]" />
+          </div>
+
           {/* Base Red-Brown Dark Black Backdrop */}
           <MuseumTombBackdrop palette="prologue" pattern="cloud" spotlight={true} intensity="subtle" />
 
@@ -267,13 +285,13 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
             </div>
           </div>
 
-          {/* Bottom Action: 闭上双眼 · 时间倒流 (无边框) */}
-          <div className="relative z-20 w-full flex justify-center pb-2">
+          {/* Bottom Action: 闭上双眼 · 倒流溯源 (严格居中对齐，移除左偏内边距并对齐字间距) */}
+          <div className="relative z-20 w-full flex justify-center items-center pb-2">
             <button
               onClick={handleProceedToAwakening}
-              className="relative px-8 py-2.5 bg-gradient-to-r from-[#2A160E]/95 via-[#3E2114]/95 to-[#2A160E]/95 text-[#F1D98D] font-serif font-bold text-xs tracking-[0.3em] pl-[0.4em] shadow-[0_0_20px_rgba(0,0,0,0.8)] hover:shadow-[0_0_25px_rgba(200,148,61,0.3)] active:scale-95 transition-all cursor-pointer rounded-sm"
+              className="relative inline-flex items-center justify-center px-8 py-2.5 bg-gradient-to-r from-[#2A160E]/95 via-[#3E2114]/95 to-[#2A160E]/95 text-[#F1D98D] font-serif font-bold text-xs shadow-[0_0_20px_rgba(0,0,0,0.8)] hover:shadow-[0_0_25px_rgba(200,148,61,0.3)] active:scale-95 transition-all cursor-pointer rounded-sm"
             >
-              <span>闭上双眼 · 倒流溯源</span>
+              <span className="tracking-[0.3em] -mr-[0.3em] text-center block">闭上双眼 · 倒流溯源</span>
             </button>
           </div>
         </div>
@@ -395,27 +413,28 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
 
           {/* Center Stage: Jade Dancer softly revealed from darkness */}
           <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-4 my-auto">
-            {/* Visual Jade Dancer Glow */}
-            <div className="relative flex items-center justify-center h-48 w-44">
-              <svg viewBox="0 0 100 130" className="w-36 h-48 filter drop-shadow-[0_0_24px_rgba(121,185,161,0.6)]">
-                <path
-                  d="M50 15 C35 30, 20 60, 28 85 C35 110, 65 125, 80 105 C95 85, 85 50, 68 40 C52 30, 40 55, 45 75 C50 95, 70 100, 75 90"
-                  fill="none"
-                  stroke="#79B9A1"
-                  strokeWidth="3.2"
-                  strokeLinecap="round"
-                  opacity="0.9"
-                />
-                <path
-                  d="M52 18 C46 25, 54 30, 48 38 C40 48, 28 58, 18 46 C10 36, 22 22, 32 26 C40 30, 46 38, 48 48 C50 62, 42 78, 38 95 C32 112, 50 124, 62 120 C74 116, 68 98, 60 84 C70 78, 86 64, 88 45 C90 26, 70 18, 58 30 C52 36, 60 52, 52 64"
-                  fill="none"
-                  stroke="#79B9A1"
-                  strokeWidth="2.2"
-                  strokeLinecap="round"
-                  opacity="0.8"
-                />
-                <circle cx="52" cy="18" r="5" fill="#79B9A1" />
-              </svg>
+            {/* 
+              =====================================================================
+              🚨【代码标注位置：唤醒记忆页 · 白玉舞人真实文物照片无背景透明 PNG 资产】
+              在此引入汉代白玉舞人真实文物照片抠图（无背景透明 PNG），
+              保持原有底层玉青色微弱聚光、明暗呼吸与粒子光源感不变。
+              可直接在 src/config/assetRegistry.ts 中的 CHAPTER_BACKGROUNDS.jade_dancer_photo_cutout 替换图片
+              =====================================================================
+            */}
+            <div className="relative flex items-center justify-center h-52 w-48">
+              {/* 玉舞人身躯周围的温润微光光源感 (保持原光源感不变) */}
+              <div
+                className="absolute inset-0 rounded-full bg-[#79B9A1]/25 blur-2xl animate-pulse pointer-events-none"
+                style={{ animationDuration: '3.8s' }}
+              />
+
+              {/* 白玉舞人真实文物透明无背景 PNG 照片 */}
+              <img
+                src={CHAPTER_BACKGROUNDS.jade_dancer_photo_cutout}
+                alt="大葆台西汉白玉舞人真实文物照片"
+                referrerPolicy="no-referrer"
+                className="relative z-10 max-h-48 max-w-36 object-contain filter drop-shadow-[0_0_22px_rgba(121,185,161,0.65)] contrast-110 brightness-105 select-none pointer-events-none transition-all duration-700"
+              />
             </div>
           </div>
 

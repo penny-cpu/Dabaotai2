@@ -356,18 +356,19 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2">
-            <div className="w-20 h-20 rounded-full bg-[#2A1E14] border-0 flex items-center justify-center shadow-[0_0_25px_rgba(214,168,75,0.4)]">
-              <CheckCircle2 className="w-10 h-10 text-[#F1D98D]" />
-            </div>
-            <div className="text-center">
-              <h3 className="text-sm font-black text-[#F1D98D]">
-                算题解开 · 俳优欢欣
-              </h3>
-              <p className="text-[10px] text-[#E6D3AA]/80 mt-0.5">
-                百戏腾跃，技艺通神，汉代市井乐舞竹简正缓缓铺开
-              </p>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              百戏腾跃技艺通神 · 俳优解颐市井欢腾
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              跳丸弄剑
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              千百年前乐舞盛景 · 汉代百戏记忆竹简缓缓铺开
+            </p>
           </div>
 
           <div className="relative z-30 w-full">

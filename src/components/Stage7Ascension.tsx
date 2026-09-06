@@ -10,6 +10,8 @@ import {
   RefreshCw,
   Building2,
   Heart,
+  Play,
+  Scroll,
 } from 'lucide-react';
 import { DialogueLine } from '../types';
 import { UnifiedDialogueBox } from './UnifiedDialogueBox';
@@ -19,6 +21,8 @@ import { StarweaversAtlas } from './StarweaversAtlas';
 import { MuseumTombBackdrop } from './MuseumTombBackdrop';
 import { CHAPTER_BACKGROUNDS } from '../config/assetRegistry';
 import { BambooSlipCollector } from './BambooSlipCollector';
+import { ChapterVideoPageView } from './ChapterVideoPageView';
+import { STAGE_VIDEOS } from '../data/videoAssets';
 
 interface Stage7AscensionProps {
   onUnlockFragment: () => void;
@@ -62,6 +66,17 @@ const DIALOGUES_MODERN_HALL: DialogueLine[] = [
   },
 ];
 
+// 七大章节记忆竹简信息列表
+export const CHAPTER_SLIPS_MEMORIES = [
+  { stage: 1, num: '壹', title: '戈舞出征', relic: '错金银铜柱', theme: '武舞干戚', desc: '刚劲雄浑' },
+  { stage: 2, num: '贰', title: '广阳宴乐', relic: '西汉钮钟', theme: '编钟雅乐', desc: '金石齐鸣' },
+  { stage: 3, num: '叁', title: '翘袖折腰', relic: '白玉舞人', theme: '罗衣回雪', desc: '翩跹轻盈' },
+  { stage: 4, num: '肆', title: '百戏跳丸', relic: '百戏陶俑', theme: '跳丸弄剑', desc: '市井欢腾' },
+  { stage: 5, num: '伍', title: '朱墨云气', relic: '彩绘陶壶', theme: '送葬仙境', desc: '朱墨翻卷' },
+  { stage: 6, num: '陆', title: '黄肠题凑', relic: '柏木题凑', theme: '以木为宫', desc: '万枋垒筑' },
+  { stage: 7, num: '柒', title: '璀璨星汉', relic: '星宿天象', theme: '乘龙登遐', desc: '北斗指东' },
+];
+
 export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   onUnlockFragment,
   onRestart,
@@ -70,6 +85,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   const [phase, setPhase] = useState<
     | 'guide'
     | 'intro'
+    | 'video_dance'
     | 'interactive'
     | 'success_dialogue'
     | 'bamboo_slip'
@@ -80,14 +96,63 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
 
-  // Postcard State
+  // 视频淡出状态
+  const [isVideoFadingOut, setIsVideoFadingOut] = useState<boolean>(false);
+
+  // Postcard State: 是否翻面 & 竹简开合进度 (0.0=完全卷起成轴, 1.0=完全展开横向明信片)
   const [isCardFlipped, setIsCardFlipped] = useState<boolean>(false);
+  const [rollProgress, setRollProgress] = useState<number>(1.0);
+  const isBambooRolled = rollProgress < 0.15;
+  const setIsBambooRolled = (rolled: boolean) => {
+    setRollProgress(rolled ? 0 : 1);
+  };
   const [downloadSuccess, setDownloadSuccess] = useState<boolean>(false);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // 原生手势拖拽支持 (Pointer Events 适配移动端触屏与鼠标，杜绝Hook版本冲突)
+  const dragStartXRef = useRef<number | null>(null);
+  const dragStartProgressRef = useRef<number>(1.0);
+  const isDraggingRef = useRef<boolean>(false);
+
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+    dragStartXRef.current = e.clientX;
+    dragStartProgressRef.current = rollProgress;
+    isDraggingRef.current = true;
+  };
+
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current || dragStartXRef.current === null) return;
+    const deltaX = e.clientX - dragStartXRef.current;
+    const deltaProgress = deltaX / 240;
+    const nextProgress = Math.max(0, Math.min(1, dragStartProgressRef.current + deltaProgress));
+    setRollProgress(nextProgress);
+  };
+
+  const handlePointerUp = (_e: React.PointerEvent<HTMLDivElement>) => {
+    if (!isDraggingRef.current) return;
+    isDraggingRef.current = false;
+    dragStartXRef.current = null;
+    soundFX.playSandScratch();
+    setRollProgress((prev) => {
+      if (prev < 0.15) return 0;
+      if (prev > 0.85) return 1;
+      return prev;
+    });
+  };
 
   useEffect(() => {
     soundFX.playStoneDrum();
   }, []);
+
+  const handleVideoCompleteFade = () => {
+    soundFX.playStoneDrum();
+    setIsVideoFadingOut(true);
+    setTimeout(() => {
+      setPhase('interactive');
+      setIsVideoFadingOut(false);
+    }, 800);
+  };
 
   // Draw Dual-Sided High-Res Commemorative Postcard to Canvas for Real Download
   const generatePostcardImage = (side: 'front' | 'back') => {
@@ -102,63 +167,129 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
     canvas.height = height;
 
     if (side === 'front') {
-      const grad = ctx.createLinearGradient(0, 0, 0, height);
-      grad.addColorStop(0, '#26160F');
-      grad.addColorStop(0.5, '#3A1E14');
-      grad.addColorStop(1, '#140A06');
-      ctx.fillStyle = grad;
+      // 🌟 正面：绘制正统汉代七章记忆竹简册（朱丝编绳贯穿七根竹简木简）
+      ctx.fillStyle = '#120A06';
       ctx.fillRect(0, 0, width, height);
 
-      ctx.strokeStyle = '#D6A84B';
-      ctx.lineWidth = 4;
-      ctx.strokeRect(18, 18, width - 36, height - 36);
-      ctx.strokeStyle = '#8C6D46';
-      ctx.lineWidth = 1.5;
-      ctx.strokeRect(26, 26, width - 52, height - 52);
-
+      // 顶部典藏标题
       ctx.fillStyle = '#F1D98D';
-      ctx.font = 'bold 26px serif';
+      ctx.font = 'bold 24px serif';
       ctx.textAlign = 'center';
-      ctx.fillText('大漢風華 · 記憶重光', width / 2, 80);
-
-      ctx.fillStyle = '#C8943D';
-      ctx.font = '14px serif';
-      ctx.fillText('北京大葆台西漢墓 · 探索紀念明信片', width / 2, 110);
-
-      ctx.save();
-      ctx.strokeStyle = '#79B9A1';
-      ctx.lineWidth = 8;
-      ctx.lineCap = 'round';
-      ctx.shadowColor = 'rgba(121,185,161,0.6)';
-      ctx.shadowBlur = 18;
-
-      ctx.beginPath();
-      ctx.moveTo(300, 240);
-      ctx.bezierCurveTo(270, 280, 330, 310, 300, 350);
-      ctx.bezierCurveTo(250, 400, 190, 450, 140, 400);
-      ctx.bezierCurveTo(90, 350, 140, 290, 200, 310);
-      ctx.bezierCurveTo(250, 330, 280, 380, 290, 420);
-      ctx.bezierCurveTo(300, 480, 260, 560, 240, 620);
-      ctx.bezierCurveTo(210, 700, 300, 750, 360, 740);
-      ctx.bezierCurveTo(430, 730, 390, 640, 350, 570);
-      ctx.bezierCurveTo(410, 540, 490, 480, 510, 380);
-      ctx.bezierCurveTo(530, 280, 420, 240, 360, 290);
-      ctx.stroke();
-
-      ctx.fillStyle = '#E6D3AA';
-      ctx.beginPath();
-      ctx.arc(300, 240, 16, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.restore();
-
-      ctx.fillStyle = '#F1D98D';
-      ctx.font = 'bold 20px serif';
-      ctx.textAlign = 'center';
-      ctx.fillText('白玉舞人 · 翹袖折腰', width / 2, 720);
+      ctx.fillText('大 漢 風 華 · 七 章 記 憶 簡 冊', width / 2, 60);
 
       ctx.fillStyle = '#A89078';
       ctx.font = '13px serif';
-      ctx.fillText('大葆台一號漢墓出土 · 七重記憶全收錄', width / 2, 750);
+      ctx.fillText('北京大葆台西漢墓 · 探索全收錄紀念', width / 2, 88);
+
+      // 绘制 7 根并排竹简
+      const slatCount = 7;
+      const marginX = 36;
+      const availableWidth = width - marginX * 2;
+      const slatGap = 8;
+      const slatWidth = (availableWidth - (slatCount - 1) * slatGap) / slatCount;
+      const slatTop = 115;
+      const slatHeight = 635;
+
+      // 贯穿全部竹简的两道朱丝编绳
+      const cordY1 = slatTop + 85;
+      const cordY2 = slatTop + slatHeight - 95;
+
+      ctx.save();
+      ctx.strokeStyle = '#8C2B22';
+      ctx.lineWidth = 6;
+      ctx.beginPath();
+      ctx.moveTo(marginX - 15, cordY1);
+      ctx.lineTo(width - marginX + 15, cordY1);
+      ctx.moveTo(marginX - 15, cordY2);
+      ctx.lineTo(width - marginX + 15, cordY2);
+      ctx.stroke();
+
+      ctx.strokeStyle = '#D6A84B';
+      ctx.lineWidth = 1.5;
+      ctx.setLineDash([4, 6]);
+      ctx.beginPath();
+      ctx.moveTo(marginX - 15, cordY1);
+      ctx.lineTo(width - marginX + 15, cordY1);
+      ctx.moveTo(marginX - 15, cordY2);
+      ctx.lineTo(width - marginX + 15, cordY2);
+      ctx.stroke();
+      ctx.restore();
+
+      // 逐根绘制竹简
+      CHAPTER_SLIPS_MEMORIES.forEach((chap, idx) => {
+        const x = marginX + idx * (slatWidth + slatGap);
+
+        // 竹木简渐变材质
+        const slatGrad = ctx.createLinearGradient(x, slatTop, x + slatWidth, slatTop);
+        slatGrad.addColorStop(0, '#26150D');
+        slatGrad.addColorStop(0.2, '#3E2417');
+        slatGrad.addColorStop(0.8, '#321C11');
+        slatGrad.addColorStop(1, '#1E0F08');
+        ctx.fillStyle = slatGrad;
+        ctx.fillRect(x, slatTop, slatWidth, slatHeight);
+
+        // 简边修饰
+        ctx.strokeStyle = '#5A3722';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(x, slatTop, slatWidth, slatHeight);
+
+        // 朱丝编绳结扣
+        [cordY1, cordY2].forEach((cy) => {
+          ctx.fillStyle = '#A33428';
+          ctx.beginPath();
+          ctx.arc(x + slatWidth / 2, cy, 7, 0, Math.PI * 2);
+          ctx.fill();
+          ctx.strokeStyle = '#F1D98D';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        });
+
+        // 竖排汉字
+        ctx.save();
+        ctx.fillStyle = '#F1D98D';
+        ctx.font = 'bold 16px serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(chap.num, x + slatWidth / 2, slatTop + 45);
+
+        // 章节名竖排
+        ctx.fillStyle = '#E6D3AA';
+        ctx.font = 'bold 13px serif';
+        const titleChars = chap.title.split('');
+        titleChars.forEach((ch, cIdx) => {
+          ctx.fillText(ch, x + slatWidth / 2, slatTop + 125 + cIdx * 24);
+        });
+
+        // 文物名竖排
+        ctx.fillStyle = '#C8943D';
+        ctx.font = '11px serif';
+        const relicChars = chap.relic.split('');
+        relicChars.forEach((ch, rIdx) => {
+          ctx.fillText(ch, x + slatWidth / 2, slatTop + 265 + rIdx * 20);
+        });
+
+        // 主题印记竖排
+        ctx.fillStyle = '#79B9A1';
+        ctx.font = '11px serif';
+        const themeChars = chap.theme.split('');
+        themeChars.forEach((ch, tIdx) => {
+          ctx.fillText(ch, x + slatWidth / 2, slatTop + 415 + tIdx * 20);
+        });
+
+        ctx.restore();
+      });
+
+      // 底部印章与署名
+      ctx.fillStyle = '#8C2B22';
+      ctx.fillRect(width - 115, height - 65, 75, 32);
+      ctx.fillStyle = '#F1D98D';
+      ctx.font = 'bold 13px serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('大葆台藏', width - 77, height - 44);
+
+      ctx.fillStyle = '#8C6D46';
+      ctx.font = '12px serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('北京大葆台西汉墓遗址博物馆 永久典藏简册', 40, height - 46);
     } else {
       ctx.fillStyle = '#F6F0E6';
       ctx.fillRect(0, 0, width, height);
@@ -339,14 +470,19 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             <HanCloudTitle title="第七章 · 星宿与升仙" />
           </div>
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#2E1A11]/80 border-0 relative flex items-center justify-center shadow-[0_0_25px_rgba(214,168,75,0.4)] animate-pulse">
-              <Compass className="w-9 h-9 text-[#F1D98D]" />
-            </div>
-            <div className="text-center space-y-0.5">
-              <span className="text-[9.5px] font-mono text-[#C8943D]">汉代宇宙观 · 灵魂归宿</span>
-              <h3 className="text-sm font-black text-[#F1D98D]">星汉灿烂 · 升入仙宫</h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
+              汉代宇宙天人合一 · 灵魂不朽归宿探寻
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              星汉灿烂
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              乘龙御气登遐九天 · 璀璨北斗星宿指引归途
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
@@ -358,7 +494,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
                   setDialogueIdx(dialogueIdx + 1);
                 } else {
                   soundFX.playStoneDrum();
-                  setPhase('interactive');
+                  setPhase('video_dance');
                 }
               }}
             />
@@ -366,7 +502,34 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
         </div>
       )}
 
-      {/* STEP 2: 交互：神仙幻想·观星像 (去除 pb-36，适配屏幕) */}
+      {/* =========================================================================
+          STAGE 7: 观看舞姿视频页面 (页面布局与插入资产文件和戈影完全一致)
+          在播完这个视频之后，页面与视频整体是以逐渐淡化的形式退下，
+          然后视频最后一帧的舞姿就和观星像这一页面的星座连线路线重合
+          ========================================================================= */}
+      {phase === 'video_dance' && (
+        <div
+          className={`relative w-full h-full transition-opacity duration-1000 ${
+            isVideoFadingOut ? 'opacity-0 pointer-events-none' : 'opacity-100'
+          }`}
+        >
+          <ChapterVideoPageView
+            chapterNumber="07"
+            englishTitle="COSMIC FLIGHT & CELESTIAL STARS"
+            chineseTitle="神 仙 幻 想"
+            subtitle="天地参合 · 观星引路 · 舞步连缀北斗五星"
+            videoSrc={STAGE_VIDEOS.stage7_ascension.url}
+            videoAssetPathHint="public/assets/videos/ascension_dance.mp4"
+            bgImage={CHAPTER_BACKGROUNDS.stage7_cosmos_guide}
+            palette="cosmos"
+            completeButtonText="完成观看 · 连线观星"
+            onSkip={handleVideoCompleteFade}
+            onComplete={handleVideoCompleteFade}
+          />
+        </div>
+      )}
+
+      {/* STEP 2: 交互：神仙幻想·观星像 (纯净黑框 + 最后一帧舞姿星轨重合) */}
       {phase === 'interactive' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-2.5 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
@@ -375,26 +538,44 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             <HanCloudTitle title="神仙幻想 · 观星像" />
           </div>
 
-          {/* Starweaver's Atlas Canvas Interactive Container */}
-          <div className="relative my-auto w-full flex items-center justify-center">
-            <StarweaversAtlas
-              onCompleteBeidou={() => {
-                soundFX.playMemoryRestore();
-                setIsSuccess(true);
-                onUnlockFragment();
-                setPhase('success_dialogue');
-              }}
-              onErrorTip={(tip) => setErrorTip(tip)}
-            />
+          {/* Starweaver's Atlas Canvas Interactive Container (纯黑夜空框) */}
+          <div className="relative my-auto w-full flex flex-col items-center justify-center">
+            <div className="relative w-full flex items-center justify-center">
+              <StarweaversAtlas
+                onCompleteBeidou={() => {
+                  soundFX.playMemoryRestore();
+                  setIsSuccess(true);
+                  onUnlockFragment();
+                  setPhase('success_dialogue');
+                }}
+                onErrorTip={(tip) => setErrorTip(tip)}
+              />
+            </div>
+
+            {/* 🌟 用户明确要求：“神仙幻想·观星像点击页面让“再次观看舞姿获取指引”文字紧靠在黑框星象底边正中。” */}
+            <div className="relative z-30 w-full flex justify-center -mt-0.5 pt-0.5">
+              <button
+                onClick={() => {
+                  soundFX.playStoneDrum();
+                  setPhase('video_dance');
+                }}
+                className="flex items-center gap-1 text-[11px] font-serif text-[#F1D98D] hover:text-[#FFE87A] active:scale-95 transition-all select-none cursor-pointer py-0 px-2 bg-transparent border-0 outline-none shadow-none"
+              >
+                <Play className="w-2.5 h-2.5 fill-[#D6A84B] text-[#D6A84B]" />
+                <span className="tracking-widest drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
+                  再次观看舞姿获取指引
+                </span>
+              </button>
+            </div>
           </div>
 
           <div className="relative z-40 w-full shrink-0">
             <UnifiedDialogueBox
               isInteractiveMode={true}
               hints={[
-                '已在进入时先开启舞蹈视频弹窗；如需回看，可随时点击右上角【再次观看舞姿，获取指引】。',
-                '夜空背景为自由运动的星辰粒子，请观察不断闪烁的黄色五大星宿，依序点击连接：【天枢 ➔ 天璇 ➔ 天玑 ➔ 天权 ➔ 玉衡】。',
-                '完成五星连缀即可点亮第七枚记忆卡片，引渡大汉乐舞灵魂升入璀璨星汉！',
+                '舞姿与五大星宿运转相合，请依序连接：【天枢 ➔ 天璇 ➔ 天玑 ➔ 天权 ➔ 玉衡】。',
+                '若有疑惑，可点击上方【再次观看舞姿，获取指引】重温大汉乐舞升仙步法。',
+                '连缀完成五星，即可点亮第七枚记忆卡片，引渡汉代乐舞灵魂升入璀璨星汉！',
               ]}
               errorTip={errorTip}
               onClearError={() => setErrorTip('')}
@@ -408,18 +589,19 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2.5">
-            <div className="w-18 h-18 rounded-full bg-[#1E2E20] border-0 relative flex items-center justify-center shadow-[0_0_25px_rgba(121,185,161,0.8)] animate-pulse">
-              <Sparkles className="w-9 h-9 text-[#79B9A1]" />
-            </div>
-            <div className="text-center">
-              <span className="text-[9px] font-mono text-[#79B9A1] bg-[#121E14] px-2.5 py-0.5 rounded-full border-0">
-                七大碎片全部点亮 · 记忆重构完成
-              </span>
-              <h3 className="text-sm font-black text-[#F1D98D] mt-1.5">
-                星路贯通 · 时空流转
-              </h3>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#79B9A1] tracking-[0.18em] leading-relaxed max-w-xs">
+              七大记忆碎片全部点亮 · 时空重构圆满完成
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              星路贯通
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              北斗指东汉代乐舞重光 · 汇聚千载西汉历史长卷
+            </p>
           </div>
 
           <div className="relative z-30 w-full max-w-xs mx-auto">
@@ -527,6 +709,23 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
       {/* STEP 5: 最终章明信片双面下载结尾页 (夕阳暖金背景颜色，去除 pb-36，按键去边框四角金线) */}
       {phase === 'postcard_end' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-2.5 pb-2 animate-fade-in overflow-hidden">
+          {/* =========================================================================
+              🚨【代码标注位置：终章明信片展示页专属背景底图】
+              在此引入大汉风华典藏背景底图，带有暖金夕照、汉代云纹暗涌与典雅金石质感，
+              可直接在 src/config/assetRegistry.ts 中的 CHAPTER_BACKGROUNDS.postcard_showcase_backdrop 替换图片
+              ========================================================================= */}
+          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+            <img
+              src={CHAPTER_BACKGROUNDS.postcard_showcase_backdrop}
+              alt="大汉风华纪念明信片背景底图"
+              referrerPolicy="no-referrer"
+              className="w-full h-full object-cover brightness-[0.55] contrast-[1.1] scale-105"
+            />
+            {/* 柔和暗金黑漆双向渐变与中心柔焦径向遮罩，让居中竹简明信片成为视觉焦点 */}
+            <div className="absolute inset-0 bg-gradient-to-b from-[#110907]/80 via-[#110907]/45 to-[#110907]/85" />
+            <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,rgba(17,9,7,0.85)_100%)]" />
+          </div>
+
           <HanMuseumTopBar />
 
           <div className="relative z-10 pt-0.5 pb-0.5 text-center">
@@ -536,130 +735,299 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             </p>
           </div>
 
-          {/* 3D Flip Card Container */}
-          <div
-            className="relative w-full max-w-xs mx-auto aspect-[3/3.8] my-auto cursor-pointer select-none [perspective:1200px]"
-            onClick={() => {
-              soundFX.playSandScratch();
-              setIsCardFlipped(!isCardFlipped);
-            }}
-          >
-            <div
-              className={`relative w-full h-full duration-700 [transform-style:preserve-3d] transition-transform ${
-                isCardFlipped ? '[transform:rotateY(180deg)]' : ''
-              }`}
-            >
-              {/* ================= CARD FRONT (无边框，无角线) ================= */}
-              <div className="absolute inset-0 w-full h-full rounded-2xl bg-gradient-to-b from-[#2E1A11] via-[#1E110A] to-[#120A07] border-0 shadow-2xl p-3 flex flex-col justify-between [backface-visibility:hidden]">
-                {/* Top Border Decor */}
-                <div className="flex items-center justify-between pb-1 border-b border-[#D6A84B]/20">
-                  <div className="flex items-center gap-1">
-                    <Sparkles className="w-3 h-3 text-[#F1D98D]" />
-                    <span className="text-[9.5px] font-serif font-bold text-[#F1D98D]">
-                      大汉风华 · 记忆重光
-                    </span>
-                  </div>
-                  <span className="text-[7.5px] font-mono text-[#D6A84B] bg-black/60 px-2 py-0.5 rounded-full">
-                    正面
-                  </span>
+          {/* 3D Flip Card Container with Horizontal Facing & framer-motion Roll-up Gestures */}
+          <div className="relative w-full max-w-sm mx-auto flex flex-col items-center justify-center my-auto select-none">
+            {/* 3D Viewport: 横向明信片面对观众 (325px x 215px) */}
+            <div className="relative w-[325px] h-[215px] [perspective:1200px] flex items-center justify-center">
+              <div
+                className={`relative w-full h-full duration-700 [transform-style:preserve-3d] transition-transform flex items-center justify-center ${
+                  isCardFlipped ? '[transform:rotateY(180deg)]' : ''
+                }`}
+              >
+                {/* ================= CARD FRONT: 横向面对观众 · framer-motion手势滑动收卷与展开 ================= */}
+                <div
+                  className="relative w-full h-full [backface-visibility:hidden] flex items-center justify-center"
+                >
+                  {rollProgress <= 0.08 ? (
+                    /* ------------------ 状态 A: 竹简完全卷起形态 (居中圆柱筒身) ------------------ */
+                    <div
+                      onClick={() => {
+                        soundFX.playSandScratch();
+                        setRollProgress(1);
+                      }}
+                      onPointerDown={(e) => {
+                        (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+                        dragStartXRef.current = e.clientX;
+                        dragStartProgressRef.current = 0;
+                        isDraggingRef.current = true;
+                      }}
+                      onPointerMove={(e) => {
+                        if (!isDraggingRef.current || dragStartXRef.current === null) return;
+                        const deltaX = e.clientX - dragStartXRef.current;
+                        if (deltaX > 15) {
+                          setRollProgress(Math.min(1, deltaX / 200));
+                        }
+                      }}
+                      onPointerUp={handlePointerUp}
+                      className="relative w-[105px] h-[215px] flex flex-col items-center justify-center cursor-pointer group touch-none"
+                      title="点击或向右滑动展开完整明信片"
+                    >
+                      {/* 上轴木 & 鎏金首端 */}
+                      <div className="relative w-24 h-3 rounded-full bg-gradient-to-r from-[#120804] via-[#4A2818] to-[#120804] border border-[#6E3D24] shadow-md flex items-center justify-between px-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D6A84B] border border-[#6E3D24]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D6A84B] border border-[#6E3D24]" />
+                      </div>
+
+                      {/* 卷起的整个明信片竹简圆柱筒身 */}
+                      <div className="relative w-20 h-40 rounded-sm shadow-[0_10px_25px_rgba(0,0,0,0.9)] bg-gradient-to-r from-[#0E0604] via-[#3A1F13] to-[#0E0604] border-x border-[#5A351E] flex items-center justify-between px-1 overflow-hidden my-0.5">
+                        {/* 卷曲竹简纵向仿真纹理缝隙 */}
+                        {[...Array(7)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-[2px] h-full bg-black/45 border-r border-[#4A2A19]/25"
+                          />
+                        ))}
+
+                        {/* 腰部绑系的西汉朱丝绦带 */}
+                        <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 h-5 bg-gradient-to-r from-[#5B1510] via-[#9E2D22] to-[#5B1510] border-y border-[#D6A84B]/60 flex items-center justify-center shadow-lg">
+                          {/* 汉代白玉带钩系扣 */}
+                          <div className="w-3.5 h-3.5 rounded-full bg-[#F5EEDC] border-2 border-[#A83226] shadow-md flex items-center justify-center">
+                            <div className="w-1 h-1 bg-[#8C2B22] rounded-full" />
+                          </div>
+                        </div>
+
+                        {/* 朱砂流苏垂穗 */}
+                        <div className="absolute top-[56%] left-1/2 -translate-x-1/2 w-1.5 h-10 bg-gradient-to-b from-[#A83226] via-[#8C2B22] to-[#48120D] rounded-b-sm shadow-md" />
+
+                        {/* 简册题签：大葆台 · 汉风简册 */}
+                        <div className="absolute top-2 left-1/2 -translate-x-1/2 bg-[#26140C]/95 border border-[#D6A84B]/40 px-1 py-1 rounded flex flex-col items-center shadow-md">
+                          <span className="text-[7px] font-serif font-black text-[#F1D98D] [writing-mode:vertical-rl] leading-tight tracking-widest">
+                            汉风简册
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* 下轴木 & 鎏金首端 */}
+                      <div className="relative w-24 h-3 rounded-full bg-gradient-to-r from-[#120804] via-[#4A2818] to-[#120804] border border-[#6E3D24] shadow-md flex items-center justify-between px-1">
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D6A84B] border border-[#6E3D24]" />
+                        <span className="w-1.5 h-1.5 rounded-full bg-[#D6A84B] border border-[#6E3D24]" />
+                      </div>
+
+                      <span className="text-[7.5px] font-serif text-[#D6A84B] mt-1 group-hover:text-[#F1D98D] animate-pulse">
+                        [ 点击或向右滑动展开 ]
+                      </span>
+                    </div>
+                  ) : (
+                    /* ------------------ 状态 B: 横向面对观众 · 手势滑动展开/收卷 ------------------ */
+                    <div
+                      onPointerDown={handlePointerDown}
+                      onPointerMove={handlePointerMove}
+                      onPointerUp={handlePointerUp}
+                      onPointerCancel={handlePointerUp}
+                      className="relative w-[325px] h-[215px] flex items-center justify-start cursor-grab active:cursor-grabbing touch-none select-none overflow-visible"
+                    >
+                      {/* 展开的竹简主体 (根据 rollProgress 动态展开宽度，横向面对观众) */}
+                      <div
+                        style={{
+                          width: `${Math.max(46, Math.min(325, Math.round(rollProgress * 325)))}px`,
+                        }}
+                        className="h-full rounded-xl bg-[#180C07] border border-[#5A351E]/70 shadow-2xl relative overflow-hidden flex items-stretch transition-[width] duration-75"
+                      >
+                        {/* 7根章节竹简紧密铺满明信片正面 (竖直排列，文字正向立直 facing viewer) */}
+                        <div className="relative w-[323px] h-full flex items-stretch shrink-0">
+                          {/* 上下两条贯穿铺满正面的西汉朱丝编绳 */}
+                          <div className="absolute inset-x-0 top-5 h-[2px] bg-[#8C2B22] shadow-[0_0_4px_rgba(140,43,34,0.7)] z-20 pointer-events-none" />
+                          <div className="absolute inset-x-0 bottom-6 h-[2px] bg-[#8C2B22] shadow-[0_0_4px_rgba(140,43,34,0.7)] z-20 pointer-events-none" />
+
+                          {CHAPTER_SLIPS_MEMORIES.map((slip) => (
+                            <div
+                              key={slip.stage}
+                              className="relative w-[46.1px] h-full border-r border-[#3E2112] last:border-r-0 bg-gradient-to-b from-[#24130A] via-[#381E12] to-[#1F0F07] flex flex-col justify-between py-1.5 px-0.5 shadow-inner select-none shrink-0"
+                            >
+                              {/* 编联朱丝结扣 */}
+                              <div className="absolute top-[17.5px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#A83226] border border-[#F1D98D]/70 z-30" />
+                              <div className="absolute bottom-[21.5px] left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#A83226] border border-[#F1D98D]/70 z-30" />
+
+                              {/* 顶部章节编号 */}
+                              <div className="text-center pt-0.5 z-10">
+                                <span className="text-[7.5px] font-serif font-black text-[#F1D98D]">
+                                  {slip.num}
+                                </span>
+                              </div>
+
+                              {/* 中部漆书竖排铭文 (竖直排版，面向观众直读) */}
+                              <div className="my-auto flex flex-col items-center justify-center space-y-1 z-10">
+                                <span className="text-[8.5px] font-serif font-black text-[#F5EEDC] leading-tight [writing-mode:vertical-rl] tracking-widest drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
+                                  {slip.title}
+                                </span>
+                                <span className="text-[6.5px] font-serif text-[#C8943D] leading-tight [writing-mode:vertical-rl] pt-0.5">
+                                  {slip.relic}
+                                </span>
+                              </div>
+
+                              {/* 底部主题记忆印记 */}
+                              <div className="text-center pb-0.5 z-10">
+                                <span className="text-[6px] font-mono text-[#79B9A1] block truncate scale-90">
+                                  {slip.theme}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+
+                        {/* 简册正面的西汉朱砂印 */}
+                        <div className="absolute bottom-1 right-1.5 z-30 flex items-center gap-1 pointer-events-none">
+                          <div className="bg-[#8C2B22] text-[#F1D98D] text-[5.5px] font-serif font-black px-1 py-0.2 rounded border border-[#D6A84B]/40 shadow">
+                            大葆台印
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 未完全展开时右侧的卷轴轴木 (跟随展开边缘移动) */}
+                      {rollProgress < 0.96 && (
+                        <div className="relative -ml-3.5 z-30 w-7 h-[220px] flex flex-col items-center justify-between pointer-events-none drop-shadow-[0_4px_12px_rgba(0,0,0,0.9)]">
+                          {/* 轴端上首 */}
+                          <div className="w-5 h-2.5 rounded-full bg-gradient-to-r from-[#1E0E08] via-[#5C321E] to-[#1E0E08] border border-[#D6A84B]/60 flex items-center justify-center">
+                            <span className="w-1 h-1 rounded-full bg-[#D6A84B]" />
+                          </div>
+                          {/* 卷轴筒身 */}
+                          <div className="w-4 h-48 rounded-sm bg-gradient-to-r from-[#120804] via-[#4A2616] to-[#0E0604] border-x border-[#6E3D24] relative flex flex-col justify-between py-2 items-center">
+                            <div className="w-full h-3 bg-[#8C2B22] border-y border-[#D6A84B]/40" />
+                            <span className="text-[5.5px] font-serif text-[#F1D98D] [writing-mode:vertical-rl] scale-75 opacity-80">
+                              卷轴
+                            </span>
+                            <div className="w-full h-3 bg-[#8C2B22] border-y border-[#D6A84B]/40" />
+                          </div>
+                          {/* 轴端下首 */}
+                          <div className="w-5 h-2.5 rounded-full bg-gradient-to-r from-[#1E0E08] via-[#5C321E] to-[#1E0E08] border border-[#D6A84B]/60 flex items-center justify-center">
+                            <span className="w-1 h-1 rounded-full bg-[#D6A84B]" />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
 
-                {/* Central Emblem */}
-                <div className="relative my-auto flex flex-col items-center justify-center space-y-1">
-                  <div className="relative w-20 h-20 rounded-full bg-black/70 border-0 flex items-center justify-center shadow-inner">
-                    <svg viewBox="0 0 100 120" className="w-14 h-14 filter drop-shadow">
-                      <path
-                        d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                        fill="none"
-                        stroke="#79B9A1"
-                        strokeWidth="5"
-                        strokeLinecap="round"
-                      />
-                      <circle cx="50" cy="18" r="5" fill="#E6D3AA" />
-                    </svg>
+                {/* ================= CARD BACK: 明信片背面 (邮戳、地址栏、寄语) ================= */}
+                <div
+                  className={`absolute inset-0 w-[325px] h-[215px] rounded-xl bg-[#F6F0E6] text-[#26160F] border-0 shadow-2xl p-2.5 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden] overflow-hidden ${
+                    rollProgress <= 0.08 ? 'hidden' : ''
+                  }`}
+                >
+                  {/* 邮编 & 瓦当邮票 */}
+                  <div className="flex items-start justify-between pb-1 border-b border-[#6E432B]/20">
+                    <div className="flex gap-0.5">
+                      {['1', '0', '0', '0', '7', '0'].map((c, i) => (
+                        <div
+                          key={i}
+                          className="w-3 h-3.5 border border-[#8C2B22] text-[#8C2B22] text-[7.5px] font-black flex items-center justify-center bg-white"
+                        >
+                          {c}
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="w-8 h-9 border border-dashed border-[#8C2B22] p-0.5 flex flex-col items-center justify-center text-center bg-[#FDF8F0]">
+                      <span className="text-[5.5px] font-serif text-[#8C2B22] font-bold leading-tight">
+                        大葆台
+                      </span>
+                      <span className="text-[5px] text-[#6E432B]">四神瓦当</span>
+                    </div>
                   </div>
 
-                  <div className="text-center">
-                    <h3 className="text-xs font-serif font-black text-[#F1D98D] tracking-widest">
-                      白玉舞人 · 记忆全收录
-                    </h3>
-                    <p className="text-[8px] text-[#C4A98B]">
-                      大葆台西汉墓 7/7 记忆碎片完满复原
+                  {/* 明信片寄语内容 */}
+                  <div className="my-auto py-0.5 text-left space-y-0.5">
+                    <p className="text-[8px] font-bold text-[#6E432B]">致未来的同行者：</p>
+                    <p className="text-[7px] leading-relaxed text-[#3A2116]">
+                      两千年前，我随广阳王与王后长眠于黄肠题凑；两千年后，考古学者拂去尘埃，你与我并肩穿行于七重记忆。
+                    </p>
+                    <p className="text-[7px] leading-relaxed text-[#3A2116]">
+                      是考古研究唤醒了沉睡的文明，也是你的每一次驻足，让大汉的礼乐风华在今天重光。
+                    </p>
+                    <p className="text-[7px] text-right font-bold text-[#8C2B22]">
+                      —— 白玉舞人 留念
                     </p>
                   </div>
-                </div>
 
-                {/* Red Seal & Card Footer */}
-                <div className="flex items-center justify-between pt-1 border-t border-[#D6A84B]/20 text-[7.5px] font-serif">
-                  <div className="flex items-center gap-1">
-                    <div className="w-5 h-5 bg-[#8C2B22] rounded text-[6.5px] text-white flex items-center justify-center font-bold">
-                      大葆台
-                    </div>
-                    <div className="text-left leading-tight text-[#D6A84B]">
-                      <p className="font-bold">北京大葆台西汉墓博物馆</p>
-                    </div>
+                  {/* 底部信息与翻转 */}
+                  <div className="flex items-center justify-between pt-0.5 border-t border-[#6E432B]/20 text-[6.5px] text-[#6E432B]">
+                    <span>北京大葆台西汉墓遗址博物馆 永久典藏</span>
+                    <span className="font-mono text-[#8C2B22]">DBT-WEST-HAN-001</span>
                   </div>
-                  <span className="text-[7px] font-mono text-[#79B9A1]">
-                    [点击翻转背面]
-                  </span>
                 </div>
               </div>
+            </div>
 
-              {/* ================= CARD BACK (无边框，无角线) ================= */}
-              <div className="absolute inset-0 w-full h-full rounded-2xl bg-[#F6F0E6] text-[#26160F] border-0 shadow-2xl p-3 flex flex-col justify-between [transform:rotateY(180deg)] [backface-visibility:hidden]">
-                {/* Top Code & Stamp */}
-                <div className="flex items-start justify-between pb-1 border-b border-[#6E432B]/20">
-                  <div className="flex gap-0.5">
-                    {['1', '0', '0', '0', '7', '0'].map((c, i) => (
-                      <div
-                        key={i}
-                        className="w-3.5 h-4 border border-[#8C2B22] text-[#8C2B22] text-[8px] font-black flex items-center justify-center bg-white"
-                      >
-                        {c}
-                      </div>
-                    ))}
-                  </div>
+            {/* framer-motion 手势微调触控滑轨 (支持手指滑动或拖拽精细控制) */}
+            <div className="w-[325px] mt-2 flex flex-col items-center gap-1">
+              <div className="w-full flex items-center justify-between text-[8px] font-serif text-[#C4A98B]">
+                <span className="flex items-center gap-1 text-[#F1D98D]">
+                  <Scroll className="w-2.5 h-2.5 text-[#D6A84B]" />
+                  手指滑动卡片或拖动滑轨微调收卷
+                </span>
+                <span className="font-mono text-[#F1D98D] bg-[#1A0F0A] px-1.5 py-0.2 rounded border border-[#D6A84B]/30 shadow-sm">
+                  开合度 {Math.round(rollProgress * 100)}%
+                </span>
+              </div>
 
-                  <div className="w-10 h-11 border border-dashed border-[#8C2B22] p-0.5 flex flex-col items-center justify-center text-center bg-[#FDF8F0]">
-                    <span className="text-[6px] font-serif text-[#8C2B22] font-bold leading-tight">
-                      大葆台
-                    </span>
-                    <span className="text-[5.5px] text-[#6E432B]">四神瓦当</span>
-                  </div>
-                </div>
-
-                {/* Postcard Message Body */}
-                <div className="my-auto py-0.5 text-left space-y-1">
-                  <p className="text-[9px] font-bold text-[#6E432B]">致未来的同行者：</p>
-                  <p className="text-[8px] leading-relaxed text-[#3A2116]">
-                    两千年前，我随广阳王与王后长眠于黄肠题凑；两千年后，考古学者拂去尘埃，你与我并肩穿行于七重记忆。
-                  </p>
-                  <p className="text-[8px] leading-relaxed text-[#3A2116]">
-                    是考古研究唤醒了沉睡的文明，也是你的每一次驻足，让大汉的礼乐风华在今天重光。
-                  </p>
-                  <p className="text-[8px] text-right font-bold text-[#8C2B22]">
-                    —— 白玉舞人 留念
-                  </p>
-                </div>
-
-                {/* Postcard Bottom Stamp & Label */}
-                <div className="flex items-center justify-between pt-1 border-t border-[#6E432B]/20 text-[7px] text-[#6E432B]">
-                  <span>北京大葆台西汉墓遗址博物馆</span>
-                  <span className="font-mono text-[#8C2B22]">[点击翻转正面]</span>
-                </div>
+              <div className="relative w-full flex items-center gap-2 px-0.5">
+                <button
+                  onClick={() => {
+                    soundFX.playSandScratch();
+                    setRollProgress(0);
+                  }}
+                  className="text-[7.5px] font-serif text-[#A89078] hover:text-[#F1D98D] shrink-0 active:scale-95"
+                >
+                  卷起
+                </button>
+                <input
+                  type="range"
+                  min={0}
+                  max={100}
+                  value={Math.round(rollProgress * 100)}
+                  onChange={(e) => {
+                    setRollProgress(Number(e.target.value) / 100);
+                  }}
+                  className="w-full h-1.5 bg-[#2A160E] rounded-lg appearance-none cursor-pointer accent-[#D6A84B] border border-[#5A351E]/50"
+                />
+                <button
+                  onClick={() => {
+                    soundFX.playSandScratch();
+                    setRollProgress(1);
+                  }}
+                  className="text-[7.5px] font-serif text-[#A89078] hover:text-[#F1D98D] shrink-0 active:scale-95"
+                >
+                  展开
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Action Buttons (无边框，无角线) */}
+          {/* Action Buttons (去边框，四角金线无多余干扰) */}
           <div className="relative z-20 flex flex-col gap-1.5 pt-1 max-w-xs mx-auto w-full">
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid grid-cols-3 gap-1.5">
               <button
                 onClick={() => {
                   soundFX.playSandScratch();
+                  const next = rollProgress > 0.5 ? 0 : 1;
+                  setRollProgress(next);
+                  if (isCardFlipped) setIsCardFlipped(false);
+                }}
+                className="relative py-1.5 px-2 rounded-lg bg-[#2A170F] hover:bg-[#3D2319] border-0 text-[#F1D98D] text-[10px] font-serif font-bold flex items-center justify-center gap-1 shadow transition-all active:scale-95"
+              >
+                <Scroll className="w-3 h-3 text-[#D6A84B]" />
+                <span>{rollProgress > 0.5 ? '卷起简册' : '展开简册'}</span>
+              </button>
+
+              <button
+                onClick={() => {
+                  soundFX.playSandScratch();
+                  if (!isCardFlipped && rollProgress < 0.3) {
+                    setRollProgress(1);
+                  }
                   setIsCardFlipped(!isCardFlipped);
                 }}
-                className="relative py-1.5 px-2.5 rounded-lg bg-[#2A170F] hover:bg-[#3D2319] border-0 text-[#F1D98D] text-[11px] font-serif font-black flex items-center justify-center gap-1 shadow transition-all active:scale-95"
+                className="relative py-1.5 px-2 rounded-lg bg-[#2A170F] hover:bg-[#3D2319] border-0 text-[#F1D98D] text-[10px] font-serif font-bold flex items-center justify-center gap-1 shadow transition-all active:scale-95"
               >
                 <RefreshCw className="w-3 h-3 text-[#D6A84B]" />
                 <span>{isCardFlipped ? '翻至正面' : '翻至背面'}</span>
@@ -667,7 +1035,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
 
               <button
                 onClick={() => handleDownloadSide(isCardFlipped ? 'back' : 'front')}
-                className="relative py-1.5 px-2.5 rounded-lg bg-gradient-to-r from-[#6E3024] to-[#8C4334] border-0 text-[#F1D98D] text-[11px] font-serif font-black flex items-center justify-center gap-1 shadow active:scale-95"
+                className="relative py-1.5 px-2 rounded-lg bg-gradient-to-r from-[#6E3024] to-[#8C4334] border-0 text-[#F1D98D] text-[10px] font-serif font-bold flex items-center justify-center gap-1 shadow active:scale-95"
               >
                 <Download className="w-3 h-3 text-[#F1D98D]" />
                 <span>{isCardFlipped ? '下载背面' : '下载正面'}</span>

@@ -1,10 +1,6 @@
 import React, { useRef, useEffect, useState, useCallback } from 'react';
 import { soundFX } from '../utils/soundEngine';
-import { Sparkles, RefreshCw, Play, Eye, X, ChevronRight } from 'lucide-react';
-import { HanVideoCornerClouds } from './HanLinearDecorations';
-import { STAGE_VIDEOS } from '../data/videoAssets';
-import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
-import { ChapterVideoPageView } from './ChapterVideoPageView';
+import { RefreshCw } from 'lucide-react';
 
 interface StarNode {
   id: string;
@@ -50,23 +46,11 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
   // States
   const [phase, setPhase] = useState<'interactive' | 'beidou_success'>('interactive');
   const [selectedStarIds, setSelectedStarIds] = useState<string[]>([]);
-  const [currentHint, setCurrentHint] = useState<string>(
-    '依序连缀五大星宿【天枢 ➔ 天璇 ➔ 天玑 ➔ 天权 ➔ 玉衡】'
-  );
-
-  // 【在打开这一页之前就先弹窗出来观看舞蹈视频】：默认初次进入直接开启弹窗
-  const [showDanceModal, setShowDanceModal] = useState<boolean>(true);
-  const [videoProgress, setVideoProgress] = useState<number>(0);
-  const [isVideoFinished, setIsVideoFinished] = useState<boolean>(false);
-  const [isOverlayFaded, setIsOverlayFaded] = useState<boolean>(false);
-  const [hintBlinkActive, setHintBlinkActive] = useState<boolean>(false);
 
   // Animation Refs
   const animFrameIdRef = useRef<number | null>(null);
   const starsRef = useRef<StarNode[]>([]);
   const cosmicParticlesRef = useRef<CosmicParticle[]>([]);
-  const blinkStepRef = useRef<number>(0);
-  const lastBlinkTimeRef = useRef<number>(Date.now());
 
   // Initialize 5 Stars & Free Floating Night Sky Particle Background
   const initStarField = useCallback((width: number, height: number) => {
@@ -112,31 +96,6 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
     }
     cosmicParticlesRef.current = particles;
   }, []);
-
-  // Dance video playback timer in modal
-  useEffect(() => {
-    if (!showDanceModal) return;
-    setVideoProgress(0);
-    setIsVideoFinished(false);
-    setIsOverlayFaded(false);
-
-    const interval = setInterval(() => {
-      setVideoProgress((prev) => {
-        if (prev >= 100) {
-          setIsVideoFinished(true);
-          clearInterval(interval);
-          setTimeout(() => {
-            setIsOverlayFaded(true);
-            setHintBlinkActive(true);
-          }, 600);
-          return 100;
-        }
-        return prev + 2.5; // ~4 seconds video
-      });
-    }, 100);
-
-    return () => clearInterval(interval);
-  }, [showDanceModal]);
 
   // Main Canvas Render Loop
   useEffect(() => {
@@ -219,29 +178,37 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
         ctx.restore();
       });
 
-      // 舞姿虚影叠加指示线 (若启用了指引)
-      if (hintBlinkActive || isOverlayFaded) {
+      // 🌟【最后一帧舞姿与星座连线路线重合】：绘制柔和微光的白玉舞人反折腰甩袖连线星轨
+      const nodes = starsRef.current;
+      if (nodes.length >= 5) {
         ctx.save();
-        ctx.globalAlpha = 0.22;
-        ctx.strokeStyle = '#79B9A1';
-        ctx.lineWidth = 2.5;
-        ctx.setLineDash([4, 6]);
+        ctx.strokeStyle = 'rgba(121, 185, 161, 0.38)';
+        ctx.lineWidth = 2.2;
+        ctx.shadowColor = 'rgba(214, 168, 75, 0.4)';
+        ctx.shadowBlur = 10;
+        ctx.setLineDash([5, 5]);
 
-        const nodes = starsRef.current;
-        if (nodes.length >= 5) {
-          ctx.beginPath();
-          ctx.moveTo(nodes[0].x, nodes[0].y);
-          ctx.quadraticCurveTo(nodes[1].x - 10, nodes[1].y - 25, nodes[2].x, nodes[2].y);
-          ctx.quadraticCurveTo(nodes[3].x - 15, nodes[3].y + 15, nodes[4].x, nodes[4].y);
-          ctx.stroke();
-        }
+        ctx.beginPath();
+        // 天枢 (0) -> 天璇 (1) 仰袖扬拂
+        ctx.moveTo(nodes[0].x, nodes[0].y);
+        ctx.quadraticCurveTo((nodes[0].x + nodes[1].x) / 2, nodes[1].y - 14, nodes[1].x, nodes[1].y);
+        // 天璇 (1) -> 天玑 (2) 反折纤腰身姿
+        ctx.quadraticCurveTo(nodes[1].x + 18, (nodes[1].y + nodes[2].y) / 2, nodes[2].x, nodes[2].y);
+        // 天玑 (2) -> 天权 (3) 屈膝曳裾
+        ctx.quadraticCurveTo((nodes[2].x + nodes[3].x) / 2 + 6, nodes[3].y + 12, nodes[3].x, nodes[3].y);
+        // 天权 (3) -> 玉衡 (4) 凌空长袖拂越星汉
+        ctx.quadraticCurveTo(nodes[3].x + 50, nodes[4].y + 22, nodes[4].x, nodes[4].y);
+        ctx.stroke();
+
+        // 舞姿头饰与反折腰身姿态微光
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(241, 217, 141, 0.35)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(nodes[1].x, nodes[1].y - 14, 5, 0, Math.PI * 2);
+        ctx.stroke();
+
         ctx.restore();
-      }
-
-      // 自动轮转提示闪烁
-      if (Date.now() - lastBlinkTimeRef.current > 750) {
-        blinkStepRef.current = (blinkStepRef.current + 1) % 5;
-        lastBlinkTimeRef.current = Date.now();
       }
 
       // STEP 3: 已连接星宿之间的金黄能量光线
@@ -269,9 +236,8 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
       }
 
       // STEP 4: 【中间较大的需要连线的五颗星座变成不断闪烁的黄色星点】
-      starsRef.current.forEach((star, idx) => {
+      starsRef.current.forEach((star) => {
         const isSelected = selectedStarIds.includes(star.id);
-        const isHintTarget = hintBlinkActive && blinkStepRef.current === idx;
 
         // 不断闪烁的黄色高亮正弦波动频率 (Yellow Pulsating Core)
         const yellowPulse = Math.sin(time * 4.5 + star.pulsePhase) * 0.35 + 0.65;
@@ -332,11 +298,9 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
 
         ctx.fillStyle = isSelected
           ? 'rgba(214, 168, 75, 0.95)'
-          : isHintTarget
-          ? 'rgba(60, 40, 10, 0.9)'
           : 'rgba(20, 12, 6, 0.85)';
         ctx.strokeStyle = isSelected ? '#FFFFFF' : '#FFD700';
-        ctx.lineWidth = isSelected || isHintTarget ? 1.5 : 1;
+        ctx.lineWidth = isSelected ? 1.5 : 1;
 
         ctx.beginPath();
         ctx.roundRect(pillX, pillY, pillW, pillH, 4);
@@ -374,7 +338,7 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
         cancelAnimationFrame(animFrameIdRef.current);
       }
     };
-  }, [selectedStarIds, hintBlinkActive, isOverlayFaded, initStarField]);
+  }, [selectedStarIds, initStarField]);
 
   // Handle Canvas Tap on Star Nodes
   const handleCanvasClick = (
@@ -420,7 +384,6 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
     if (clickedStar.starIndex !== nextExpectedIndex) {
       soundFX.playGlitchStatic();
       const expectedName = FIVE_STAR_NAMES[nextExpectedIndex];
-      setCurrentHint(`星象顺位有误！请依次连接：当前应连接【${expectedName}】`);
       if (onErrorTip) {
         onErrorTip(`五星需顺应天象次序连接，下一步应为【${expectedName}】`);
       }
@@ -437,38 +400,23 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
       soundFX.playBronzeChime();
       soundFX.playMemoryRestore();
       setPhase('beidou_success');
-      setCurrentHint('五星连缀圆满！大汉舞姿融于苍穹，北斗指东，记忆重光！');
       setTimeout(() => {
         onCompleteBeidou();
       }, 1200);
-    } else {
-      const nextStar = FIVE_STAR_NAMES[newSelected.length];
-      setCurrentHint(`已连接【${clickedStar.name}】，下一步请连【${nextStar}】`);
     }
-  };
-
-  const handleOpenDanceVideo = () => {
-    soundFX.playBronzeChime();
-    setShowDanceModal(true);
-  };
-
-  const handleCloseDanceModal = () => {
-    soundFX.playStoneDrum();
-    setShowDanceModal(false);
   };
 
   const handleReset = () => {
     soundFX.playStoneDrum();
     setSelectedStarIds([]);
-    setCurrentHint('连线已重置，请从【天枢】开始依序连接！');
   };
 
   return (
     <div
       ref={containerRef}
-      className="relative w-full aspect-[4/4.2] max-h-[340px] rounded-xl overflow-hidden border-0 shadow-xl flex flex-col justify-between select-none"
+      className="relative w-full aspect-[4/4.2] max-h-[340px] rounded-xl overflow-hidden border-0 shadow-2xl flex flex-col justify-between select-none bg-black"
     >
-      {/* Interactive Cosmos Canvas (黑色夜空背景 + 自由粒子运动 + 闪烁黄色星点) */}
+      {/* Interactive Cosmos Canvas (纯净黑色夜空背景 + 舞姿星轨重合 + 自由粒子运动) */}
       <canvas
         ref={canvasRef}
         onClick={handleCanvasClick}
@@ -476,81 +424,17 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
         className="absolute inset-0 w-full h-full cursor-pointer z-10"
       />
 
-      {/* Top Bar: Title & 更改后的按钮名称【再次观看舞姿，获取指引】 */}
-      <div className="relative z-20 w-full p-2 flex items-center justify-between bg-gradient-to-b from-black/85 via-black/40 to-transparent pointer-events-none">
-        <div className="relative flex items-center gap-1.5 bg-[#1E110A]/90 px-2.5 py-0.5 rounded-[4px] border-0 shadow pointer-events-auto">
-          <Sparkles className="w-3 h-3 text-[#FFD700] animate-spin" />
-          <span className="text-[9px] font-mono text-[#FFD700] font-bold">
-            神仙幻想 · 观星像
-          </span>
-        </div>
-
-        {/* 
-          =======================================================================
-          【将“观星舞姿指引”按钮改为“再次观看舞姿，获取指引”】 (无边框，无角线)
-          ======================================================================= 
-        */}
-        <button
-          onClick={handleOpenDanceVideo}
-          className="relative pointer-events-auto flex items-center gap-1 px-2.5 py-1 rounded-[4px] bg-[#2E1A11]/95 hover:bg-[#3D2319] border-0 text-[#FFD700] text-[9px] font-serif font-bold shadow-md active:scale-95 transition-all"
-        >
-          <Play className="w-2.5 h-2.5 fill-[#FFD700] text-[#FFD700]" />
-          <span>再次观看舞姿，获取指引</span>
-        </button>
-      </div>
-
-      {/* Bottom Floating Control Bar */}
-      <div className="relative z-20 w-full p-2 bg-gradient-to-t from-black/95 via-black/60 to-transparent flex flex-col gap-1 pointer-events-none">
-        {/* Dynamic Hint Line */}
-        <div className="text-center px-1">
-          <p className="text-[9.5px] font-serif text-[#FFE87A] tracking-wider drop-shadow line-clamp-1">
-            {currentHint}
-          </p>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between gap-2 pointer-events-auto">
-          <div className="flex items-center gap-1.5">
-            {selectedStarIds.length > 0 && phase !== 'beidou_success' && (
-              <button
-                onClick={handleReset}
-                className="relative px-2 py-0.5 rounded-[4px] bg-black/60 border-0 text-[8.5px] text-[#A89078] hover:text-[#E6D3AA] active:scale-95 transition-all flex items-center gap-1"
-              >
-                <RefreshCw className="w-2.5 h-2.5" />
-                <span>重置连线</span>
-              </button>
-            )}
-            <span className="relative text-[8px] font-mono text-[#FFD700] bg-[#221607]/85 px-2 py-0.5 rounded-[4px] border-0">
-              星宿连缀：{selectedStarIds.length} / 5
-            </span>
-          </div>
-
+      {/* 极简重置按键 (无多余文字干扰，仅在已开始连线时在右上角提供便捷重置) */}
+      {selectedStarIds.length > 0 && phase !== 'beidou_success' && (
+        <div className="relative z-20 p-2 flex justify-end pointer-events-none">
           <button
-            onClick={() => setHintBlinkActive(!hintBlinkActive)}
-            className="relative px-2 py-0.5 rounded-[4px] bg-[#1A0E09] border-0 text-[8.5px] text-[#FFD700] hover:bg-[#2A160E] active:scale-95 transition-all flex items-center gap-1"
+            onClick={handleReset}
+            className="pointer-events-auto px-2 py-0.5 rounded-[4px] bg-black/75 border border-[#D6A84B]/30 text-[8.5px] text-[#C4A98B] hover:text-[#F1D98D] active:scale-95 transition-all flex items-center gap-1"
           >
-            <Eye className="w-2.5 h-2.5 text-[#79B9A1]" />
-            <span>{hintBlinkActive ? '隐藏闪烁暗示' : '显示舞姿暗示'}</span>
+            <RefreshCw className="w-2.5 h-2.5 text-[#D6A84B]" />
+            <span>重置</span>
           </button>
         </div>
-      </div>
-
-      {/* =========================================================================
-          STAGE 7 VIDEO PLAYBACK VIEW (统一戈舞全屏无边框页面规格)
-          ========================================================================= */}
-      {showDanceModal && (
-        <ChapterVideoPageView
-          chapterNumber="07"
-          englishTitle="COSMIC FLIGHT & CELESTIAL STARS"
-          chineseTitle="神仙幻想 · 观星像"
-          subtitle="天地参合 · 观星引路 · 舞步连缀北斗五星"
-          videoSrc={STAGE_VIDEOS.stage7_ascension.url}
-          videoAssetPathHint="public/assets/videos/ascension_dance.mp4"
-          palette="cosmos"
-          completeButtonText="完成观看 · 连线观星"
-          onSkip={handleCloseDanceModal}
-          onComplete={handleCloseDanceModal}
-        />
       )}
     </div>
   );

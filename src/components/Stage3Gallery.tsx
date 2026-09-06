@@ -522,18 +522,19 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
 
           <HanMuseumTopBar />
 
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2">
-            <div className="w-20 h-20 rounded-full bg-[#1A2E26] border border-[#79B9A1]/50 flex items-center justify-center shadow-[0_0_25px_rgba(121,185,161,0.5)]">
-              <CheckCircle2 className="w-10 h-10 text-[#79B9A1]" />
-            </div>
-            <div className="text-center">
-              <h3 className="text-sm font-black text-[#79B9A1] tracking-wider">
-                舞姿合律 · 器灵苏醒
-              </h3>
-              <p className="text-[10px] text-[#E6D3AA]/80 mt-0.5">
-                翘袖折腰，刚柔相济，大葆台汉墓深处乐音重现
-              </p>
-            </div>
+          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
+            {/* 第一排：长 */}
+            <p className="text-[11px] sm:text-xs font-serif text-[#79B9A1] tracking-[0.18em] leading-relaxed max-w-xs">
+              汉代乐舞礼乐相和 · 翘袖折腰轻盈若飞
+            </p>
+            {/* 第二排：短 */}
+            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
+              白玉舞人
+            </h2>
+            {/* 第三排：长 */}
+            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
+              罗衣回雪刚柔并济 · 唤醒大葆台汉墓乐舞绝技
+            </p>
           </div>
 
           <div className="relative z-30 w-full">
