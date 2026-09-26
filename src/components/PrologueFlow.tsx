@@ -77,7 +77,7 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
 
         {/* 
           ===================================================================
-          【首页 开启按键】：纯净典雅按键，不带中间横线光标
+          【首页 开启按键】：拉长一倍、无边框、无文字、半遮罩不透明度20%，保留按键功能
           ===================================================================
         */}
         <div className="relative z-10 flex flex-col items-center justify-center pb-2">
@@ -85,15 +85,11 @@ export const PrologueFlow: React.FC<PrologueFlowProps> = ({ onStartChapter1 }) =
             <button
               onClick={handleOpenTombGate}
               disabled={isGateOpening}
-              className="relative px-8 py-2.5 bg-gradient-to-r from-[#2A160E] via-[#3E2114] to-[#2A160E] text-[#F1D98D] border border-[#D6A84B]/60 shadow-[0_0_24px_rgba(200,148,61,0.35)] hover:shadow-[0_0_30px_rgba(200,148,61,0.6)] active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-md"
-              aria-label="开启"
+              className="relative w-56 sm:w-64 h-10 sm:h-11 bg-gradient-to-r from-[#2A160E] via-[#3E2114] to-[#2A160E] shadow-[0_0_20px_rgba(200,148,61,0.2)] active:scale-95 transition-all cursor-pointer flex items-center justify-center rounded-md border-0 border-none outline-none opacity-20 hover:opacity-25"
+              style={{ opacity: 0.2 }}
+              aria-label="开启大葆台探秘"
               title="开启大葆台探秘之旅"
-            >
-              {/* 纯净文字显示，无中间横线光标 */}
-              <span className="font-serif tracking-[0.28em] pl-[0.28em] text-[#F1D98D] text-sm sm:text-base font-bold drop-shadow-[0_1px_4px_rgba(0,0,0,0.8)]">
-                开启
-              </span>
-            </button>
+            />
           </div>
 
           {/* Bottom Footer Note (小字) */}

@@ -23,6 +23,7 @@ import { CHAPTER_BACKGROUNDS } from '../config/assetRegistry';
 import { BambooSlipCollector } from './BambooSlipCollector';
 import { ChapterVideoPageView } from './ChapterVideoPageView';
 import { STAGE_VIDEOS } from '../data/videoAssets';
+import { useSmoothPhaseTransition } from '../utils/useSmoothPhaseTransition';
 
 interface Stage7AscensionProps {
   onUnlockFragment: () => void;
@@ -95,7 +96,8 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   onRestart,
   isUnlocked,
 }) => {
-  const [phase, setPhase] = useState<
+  // 每一子页面转场统一控制在 0.5 秒左右（240ms 柔和淡出 -> 瞬时切换 -> 260ms 柔和淡入）
+  const { phase, setPhase, transitionStyle } = useSmoothPhaseTransition<
     | 'guide'
     | 'video_dance'
     | 'interactive'
@@ -418,7 +420,10 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
   const isModernPalette = phase === 'modern_hall' || phase === 'postcard_end';
 
   return (
-    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
+    <div
+      className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]"
+      style={transitionStyle}
+    >
       {/* Background Palette: 星路玄黑＋星金＋玉青 (ascension)；现代章节夕阳暖金 (modern) */}
       <MuseumTombBackdrop
         palette={isModernPalette ? 'modern' : 'ascension'}

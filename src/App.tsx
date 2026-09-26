@@ -19,7 +19,6 @@ import { VerticalSevenMapModal } from './components/VerticalSevenMapModal';
 import { RightTopActions } from './components/RightTopActions';
 import { soundFX } from './utils/soundEngine';
 import { Sparkles } from 'lucide-react';
-import { JadeReshapeOverlay } from './components/JadeReshapeOverlay';
 
 const SECTION_ORDER: SectionKey[] = [
   'prologue_flow',
@@ -53,7 +52,6 @@ export default function App() {
   const [justUnlockedFrag, setJustUnlockedFrag] = useState<{ id: JadeFragmentId; name: string } | null>(null);
   const [isScreenShaking, setIsScreenShaking] = useState<boolean>(false);
   const [isBambooSlipActive, setIsBambooSlipActive] = useState<boolean>(false);
-  const [showReshapeOverlay, setShowReshapeOverlay] = useState<boolean>(false);
   const transitionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   // 监听各章节竹简展示页激活状态，确保记忆+1动效仅在此页面出现
@@ -97,11 +95,8 @@ export default function App() {
       setJustUnlockedFrag({ id, name: FRAGMENT_NAMES[id] || '玉佩碎片' });
       soundFX.playFragmentUnlock();
 
-      // 🚨 用户明确要求：第一到第六章删去图1（JadeReshapeOverlay），直接进入竹简页面！
-      // 仅在第七章最终全部唤醒时才展示终极重塑玉佩动效
-      if (activeSection === 'ascension') {
-        setShowReshapeOverlay(true);
-      }
+      // 🚨 用户明确要求：彻底删去快结尾的集齐碎片页（JadeReshapeOverlay），直接进入下一页！
+      // 不触发任何重塑遮罩，直接进入后续页面
 
       setTimeout(() => {
         setJustUnlockedFrag(null);
@@ -316,16 +311,6 @@ export default function App() {
         >
           {renderPageContent(activeSection)}
         </div>
-
-        {/* Jade Reshape Overlay (粒子飘散并汇聚到主体玉佩重塑动画) */}
-        {showReshapeOverlay && justUnlockedFrag && (
-          <JadeReshapeOverlay
-            unlockedFragments={unlockedFragments}
-            recentFragmentId={justUnlockedFrag.id}
-            fragmentName={justUnlockedFrag.name}
-            onClose={() => setShowReshapeOverlay(false)}
-          />
-        )}
 
         {/* Seven Stage Vertical Map Modal */}
         {showMapModal && (

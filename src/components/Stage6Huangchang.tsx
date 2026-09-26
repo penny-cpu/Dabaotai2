@@ -72,7 +72,8 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [phase, setPhase] = useState<
+  // 每一子页面转场统一控制在 0.5 秒左右（240ms 柔和淡出 -> 瞬时切换 -> 260ms 柔和淡入）
+  const { phase, setPhase, transitionStyle } = useSmoothPhaseTransition<
     | 'guide'
     | 'video_preshow'
     | 'interactive'
@@ -117,7 +118,10 @@ export const Stage6Huangchang: React.FC<Stage6HuangchangProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
+    <div
+      className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]"
+      style={transitionStyle}
+    >
       {/* Visual Background: 黄肠题凑木棕＋玄黑 */}
       <MuseumTombBackdrop palette="huangchang" pattern="timber" spotlight={true} intensity="subtle" />
 
