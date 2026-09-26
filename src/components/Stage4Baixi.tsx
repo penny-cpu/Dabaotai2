@@ -12,6 +12,7 @@ import { MuseumAccessionRecord } from './MuseumAccessionRecord';
 import { CHAPTER_BACKGROUNDS, CHAPTER_PAGE_BACKGROUNDS } from '../config/assetRegistry';
 import { BambooSlipCollector } from './BambooSlipCollector';
 import { ChapterVideoPageView } from './ChapterVideoPageView';
+import { useSmoothPhaseTransition } from '../utils/useSmoothPhaseTransition';
 
 // =========================================================================
 // 🚨【第四章各页面背景底图路径配置中心 (方便一键查找与替换)】🚨
@@ -32,12 +33,12 @@ const DIALOGUES_STAGE4_PAIYOU: DialogueLine[] = [
   {
     speaker: 'corruptor',
     speakerName: '俳优',
-    text: '看我这七颗丸球！我一天能抛“五千四百”回。可“五千四百”和“五千又四百”，到底是不是同一个数？算错了，我今晚的赏钱可没了！',
+    text: '看我丸球！“五千四百”与“五千又四百”是不是同一个数？算错我可没赏钱了！',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '百戏看似热闹，也有规则和技巧。你先看清他的说法，再替他算一算。',
+    text: '百戏亦有算学巧思，帮他算算看吧。',
   },
 ];
 
@@ -45,7 +46,7 @@ const DIALOGUES_STAGE4_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '对，两个说法都是五千四百。宴乐重礼，百戏娱民；热闹之中，也有严谨的秩序。我又想起了广阳宴席上的笑声。',
+    text: '答对了，二者皆为五千四百！百戏娱民亦暗含秩序，我又忆起了昔日欢笑。',
   },
 ];
 
@@ -54,8 +55,12 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [phase, setPhase] = useState<'guide' | 'video_preshow' | 'dialogue_paiyou' | 'interactive' | 'success_dialogue' | 'bamboo_slip'>('guide');
+  // 每一子页面转场统一控制在 0.5 秒左右（240ms 柔和淡出 -> 瞬时切换 -> 260ms 柔和淡入）
+  const { phase, setPhase, transitionStyle } = useSmoothPhaseTransition<
+    'guide' | 'video_preshow' | 'interactive' | 'bamboo_slip'
+  >('guide');
   const [dialogueIdx, setDialogueIdx] = useState<number>(0);
+  const [isIntroDialogueDone, setIsIntroDialogueDone] = useState<boolean>(false);
   const [selectedOption, setSelectedOption] = useState<'A' | 'B' | null>(null);
   const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
@@ -76,10 +81,10 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
       soundFX.playMemoryRestore();
       setErrorTip('');
       setIsSuccess(true);
-      setPhase('success_dialogue');
+      setPhase('bamboo_slip');
     } else {
       soundFX.playGlitchStatic();
-      setErrorTip('再想想……古汉语中“又”用于连接整数与零头，表示“加”，故五千又四百即为五千四百。');
+      setErrorTip('“又”表示相加，五千又四百即为五千四百。');
       setTimeout(() => {
         setErrorTip('');
       }, 4000);
@@ -87,7 +92,10 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
   };
 
   return (
-    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
+    <div
+      className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]"
+      style={transitionStyle}
+    >
       {/* 🚨【第四章全局通用背景底图：汉代悱忧空中抛接跳丸壁画，保留底纹样式，全章统一应用，90% 遮罩】🚨 */}
       {/* 代码引用路径：STAGE4_BACKGROUNDS.page0_guide (即 CHAPTER_PAGE_BACKGROUNDS.stage4) */}
       <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
@@ -162,53 +170,19 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
           palette="baixi"
           completeButtonText="完成观看 · 步入算题"
           onSkip={() => {
-            setPhase('dialogue_paiyou');
+            setPhase('interactive');
             setDialogueIdx(0);
+            setIsIntroDialogueDone(false);
           }}
           onComplete={() => {
-            setPhase('dialogue_paiyou');
+            setPhase('interactive');
             setDialogueIdx(0);
+            setIsIntroDialogueDone(false);
           }}
         />
       )}
 
-      {/* STEP 2: 俳优对白 (底图引用: STAGE4_BACKGROUNDS.page3_dialogue，已去掉中间发光icon，90%遮罩) */}
-      {phase === 'dialogue_paiyou' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          <HanMuseumTopBar />
-
-          <div className="relative z-10 pt-1 pb-1">
-            <HanCloudTitle title="百戏与跳丸" />
-          </div>
-
-          {/* 纯净居中诗意文字，去掉中间发光icon */}
-          <div className="relative my-auto flex flex-col items-center justify-center space-y-2 text-center px-4">
-            <span className="text-[11px] font-mono text-[#C8943D] tracking-widest">广阳市民乐舞 · 弄丸飞剑</span>
-            <h3 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-wider drop-shadow-md">
-              百戏娱民 · 热闹欢腾
-            </h3>
-            <p className="text-xs font-serif text-[#C4A98B] max-w-xs leading-relaxed">
-              汉代俳优飞腾跳丸，空中盘旋如星。热闹市井欢歌之中，亦暗含古代算数之严谨。
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE4_PAIYOU}
-              currentIndex={dialogueIdx}
-              onNext={() => {
-                if (dialogueIdx < DIALOGUES_STAGE4_PAIYOU.length - 1) {
-                  setDialogueIdx((prev) => prev + 1);
-                } else {
-                  setPhase('interactive');
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3: 交互：跳丸数字谜题 (底图引用: STAGE4_BACKGROUNDS.page2_cuju_game，7颗真实质感蹴丸PNG，木牍答案选定朱砂盖【录】) */}
+      {/* STEP 2: 交互：跳丸数字谜题 (图5页面已删除，俳优与玉舞人对白已并入本页底部对话框) */}
       {phase === 'interactive' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between p-2.5 pb-2 animate-fade-in overflow-hidden">
           <HanMuseumTopBar />
@@ -337,59 +311,41 @@ export const Stage4Baixi: React.FC<Stage4BaixiProps> = ({
           </div>
 
           <div className="relative z-40 w-full shrink-0">
-            <UnifiedDialogueBox
-              isInteractiveMode={true}
-              hints={[
-                '汉代百戏以杂技、乐舞为主，兼具滑稽与算学智慧。',
-                '古汉语中“又”用于连接整数与零头，表示“加”。',
-                '“五千四百”与“五千又四百”代表同一数值，选项 B 为正确答案。',
-              ]}
-              errorTip={errorTip}
-              onClearError={() => setErrorTip('')}
-            />
+            {!isIntroDialogueDone ? (
+              <UnifiedDialogueBox
+                dialogues={DIALOGUES_STAGE4_PAIYOU}
+                currentIndex={dialogueIdx}
+                onNext={() => {
+                  if (dialogueIdx < DIALOGUES_STAGE4_PAIYOU.length - 1) {
+                    setDialogueIdx((prev) => prev + 1);
+                  } else {
+                    setIsIntroDialogueDone(true);
+                  }
+                }}
+              />
+            ) : (
+              <UnifiedDialogueBox
+                isInteractiveMode={true}
+                hints={[
+                  '汉代百戏兼具杂耍与算学智慧。',
+                  '古文中“又”表相加，连接整数与零头。',
+                  '二者数值相同，选 B 是一样多。',
+                ]}
+                errorTip={errorTip}
+                onClearError={() => setErrorTip('')}
+              />
+            )}
           </div>
         </div>
       )}
 
-      {/* STEP 4: 成功反馈对白 */}
-      {phase === 'success_dialogue' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          <HanMuseumTopBar />
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
-              百戏腾跃技艺通神 · 俳优解颐市井欢腾
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              跳丸弄剑
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              千百年前乐舞盛景 · 汉代百戏记忆竹简缓缓铺开
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE4_SUCCESS}
-              currentIndex={0}
-              onNext={() => {
-                soundFX.playStoneDrum();
-                setPhase('bamboo_slip');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* STEP 5: 记忆恢复 · 竹简收集 (背景为极淡百戏人物剪影，出现后渐消) */}
+      {/* STEP 5: 记忆恢复 · 竹简收集 (图8删除，玉舞人聊天框合并到此页) */}
       {phase === 'bamboo_slip' && (
-        <div className="fixed inset-0 z-50 bg-[#0B0806]/95 backdrop-blur-md flex flex-col items-center justify-center p-2 animate-fade-in select-none font-serif">
+        <div className="absolute inset-0 z-50 bg-[#0B0806]/95 backdrop-blur-md flex flex-col items-center justify-center p-2 animate-fade-in select-none font-serif">
           <BambooSlipCollector
             stageNumber={4}
             customBgType="baixi_shadow"
+            dialogues={DIALOGUES_STAGE4_SUCCESS}
             onProceed={() => {
               onUnlockFragment();
               onNextPage();

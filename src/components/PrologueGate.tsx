@@ -27,17 +27,17 @@ const DIALOGUES_GATE: DialogueLine[] = [
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
-    text: '是。蚀墓虫吃掉遗址，也吃掉人们对它的记忆。七层全暗，大葆台就会像从未存在。',
+    text: '是。蚀墓虫吞噬遗址与记忆。若七关俱灭，大葆台将不复存在。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我的记忆也落在这里了。',
+    text: '我的记忆也碎落在此……',
   },
   {
     speaker: 'pushou',
     speakerName: '鎏金铜铺首',
-    text: '走过七关。你替她找回记忆，她替未来的大葆台留住名字。',
+    text: '走过七关，帮她寻回记忆，为大葆台留住文脉。',
   },
   {
     speaker: 'player',

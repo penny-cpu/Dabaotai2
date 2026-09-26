@@ -40,12 +40,12 @@ const DIALOGUES_PHASE2: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我身体摔碎成了七块，天哪。挨，我们是为何到这里来着？',
+    text: '我身躯碎成了七片……我们为何会来到这里？',
   },
   {
     speaker: 'player',
     speakerName: '见证者 (我)',
-    text: '你这么快就记不清了吗？是你想带我看两千年前的汉代，但意外却让我们来到了一千年后的大葆台。',
+    text: '时空动荡，我们意外跌落到了大葆台废墟。',
   },
 ];
 

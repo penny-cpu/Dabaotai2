@@ -33,6 +33,9 @@ import bgStage1Warrior from '../assets/images/han_warrior_brick_1788598169002.jp
 // 【第二章 · 宴乐与组玉佩】汉代宴乐画像砖局部 (参考图2: 一 宴乐百戏图)
 import bgStage2Banquet from '../assets/images/han_banquet_mural_1788600231146.jpg';
 
+// 🚨【第二章 · 玉佩四选一选项页面专属背景底图 (彩绘陶壶图案，可在此直接替换)】🚨
+import bgStage2PotteryVase from '../assets/images/han_painted_pottery_vase_bg.jpg';
+
 // 【第二章 · 玉佩缺失页】汉代王后腰部及下半身特写 (虚线勾勒玉舞人空位，参考图3)
 import bgStage2QueenSkirt from '../assets/images/han_queen_skirt_1788600270485.jpg';
 
@@ -103,6 +106,7 @@ export const CHAPTER_BACKGROUNDS = {
   // 第二章: 宴乐与组玉佩
   stage2_banquet_guide: bgStage2Banquet,        // 引导页背景 (图2宴乐百戏图)
   stage2_queen_skirt: bgStage2QueenSkirt,       // 玉佩缺失页背景 (王后服饰特写)
+  stage2_pottery_vase: bgStage2PotteryVase,     // 🚨【图2玉佩四选一页面专属背景底图 (彩绘陶壶图案，可在此替换)】🚨
   
   // 第三章: 翘袖折腰
   stage3_gallery: bgStage3Dance,
@@ -171,6 +175,7 @@ export const CHAPTER_PAGE_BACKGROUNDS = {
     page0_guide: bgStage2Banquet,           // 宴乐百戏图引导页
     page1_video: bgStage2Banquet,           // 宴乐舞蹈视频播放页 (80% 遮罩)
     page2_queen_skirt: bgStage2QueenSkirt,  // 王后组玉佩缺失交互页
+    page2_interactive_pendant_pottery_bg: bgStage2PotteryVase, // 🚨【图2四选一互动选项页专属底图：彩绘陶壶图案，可直接在此替换】🚨
     page3_dialogue: bgStage2Banquet,        // 盛宴剧情对白页
     page4_accession: bgStage2Banquet,       // 组玉佩入馆展陈页
     page5_memory_return: bgSlipStage2,      // 记忆归位页深色竹简背景图 (参考图1)
@@ -220,6 +225,20 @@ export const CHAPTER_PAGE_BACKGROUNDS = {
     page4_accession: bgStage7Cosmos,        // 广阳王星象图展陈页
     page5_memory_return: bgSlipStage7,      // 记忆归位页深色竹简背景图 (参考图1)
   },
+};
+
+// =========================================================================
+// 🚨【各章节类似图2选项/解密互动页面专属背景底图 (统一注册中心，方便集中查找与替换)】🚨
+// 说明：在此处集中配置各章节类似图2这种选项卡片/解密操作页面的专属底图
+// =========================================================================
+export const CHAPTER_INTERACTIVE_BACKGROUNDS = {
+  stage1_weapon_turntable: bgStage1Warrior,           // 第一章：干戚武舞转盘解密页背景底图
+  stage2_pendant_selection: bgStage2PotteryVase,      // 第二章：玉佩四选一页面专属背景底图 (彩绘陶壶图案) 🚨
+  stage3_dance_quiz: bgStage3Dance,                   // 第三章：玉舞人真容舞姿辨析三选一答题页背景底图
+  stage4_cuju_game: bgStage4Baixi,                    // 第四章：百戏抛接蹴丸七丸互动页背景底图
+  stage5_funerary_mural: bgStage5MuralArtifacts,      // 第五章：手电筒探照画像石生活壁画寻找随葬文物底图
+  stage6_timber_task: bgStage6TimberStructure,        // 第六章：黄肠题凑柏木数量推演任务页背景底图
+  stage7_star_connect: bgStage7Cosmos,                // 第七章：北斗七星连缀互动页背景底图
 };
 
 // =========================================================================

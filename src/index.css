@@ -49,6 +49,14 @@
 }
 
 /* ==========================================================================
+   古风宋体（Songti）与微展字间距规范：适用于全局玉舞人及角色对话框
+   ========================================================================== */
+.font-ancient-songti {
+  font-family: "Songti SC", "STSong", "Noto Serif SC", "Source Han Serif SC", "SimSun", "Songti TC", Georgia, serif;
+  letter-spacing: 0.09em;
+}
+
+/* ==========================================================================
    UI 底色背景“三层背景”体系
    第一层｜玄黑墓室 #0B0806 → #1A100B (静穆幽深)
    第二层｜极弱汉代纹样 (局部出现、大尺度、透明度 2%—5%)
@@ -417,6 +425,109 @@ button:hover:not(:disabled),
   background: linear-gradient(180deg, rgba(50, 32, 22, 0.9) 0%, rgba(32, 20, 14, 0.98) 100%);
   transform: translateY(-1px);
 }
+
+/* ==========================================================================
+   FRAGMENT UNLOCK FEEDBACK & GOLDEN SHIMMER ANIMATIONS
+   1. 轻微震动反馈效果 (Fragment Micro-Vibration Tactile Shake)
+   2. 金色辉光闪烁动画 (Golden Shimmer Glow & Shimmering Ring)
+   ========================================================================== */
+
+@keyframes fragment-shake {
+  0% { transform: translate(0, 0); }
+  20% { transform: translate(-2px, 1.5px); }
+  40% { transform: translate(2px, -1.5px); }
+  60% { transform: translate(-1.5px, 1px); }
+  80% { transform: translate(1.5px, -1px); }
+  100% { transform: translate(0, 0); }
+}
+
+.animate-fragment-shake {
+  animation: fragment-shake 0.35s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes golden-glow-shimmer {
+  0%, 100% {
+    box-shadow: 0 0 8px rgba(245, 197, 66, 0.45), 0 0 16px rgba(214, 168, 75, 0.25);
+    filter: drop-shadow(0 0 5px rgba(255, 215, 0, 0.55));
+    border-color: rgba(245, 197, 66, 0.65);
+  }
+  50% {
+    box-shadow: 0 0 24px rgba(255, 230, 100, 0.95), 0 0 38px rgba(245, 197, 66, 0.75), inset 0 0 14px rgba(255, 240, 150, 0.5);
+    filter: drop-shadow(0 0 14px rgba(255, 220, 80, 0.95));
+    border-color: #FFE58F;
+    transform: scale(1.02);
+  }
+}
+
+.animate-golden-glow {
+  animation: golden-glow-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes golden-pulse-ring {
+  0% {
+    transform: scale(0.92);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.35);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
+.animate-golden-ring {
+  animation: golden-pulse-ring 1.8s cubic-bezier(0.24, 0, 0.38, 1) infinite;
+}
+
+/* Particle Convergence / Reshape Animation for Jade Pendant (粒子飘散并汇聚重塑玉佩) */
+@keyframes particle-gather {
+  0% {
+    transform: translate(var(--p-dx, 120px), var(--p-dy, 120px)) scale(0.3);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.9;
+    transform: translate(calc(var(--p-dx, 120px) * 0.8), calc(var(--p-dy, 120px) * 0.8)) scale(1.1);
+  }
+  80% {
+    transform: translate(calc(var(--p-dx, 120px) * 0.15), calc(var(--p-dy, 120px) * 0.15)) scale(0.8);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(0, 0) scale(0.1);
+    opacity: 0;
+  }
+}
+
+.animate-particle-gather {
+  animation: particle-gather 1.6s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+}
+
+@keyframes jade-body-flash {
+  0% {
+    filter: drop-shadow(0 0 10px rgba(136, 181, 152, 0.4));
+  }
+  65% {
+    filter: drop-shadow(0 0 15px rgba(255, 230, 100, 0.6));
+  }
+  80% {
+    filter: drop-shadow(0 0 35px rgba(255, 235, 120, 1)) drop-shadow(0 0 50px rgba(121, 185, 161, 0.9));
+    transform: scale(1.05);
+  }
+  100% {
+    filter: drop-shadow(0 0 15px rgba(200, 240, 210, 0.8));
+    transform: scale(1);
+  }
+}
+
+.animate-jade-reshape {
+  animation: jade-body-flash 2.4s ease-out forwards;
+}
+
+
 
 
 

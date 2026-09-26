@@ -45,7 +45,7 @@ export const RightTopActions: React.FC<RightTopActionsProps> = ({
   return (
     <>
       {/* Pinned Top-Right Vertical Circular UI Buttons: 1. 地图目录, 2. 记忆碎片 */}
-      <div className="absolute top-2.5 right-2.5 z-40 flex flex-col items-center gap-2 select-none pointer-events-auto">
+      <div className="absolute top-2.5 right-2.5 z-[70] flex flex-col items-center gap-2 select-none pointer-events-auto">
         {/* 1. Circle Map Directory Button (地图目录) */}
         <button
           id="btn_top_map_dir"
@@ -69,15 +69,17 @@ export const RightTopActions: React.FC<RightTopActionsProps> = ({
           id="btn_top_memory"
           onClick={handleOpenMemoryBook}
           className={`relative w-10 h-10 rounded-full bg-[#3A2116]/95 hover:bg-[#6E3024] border flex flex-col items-center justify-center shadow-md active:scale-95 transition-all group backdrop-blur-md ${
+            showPlusOneAnimation ? 'animate-golden-glow border-[#FFE58F] shadow-[0_0_20px_rgba(255,215,0,0.7)]' : ''
+          } ${
             unlockedCount > 0
               ? 'border-[#A9782B] text-[#E6D3AA]'
               : 'border-[#6E3024] text-[#A89078]'
           }`}
           title="打开记忆竹简"
         >
-          {/* +1 Floating Sparkle Animation */}
+          {/* +1 Floating Sparkle Badge (对齐图2样式) */}
           {showPlusOneAnimation && (
-            <div className="absolute -top-3 -left-3 px-1.5 py-0.5 rounded-full bg-[#C8943D] text-[#160D09] font-mono font-black text-[9px] shadow-lg animate-bounce z-50">
+            <div className="absolute -top-1.5 -left-2.5 px-1.5 py-0.5 rounded-full bg-gradient-to-r from-[#FFE58F] via-[#F1D98D] to-[#D6A84B] text-[#160D09] font-mono font-black text-[9.5px] shadow-[0_0_12px_rgba(255,215,0,0.85)] animate-bounce z-50 flex items-center justify-center border border-[#FFFFFF]/90 leading-none">
               +1
             </div>
           )}

@@ -34,12 +34,25 @@ const DIALOGUES_STAGE7_INTRO: DialogueLine[] = [
   {
     speaker: 'narrator',
     speakerName: '旁白',
-    text: '在汉代人的宇宙里，生命并未在墓中终结。他们相信人死后，灵魂会进入更广阔的世界，甚至升入星宿与仙境。',
+    text: '汉人深信灵魂不灭，死后将升入星宿仙境，遨游九天。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我好像想起来了……我们被放入墓室，不是为了被遗忘，而是为了在另一个世界继续起舞、继续陪伴。可最后这一步，还需要把星辰连起来。',
+    text: '我们入墓非为遗忘，而是继续起舞陪伴。请连缀星宿指引归途。',
+  },
+];
+
+const DIALOGUES_STAGE7_SUCCESS: DialogueLine[] = [
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '北斗指东，七大记忆碎片重光！汉室乐舞与永恒星辰交相辉映。',
+  },
+  {
+    speaker: 'dancer',
+    speakerName: '玉舞人',
+    text: '随我穿越千载时空，回到今天的现代展厅吧！',
   },
 ];
 
@@ -47,22 +60,22 @@ const DIALOGUES_MODERN_HALL: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '这里是……两千年后的现代展厅？那些戴着白手套、拿着毛刷与细笔的考古学者，原来是他们拂去地宫的泥土，将破碎的我们一片片拼合、研究、安放在明亮的展柜里……',
+    text: '这是现代展厅？考古学者拂去尘土，将破碎的我们修复陈列于此……',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '是现代的考古人员，帮我找回了沉睡两千年的记忆；也是你——亲爱的观众，跟随我走过了这七段记忆之路，重新点亮了汉代的戈舞、宴乐、百戏、黄肠题凑与星宿。',
+    text: '考古唤醒了沉睡两千年的我，而你走过七章，重新点亮了大汉文脉。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我要继续留在这座现代展厅里，守护大汉的记忆，为每一个来到大葆台的人诉说两千年前的故事。谢谢你，陪我找回这一路的记忆卡片！',
+    text: '我将留守展厅守护大汉记忆。谢谢你，陪我找回所有记忆卡片！',
   },
   {
     speaker: 'narrator',
     speakerName: '旁白',
-    text: '两千年的光阴流转，大葆台汉墓的记忆在考古与传承中重光。谨以此双面纪念明信片，致敬每一位守护华夏文脉的探索者与同行人。',
+    text: '两千年文脉重光。以此明信片，致敬每一位华夏文脉守护者。',
   },
 ];
 
@@ -84,7 +97,6 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
 }) => {
   const [phase, setPhase] = useState<
     | 'guide'
-    | 'intro'
     | 'video_dance'
     | 'interactive'
     | 'success_dialogue'
@@ -449,7 +461,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             <HanPlaqueButton
               onClick={() => {
                 soundFX.playStoneDrum();
-                setPhase('intro');
+                setPhase('video_dance');
               }}
               size="md"
               className="w-full"
@@ -461,49 +473,8 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
         </div>
       )}
 
-      {/* STEP 1: 终章开场对白 (去除 pb-36) */}
-      {phase === 'intro' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          <HanMuseumTopBar />
-
-          <div className="relative z-10 pt-1 pb-1">
-            <HanCloudTitle title="第七章 · 星宿与升仙" />
-          </div>
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
-              汉代宇宙天人合一 · 灵魂不朽归宿探寻
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              星汉灿烂
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              乘龙御气登遐九天 · 璀璨北斗星宿指引归途
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE7_INTRO}
-              currentIndex={dialogueIdx}
-              onNext={() => {
-                if (dialogueIdx < DIALOGUES_STAGE7_INTRO.length - 1) {
-                  setDialogueIdx(dialogueIdx + 1);
-                } else {
-                  soundFX.playStoneDrum();
-                  setPhase('video_dance');
-                }
-              }}
-            />
-          </div>
-        </div>
-      )}
-
       {/* =========================================================================
-          STAGE 7: 观看舞姿视频页面 (页面布局与插入资产文件和戈影完全一致)
+          STAGE 7: 观看舞姿视频页面 (已合并星汉灿烂前置对白，页面布局与插入资产文件和戈影完全一致)
           在播完这个视频之后，页面与视频整体是以逐渐淡化的形式退下，
           然后视频最后一帧的舞姿就和观星像这一页面的星座连线路线重合
           ========================================================================= */}
@@ -523,6 +494,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             bgImage={CHAPTER_BACKGROUNDS.stage7_cosmos_guide}
             palette="cosmos"
             completeButtonText="完成观看 · 连线观星"
+            dialogues={DIALOGUES_STAGE7_INTRO}
             onSkip={handleVideoCompleteFade}
             onComplete={handleVideoCompleteFade}
           />
@@ -546,7 +518,7 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
                   soundFX.playMemoryRestore();
                   setIsSuccess(true);
                   onUnlockFragment();
-                  setPhase('success_dialogue');
+                  setPhase('bamboo_slip');
                 }}
                 onErrorTip={(tip) => setErrorTip(tip)}
               />
@@ -573,9 +545,9 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
             <UnifiedDialogueBox
               isInteractiveMode={true}
               hints={[
-                '舞姿与五大星宿运转相合，请依序连接：【天枢 ➔ 天璇 ➔ 天玑 ➔ 天权 ➔ 玉衡】。',
-                '若有疑惑，可点击上方【再次观看舞姿，获取指引】重温大汉乐舞升仙步法。',
-                '连缀完成五星，即可点亮第七枚记忆卡片，引渡汉代乐舞灵魂升入璀璨星汉！',
+                '依序连接星宿：天枢 ➔ 天璇 ➔ 天玑 ➔ 天权 ➔ 玉衡。',
+                '可重温舞姿获取指引，按北斗轨迹连线。',
+                '连通五星，即可点亮终章记忆卡片！',
               ]}
               errorTip={errorTip}
               onClearError={() => setErrorTip('')}
@@ -584,53 +556,20 @@ export const Stage7Ascension: React.FC<Stage7AscensionProps> = ({
         </div>
       )}
 
-      {/* STEP 3: 连星成功，七块记忆碎片合体 (无边框无角线) */}
-      {phase === 'success_dialogue' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          <HanMuseumTopBar />
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#79B9A1] tracking-[0.18em] leading-relaxed max-w-xs">
-              七大记忆碎片全部点亮 · 时空重构圆满完成
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              星路贯通
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              北斗指东汉代乐舞重光 · 汇聚千载西汉历史长卷
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full max-w-xs mx-auto">
-            <HanPlaqueButton
-              onClick={() => {
-                soundFX.playBronzeChime();
-                setPhase('bamboo_slip');
-              }}
-              size="md"
-              className="w-full"
-              rightIcon={<ArrowRight className="w-4 h-4 text-[#D6A84B]" />}
-            >
-              重构记忆 · 收录星宿竹简 ➔
-            </HanPlaqueButton>
-          </div>
-        </div>
-      )}
-
-      {/* STEP 3.5: 记忆恢复·竹简收集 (第七章专属星宿流光动画) */}
+      {/* STEP 3: 记忆恢复·竹简收集 (第七章专属星宿流光动画，融合玉舞人对白，说完话后前往现代展厅) */}
       {phase === 'bamboo_slip' && (
-        <BambooSlipCollector
-          stageNumber={7}
-          customBgType="cosmos_stars"
-          onProceed={() => {
-            soundFX.playBronzeChime();
-            setDialogueIdx(0);
-            setPhase('modern_hall');
-          }}
-        />
+        <div className="absolute inset-0 z-50 bg-[#0B0806] flex flex-col items-center justify-center animate-fade-in select-none font-serif">
+          <BambooSlipCollector
+            stageNumber={7}
+            customBgType="cosmos_stars"
+            dialogues={DIALOGUES_STAGE7_SUCCESS}
+            onProceed={() => {
+              soundFX.playBronzeChime();
+              setDialogueIdx(0);
+              setPhase('modern_hall');
+            }}
+          />
+        </div>
       )}
 
       {/* STEP 4: 玉舞人回到现代展厅 (大葆台现代展厅大图背景，无边框设计) */}

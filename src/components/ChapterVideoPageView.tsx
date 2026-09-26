@@ -1,9 +1,11 @@
-import React from 'react';
+import React, { useRef, useState } from 'react';
 import { MuseumTombBackdrop, TombPaletteType } from './MuseumTombBackdrop';
 import { HanMuseumTopBar } from './HanLinearDecorations';
 import { HanPlaqueButton } from './HanPlaqueButton';
 import { VideoPlayerPlaceholder } from './VideoPlayerPlaceholder';
-import { ArrowRight } from 'lucide-react';
+import { UnifiedDialogueBox } from './UnifiedDialogueBox';
+import { DialogueLine } from '../types';
+import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import { soundFX } from '../utils/soundEngine';
 
 interface ChapterVideoPageViewProps {
@@ -22,6 +24,7 @@ interface ChapterVideoPageViewProps {
   onPrevPose?: () => void;
   onNextPose?: () => void;
   currentPoseLabel?: string;
+  dialogues?: DialogueLine[];
 }
 
 /**
@@ -52,7 +55,33 @@ export const ChapterVideoPageView: React.FC<ChapterVideoPageViewProps> = ({
   onPrevPose,
   onNextPose,
   currentPoseLabel,
+  dialogues,
 }) => {
+  const [dialogueIdx, setDialogueIdx] = useState<number>(0);
+  const touchStartXRef = useRef<number>(0);
+  const touchEndXRef = useRef<number>(0);
+
+  const handleTouchStart = (e: React.TouchEvent) => {
+    touchStartXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    touchEndXRef.current = e.targetTouches[0].clientX;
+  };
+
+  const handleTouchEnd = () => {
+    const diff = touchStartXRef.current - touchEndXRef.current;
+    if (Math.abs(diff) > 40) {
+      if (diff > 0 && onNextPose) {
+        soundFX.playStoneDrum();
+        onNextPose();
+      } else if (diff < 0 && onPrevPose) {
+        soundFX.playStoneDrum();
+        onPrevPose();
+      }
+    }
+  };
+
   return (
     <div className="relative w-full h-full flex flex-col justify-between animate-fade-in p-3 pb-2 overflow-hidden bg-[#0B0806] text-[#E6D3AA] font-serif select-none han-app-sandbox-grain">
       {/* Visual Ambient Backdrop */}
@@ -109,75 +138,107 @@ export const ChapterVideoPageView: React.FC<ChapterVideoPageViewProps> = ({
       </div>
 
       {/* 
-        画面中央是视频，全幅舞蹈视频作为中景，人物从黑暗中出现，视频上下渐隐到背景，无边框版
+        画面中央是视频/人物图画，上下居中，左右滑动选择按键位于人物两侧上下居中
       */}
-      <div className="relative z-10 flex-1 flex flex-col items-center justify-center px-0 my-auto w-full mx-auto overflow-hidden">
-        <div
-          className="relative w-full aspect-[16/10] overflow-hidden"
-          style={{
-            maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
-            WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
-          }}
-        >
-          <VideoPlayerPlaceholder
-            title=""
-            hideTitle={true}
-            videoSrc={videoSrc}
-            videoAssetPathHint={videoAssetPathHint}
-            autoPlay={true}
-            hideBorder={true}
-          />
+      <div
+        className="relative z-10 flex-1 flex flex-col items-center justify-center px-0 my-auto w-full mx-auto"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+      >
+        <div className="relative w-full flex items-center justify-center">
+          {/* 视频/人物画面容器 (上下居中) */}
+          <div
+            className="relative w-full aspect-[16/10] overflow-hidden"
+            style={{
+              maskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, black 14%, black 86%, transparent 100%)',
+            }}
+          >
+            <VideoPlayerPlaceholder
+              title=""
+              hideTitle={true}
+              videoSrc={videoSrc}
+              videoAssetPathHint={videoAssetPathHint}
+              autoPlay={true}
+              hideBorder={true}
+            />
+          </div>
+
+          {/* 
+            =====================================================================
+            【左右滑动选择控件：上移至中间人物图画的两侧，上下居中对齐】
+            =====================================================================
+          */}
+          {onPrevPose && (
+            <button
+              onClick={() => {
+                soundFX.playStoneDrum();
+                onPrevPose();
+              }}
+              className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-30 flex items-center gap-0.5 px-2 py-1.5 rounded-full bg-[#180E0A]/85 hover:bg-[#25150F] border border-[#8C6D46]/60 text-[#F1D98D] hover:text-white text-[11px] font-serif shadow-[0_4px_12px_rgba(0,0,0,0.8)] backdrop-blur-xs cursor-pointer active:scale-95 transition-all"
+              title="切换上一式"
+            >
+              <ChevronLeft className="w-3.5 h-3.5 text-[#D6A84B]" />
+              <span className="hidden xs:inline">上一式</span>
+            </button>
+          )}
+
+          {onNextPose && (
+            <button
+              onClick={() => {
+                soundFX.playStoneDrum();
+                onNextPose();
+              }}
+              className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-30 flex items-center gap-0.5 px-2 py-1.5 rounded-full bg-[#180E0A]/85 hover:bg-[#25150F] border border-[#8C6D46]/60 text-[#F1D98D] hover:text-white text-[11px] font-serif shadow-[0_4px_12px_rgba(0,0,0,0.8)] backdrop-blur-xs cursor-pointer active:scale-95 transition-all"
+              title="切换下一式"
+            >
+              <span className="hidden xs:inline">下一式</span>
+              <ChevronRight className="w-3.5 h-3.5 text-[#D6A84B]" />
+            </button>
+          )}
         </div>
 
-        {/* 舞姿切换按键: 视频下方左右两个小按键 "上一式"、"下一式"，无边框小暗金字 */}
-        {(onPrevPose || onNextPose) && (
-          <div className="w-full max-w-sm flex items-center justify-between px-3 mt-2 mb-0.5 z-20">
-            {onPrevPose ? (
-              <button
-                onClick={() => {
-                  soundFX.playStoneDrum();
-                  onPrevPose();
-                }}
-                className="text-xs font-serif text-[#C8943D] hover:text-[#F1D98D] active:scale-95 transition-colors border-0 bg-transparent py-1 px-2 cursor-pointer tracking-wider flex items-center gap-1 select-none"
-              >
-                <span>‹ 上一式</span>
-              </button>
-            ) : <div />}
-
-            {currentPoseLabel && (
-              <span className="text-[10px] font-serif text-[#A89078] tracking-widest select-none">
-                {currentPoseLabel}
-              </span>
-            )}
-
-            {onNextPose ? (
-              <button
-                onClick={() => {
-                  soundFX.playStoneDrum();
-                  onNextPose();
-                }}
-                className="text-xs font-serif text-[#C8943D] hover:text-[#F1D98D] active:scale-95 transition-colors border-0 bg-transparent py-1 px-2 cursor-pointer tracking-wider flex items-center gap-1 select-none"
-              >
-                <span>下一式 ›</span>
-              </button>
-            ) : <div />}
+        {/* 当前舞姿标签 (若存在) */}
+        {currentPoseLabel && (
+          <div className="mt-2 z-20">
+            <span className="px-2.5 py-0.5 rounded-full bg-black/60 border border-[#8C6D46]/40 text-[10px] font-serif text-[#F1D98D] tracking-widest shadow-sm backdrop-blur-xs">
+              {currentPoseLabel}
+            </span>
           </div>
         )}
       </div>
 
-      {/* Bottom Action Button (无高亮渐变/无冗余边框) */}
-      <div className="relative z-20 p-2 pb-3 flex justify-center">
-        <HanPlaqueButton
-          onClick={() => {
-            soundFX.playStoneDrum();
-            onComplete();
-          }}
-          size="md"
-          rightIcon={<ArrowRight className="w-4 h-4 text-[#D6A84B]" />}
-        >
-          {completeButtonText}
-        </HanPlaqueButton>
-      </div>
+      {/* Bottom Action Area: Unified Dialogue Box or Complete Button */}
+      {dialogues && dialogues.length > 0 ? (
+        <div className="relative z-30 w-full shrink-0">
+          <UnifiedDialogueBox
+            dialogues={dialogues}
+            currentIndex={dialogueIdx}
+            onNext={() => {
+              if (dialogueIdx < dialogues.length - 1) {
+                setDialogueIdx((prev) => prev + 1);
+              } else {
+                soundFX.playStoneDrum();
+                onComplete();
+              }
+            }}
+          />
+        </div>
+      ) : (
+        <div className="relative z-20 p-2 pb-3 flex justify-center">
+          <HanPlaqueButton
+            onClick={() => {
+              soundFX.playStoneDrum();
+              onComplete();
+            }}
+            size="md"
+            rightIcon={<ArrowRight className="w-4 h-4 text-[#D6A84B]" />}
+          >
+            {completeButtonText}
+          </HanPlaqueButton>
+        </div>
+      )}
     </div>
   );
 };

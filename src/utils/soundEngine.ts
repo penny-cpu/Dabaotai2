@@ -5,12 +5,19 @@
 class SoundEngine {
   private ctx: AudioContext | null = null;
   private isMuted: boolean = false;
+  private masterGain: GainNode | null = null;
+  private currentVolume: number = 1.0;
+  private ambientGain: GainNode | null = null;
+  private isAtmosphereStarted: boolean = false;
 
   private init() {
     if (!this.ctx && typeof window !== 'undefined') {
       const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
       if (AudioCtx) {
         this.ctx = new AudioCtx();
+        this.masterGain = this.ctx.createGain();
+        this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.currentVolume, this.ctx.currentTime);
+        this.masterGain.connect(this.ctx.destination);
       }
     }
     if (this.ctx && this.ctx.state === 'suspended') {
@@ -18,13 +25,54 @@ class SoundEngine {
     }
   }
 
+  private getOutput(): AudioNode {
+    this.init();
+    return this.masterGain || this.ctx?.destination || (this.ctx as unknown as AudioNode);
+  }
+
   public toggleMute(): boolean {
     this.isMuted = !this.isMuted;
+    if (this.masterGain && this.ctx) {
+      this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.currentVolume, this.ctx.currentTime);
+    }
     return this.isMuted;
   }
 
   public getMuted(): boolean {
     return this.isMuted;
+  }
+
+  /**
+   * Fade audio volume smoothly for natural tomb atmosphere transitions
+   * @param targetVolume 0.0 to 1.0
+   * @param durationSec Duration in seconds for the volume ramp
+   */
+  public fadeVolume(targetVolume: number, durationSec: number = 0.3) {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx || !this.masterGain) return;
+
+    try {
+      const now = this.ctx.currentTime;
+      const safeTarget = Math.max(0.0001, Math.min(1.0, targetVolume));
+      this.masterGain.gain.cancelScheduledValues(now);
+      this.masterGain.gain.setValueAtTime(this.masterGain.gain.value, now);
+      this.masterGain.gain.linearRampToValueAtTime(safeTarget, now + durationSec);
+      this.currentVolume = targetVolume;
+    } catch {
+      // Fallback
+    }
+  }
+
+  /**
+   * Crossfade out, switch state at lowest volume, then crossfade in smoothly
+   */
+  public fadeTransition(onSwitch: () => void, fadeDurationSec: number = 0.25) {
+    this.fadeVolume(0.02, fadeDurationSec);
+    setTimeout(() => {
+      onSwitch();
+      this.fadeVolume(1.0, fadeDurationSec * 1.3);
+    }, fadeDurationSec * 1000);
   }
 
   /**
@@ -57,7 +105,7 @@ class SoundEngine {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       noise.start();
     } catch {
@@ -85,7 +133,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.28);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.3);
@@ -114,7 +162,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + 0.38);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       osc.start();
       osc.stop(this.ctx.currentTime + 0.4);
@@ -144,7 +192,7 @@ class SoundEngine {
         gain.gain.exponentialRampToValueAtTime(0.001, now + i * 0.04 + 0.035);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.getOutput());
         osc.start(now + i * 0.04);
         osc.stop(now + i * 0.04 + 0.04);
       }
@@ -184,7 +232,7 @@ class SoundEngine {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       noise.start(now);
     } catch {
@@ -215,10 +263,77 @@ class SoundEngine {
         gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.9);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.getOutput());
 
         osc.start(now + idx * 0.08);
         osc.stop(now + idx * 0.08 + 1.0);
+      });
+    } catch {
+      // Ignore
+    }
+  }
+
+  /**
+   * Resonant golden chime with crystalline harmonic shine for jade fragment unlock
+   */
+  public playFragmentUnlock() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const freqs = [587.33, 880, 1174.66, 1760]; // D pentatonic high harmonics
+      const now = this.ctx.currentTime;
+      freqs.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+
+        gain.gain.setValueAtTime(0.22, now + idx * 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.85);
+
+        osc.connect(gain);
+        gain.connect(this.getOutput());
+
+        osc.start(now + idx * 0.05);
+        osc.stop(now + idx * 0.05 + 0.9);
+      });
+    } catch {
+      // Ignore
+    }
+  }
+
+  /**
+   * Play delicate crystalline jade clink resonance (玉器相击之清脆磬音，晶莹微鸣)
+   */
+  public playJadeClink() {
+    if (this.isMuted) return;
+    this.init();
+    if (!this.ctx) return;
+
+    try {
+      const freqs = [1760, 2637, 3520]; // A6, E7, A7 crystalline jade harmonics
+      const now = this.ctx.currentTime;
+      freqs.forEach((freq, idx) => {
+        if (!this.ctx) return;
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, now + idx * 0.012);
+
+        // Crisp, delicate impact with crystalline ring
+        gain.gain.setValueAtTime(0.14 - idx * 0.03, now + idx * 0.012);
+        gain.gain.exponentialRampToValueAtTime(0.0005, now + idx * 0.012 + 0.55);
+
+        osc.connect(gain);
+        gain.connect(this.getOutput());
+
+        osc.start(now + idx * 0.012);
+        osc.stop(now + idx * 0.012 + 0.6);
       });
     } catch {
       // Ignore
@@ -248,7 +363,7 @@ class SoundEngine {
         gain.gain.exponentialRampToValueAtTime(0.001, startTime + 1.2);
 
         osc.connect(gain);
-        gain.connect(this.ctx.destination);
+        gain.connect(this.getOutput());
 
         osc.start(startTime);
         osc.stop(startTime + 1.25);
@@ -284,7 +399,7 @@ class SoundEngine {
       gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32);
 
       osc.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       osc.start(now);
       osc.stop(now + 0.35);
@@ -326,7 +441,7 @@ class SoundEngine {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       noise.start(now);
     } catch {
@@ -366,7 +481,7 @@ class SoundEngine {
 
       noise.connect(filter);
       filter.connect(gain);
-      gain.connect(this.ctx.destination);
+      gain.connect(this.getOutput());
 
       noise.start(now);
     } catch {

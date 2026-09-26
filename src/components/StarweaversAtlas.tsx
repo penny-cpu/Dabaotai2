@@ -385,7 +385,7 @@ export const StarweaversAtlas: React.FC<StarweaversAtlasProps> = ({
       soundFX.playGlitchStatic();
       const expectedName = FIVE_STAR_NAMES[nextExpectedIndex];
       if (onErrorTip) {
-        onErrorTip(`五星需顺应天象次序连接，下一步应为【${expectedName}】`);
+        onErrorTip(`连线有误，下一步应连【${expectedName}】`);
       }
       return;
     }

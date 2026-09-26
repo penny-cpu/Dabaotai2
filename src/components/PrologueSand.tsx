@@ -15,7 +15,7 @@ const DIALOGUES_0A: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '欢迎来到大葆台。我是玉舞人。若你愿意，我带你看看两千年前的人间。',
+    text: '我是玉舞人。随我一同探访两千年前的人间。',
   },
   {
     speaker: 'player',

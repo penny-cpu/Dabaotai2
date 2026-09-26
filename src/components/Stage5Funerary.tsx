@@ -25,6 +25,7 @@ import { MuseumAccessionRecord } from './MuseumAccessionRecord';
 import { CHAPTER_BACKGROUNDS, CHAPTER_PAGE_BACKGROUNDS } from '../config/assetRegistry';
 import { BambooSlipCollector } from './BambooSlipCollector';
 import { ChapterVideoPageView } from './ChapterVideoPageView';
+import { useSmoothPhaseTransition } from '../utils/useSmoothPhaseTransition';
 
 // =========================================================================
 // 🚨【第五章各页面背景底图路径配置中心 (方便一键查找与替换)】🚨
@@ -130,12 +131,12 @@ const DIALOGUES_STAGE5_INTRO: DialogueLine[] = [
   {
     speaker: 'narrator',
     speakerName: '旁白',
-    text: '汉代重视丧葬礼仪，诸侯王送葬同样离不开礼乐。送葬队伍启行，舞者以长袖相送。生前的礼乐，也被延续到身后。',
+    text: '汉人重丧葬礼乐，队伍启行，袖舞相送，将生前盛乐延续至身后。',
   },
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '这应该是广阳王的送葬队伍。他们手中捧着一件件随葬礼器，似乎要在幽宫中继续诉说生前的长乐未央。',
+    text: '这是广阳王送葬队伍，手中随葬器物寄托着长乐未央之愿。',
   },
 ];
 
@@ -143,7 +144,7 @@ const DIALOGUES_STAGE5_ANOMALY: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '队伍前列那件器物通体朱墨云气翻卷，与送葬长袖交织在一起！快帮我在展柜中通过拍照或手动输入，找到这件【彩绘云气陶壶】！',
+    text: '前列器物通体朱墨云纹翻卷！快在壁画中找到这件【彩绘云气陶壶】。',
   },
 ];
 
@@ -151,7 +152,7 @@ const DIALOGUES_STAGE5_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '就是它！朱墨流云在陶壶上翻卷，与我们的长袖遥相呼应。生前的宴飨，死后的长乐，大汉的生死观全凝结在这一笔一墨之中了。',
+    text: '正是它！朱墨流云翻卷，生前宴饮、死后长乐，皆凝于此壶之中。',
   },
 ];
 
@@ -160,16 +161,15 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [phase, setPhase] = useState<
+  // 每一子页面转场统一控制在 0.5 秒左右（240ms 柔和淡出 -> 瞬时切换 -> 260ms 柔和淡入）
+  const { phase, setPhase, transitionStyle } = useSmoothPhaseTransition<
     | 'guide'
-    | 'intro'
     | 'funerary_video'
-    | 'dialogue_anomaly'
     | 'interactive_input'
-    | 'success_dialogue'
     | 'bamboo_slip'
   >('guide');
 
+  const [hasReadAnomalyDialogue, setHasReadAnomalyDialogue] = useState<boolean>(false);
   const [selectedArtifact, setSelectedArtifact] = useState<FuneraryArtifact | null>(null);
   const [errorTip, setErrorTip] = useState<string>('');
   const [isSuccess, setIsSuccess] = useState<boolean>(isUnlocked);
@@ -262,7 +262,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
 
   const handleConfirmArtifact = () => {
     if (!selectedArtifact) {
-      setErrorTip('请先通过拍照识别或手动输入选定文物！');
+      setErrorTip('请在壁画中选定文物。');
       return;
     }
 
@@ -272,10 +272,10 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
       setErrorTip('');
       setIsSuccess(true);
       onUnlockFragment();
-      setPhase('success_dialogue');
+      setPhase('bamboo_slip');
     } else {
       soundFX.playGlitchStatic();
-      setErrorTip('所选文物非以朱墨彩绘云气飞禽的陶制礼器，再推敲一番……');
+      setErrorTip('非朱墨流云陶器，请再推敲。');
     }
   };
 
@@ -288,7 +288,10 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
   );
 
   return (
-    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]">
+    <div
+      className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806]"
+      style={transitionStyle}
+    >
       {/* Visual Background: 送葬云纹烟黑＋朱砂 */}
       <MuseumTombBackdrop palette="funerary" pattern="cloud" spotlight={true} intensity="subtle" />
 
@@ -346,7 +349,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
             <HanPlaqueButton
               onClick={() => {
                 soundFX.playStoneDrum();
-                setPhase('intro');
+                setPhase('funerary_video');
               }}
               size="md"
               className="w-full"
@@ -358,55 +361,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         </div>
       )}
 
-      {/* STEP 1: 前置对白 (送葬队伍启行·生前盛宴长乐，底图80%遮罩，与对白文字精准匹配) */}
-      {phase === 'intro' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          {/* 🚨【第五章送葬袖舞与长乐前置对白背景底图：送葬队伍启行·汉代车马送葬画像，80% 遮罩】🚨 */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <img
-              src={STAGE5_BACKGROUNDS.page0_guide}
-              alt="送葬队伍长乐未央画像壁画"
-              className="w-full h-full object-cover filter brightness-70 contrast-110 saturate-85"
-            />
-            {/* 80% 遮罩 */}
-            <div className="absolute inset-0 bg-[#0B0806]/80 backdrop-blur-[0.5px]" />
-          </div>
-
-          <HanMuseumTopBar />
-
-          <div className="relative z-10 pt-1 pb-1">
-            <HanCloudTitle title="第五章 · 送葬长袖与长乐" />
-          </div>
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
-              大汉广阳国 · 西汉诸侯王盛大送葬礼仪
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              长乐未央
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              生前万千盛宴欢歌 · 身后长袖翻卷礼乐相送
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE5_INTRO}
-              currentIndex={0}
-              onNext={() => {
-                soundFX.playStoneDrum();
-                setPhase('funerary_video');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* STEP 2: 送葬礼仪视频 (统一戈舞全屏无边框页面规格，底图80%遮罩) */}
+      {/* STEP 2: 送葬礼仪视频 (已并入原长乐未央前置对白，统一戈舞全屏无边框页面规格，底图80%遮罩) */}
       {phase === 'funerary_video' && (
         <ChapterVideoPageView
           chapterNumber="05"
@@ -419,116 +374,30 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
           bgImage={STAGE5_BACKGROUNDS.page1_video}
           palette="funerary"
           completeButtonText="完成观看 · 寻觅随葬陶壶"
+          dialogues={DIALOGUES_STAGE5_INTRO}
           onSkip={() => {
-            setPhase('dialogue_anomaly');
+            setPhase('interactive_input');
           }}
           onComplete={() => {
-            setPhase('dialogue_anomaly');
+            setPhase('interactive_input');
           }}
         />
       )}
 
-      {/* STEP 3: 线索对白 (底图引用: STAGE5_BACKGROUNDS.page3_dialogue，80%遮罩，与玉舞人朱墨云气对白匹配) */}
-      {phase === 'dialogue_anomaly' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          {/* 🚨【对白背景底图：送葬队伍朱墨长袖云气画像石，80%遮罩】🚨 */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <img
-              src={STAGE5_BACKGROUNDS.page3_dialogue}
-              alt="送葬队伍长袖与长乐背景"
-              className="w-full h-full object-cover filter brightness-70 contrast-110 saturate-85"
-            />
-            {/* 80% 遮罩 */}
-            <div className="absolute inset-0 bg-[#0B0806]/80 backdrop-blur-[0.5px]" />
-          </div>
-
-          <HanMuseumTopBar />
-
-          <div className="relative z-10 pt-1 pb-1">
-            <HanCloudTitle title="第五章 · 送葬长袖与长乐" />
-          </div>
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#C8943D] tracking-[0.18em] leading-relaxed max-w-xs">
-              大汉送葬礼制 · 寻觅外藏椁长乐未央线索
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              朱墨云气
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              彩绘陶壶飞禽流云 · 探照寻觅随葬礼乐之器
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE5_ANOMALY}
-              currentIndex={0}
-              onNext={() => {
-                soundFX.playStoneDrum();
-                setPhase('interactive_input');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* STEP 4: 交互输入：画像石生活情态壁画 + 考古暖光手电筒移动探照甄别 (整体向上移位，避免偏下) */}
+      {/* STEP 4: 交互输入：画像石生活情态壁画 + 考古暖光手电筒移动探照甄别 (图9：黑底白字全部删去，只保留棕色底黄色字体标题，前一页对白合并于此) */}
       {phase === 'interactive_input' && (
         <div className="relative z-10 w-full h-full flex flex-col justify-between animate-fade-in p-2 pb-1 overflow-hidden select-none">
-          {/* 上半部：顶部导航、云纹标题、手电与探照壁画、操作按钮组 (统一置顶上移，紧凑优雅) */}
+          {/* 上半部：顶部导航、棕色底黄色字体标题 */}
           <div className="w-full flex flex-col">
             <HanMuseumTopBar />
 
-            <div className="relative z-10 pt-0 pb-0.5">
+            <div className="relative z-10 pt-0 pb-1">
               <HanCloudTitle title="寻找送葬礼乐文物" />
             </div>
 
-            {/* 🌟 核心区域：画像石生活情态壁画探照台 (包含星云铜镜照面、朱墨陶壶、羽觞宴饮等汉代生活情态) */}
+            {/* 核心区域：画像石生活情态壁画探照台 (去除黑底白字与冗余栏目，纯净清爽) */}
             <div className="relative z-10 w-full max-w-sm mx-auto px-1 flex flex-col justify-start min-h-0 pt-0.5">
-            {/* 手电筒控制栏 & 探照提示 */}
-            <div className="flex flex-col gap-1 px-1 pb-1">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1.5">
-                  <button
-                    onClick={() => {
-                      soundFX.playStoneDrum();
-                      setIsTorchOn((prev) => !prev);
-                    }}
-                    className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-serif border transition-all cursor-pointer ${
-                      isTorchOn
-                        ? 'bg-[#F1D98D] text-[#1A0E06] border-[#F1D98D] font-bold shadow-[0_0_10px_rgba(241,217,141,0.6)]'
-                        : 'bg-[#1C100A] text-[#8C6D46] border-[#4A2612]'
-                    }`}
-                  >
-                    <Flashlight className="w-3 h-3" />
-                    <span>{isTorchOn ? '暖光手电已开' : '点击开启手电'}</span>
-                  </button>
-                  <span className="text-[8px] font-mono text-[#79B9A1] flex items-center gap-0.5">
-                    <Move className="w-2.5 h-2.5" />
-                    滑动探照画像石
-                  </span>
-                </div>
-                <span className="text-[8px] font-serif text-[#C4A98B]">
-                  {selectedArtifact ? `已照见：${selectedArtifact.name}` : '探照人物手中之物'}
-                </span>
-              </div>
-
-              {/* 🌟 用户明确要求：“将这一页的“移动手电筒光束探照壁画人物、点击锁定朱墨彩绘云气陶壶”这一栏文字放在“暖光手电已开”的按钮下方一行，去掉这一行的边框、只保留文字” */}
-              <div className="flex items-center gap-1 text-[8.5px] font-serif text-[#F1D98D] pt-0.5">
-                <Flashlight className="w-2.5 h-2.5 text-[#D6A84B] shrink-0" />
-                <span className="leading-tight drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
-                  {selectedArtifact
-                    ? `已锁定：${selectedArtifact.name}（${selectedArtifact.tag}）· ${selectedArtifact.desc}`
-                    : '移动手电筒光束探照壁画人物、点击锁定朱墨彩绘云气陶壶'}
-                </span>
-              </div>
-            </div>
-
-            {/* 🚨 画像石壁画探照视口容器 (黑框：向下拉长一倍，呈现广阔汉代生活画像石全景) 🚨 */}
+            {/* 🚨 画像石壁画探照视口容器 (黑框：呈现广阔汉代生活画像石全景) 🚨 */}
             <div
               ref={muralContainerRef}
               onMouseMove={(e) => {
@@ -546,7 +415,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                 const y = ((touch.clientY - rect.top) / rect.height) * 100;
                 setTorchPos({ x: Math.max(5, Math.min(95, x)), y: Math.max(5, Math.min(95, y)) });
               }}
-              className="relative w-full h-[275px] sm:h-[300px] rounded-xl overflow-hidden border border-[#522D18] shadow-[inset_0_0_30px_rgba(0,0,0,0.95)] cursor-crosshair bg-[#060403]"
+              className="relative w-full h-[285px] sm:h-[310px] rounded-xl overflow-hidden border border-[#522D18] shadow-[inset_0_0_30px_rgba(0,0,0,0.95)] cursor-crosshair bg-[#060403]"
             >
               {/* 底图：容纳六个文物的画像石壁画 (生活情态：照镜、执壶、进酒、舞袖、击钟、设祭) */}
               <img
@@ -603,26 +472,26 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                         : 'scale-90 z-10 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    {/* 环形光标 & 角标提示 */}
+                    {/* 纯净可点选按钮：按用户要求彻底删去所有文字，只保留按钮点选功能 */}
                     <div
-                      className={`relative px-1.5 py-0.5 rounded-full flex items-center gap-1 text-[7.5px] font-serif border backdrop-blur-xs transition-all ${
+                      className={`relative w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center border-2 transition-all ${
                         isSelected
-                          ? 'bg-[#F1D98D] text-black border-[#F1D98D] font-black shadow-[0_0_12px_rgba(241,217,141,0.9)]'
+                          ? 'bg-[#F1D98D] border-[#F1D98D] shadow-[0_0_18px_rgba(241,217,141,0.95)]'
                           : isIlluminated
-                          ? 'bg-[#2E1A11]/90 text-[#F1D98D] border-[#D6A84B] shadow-[0_0_8px_rgba(214,168,75,0.7)]'
-                          : 'bg-black/80 text-[#A89078] border-[#4A2612]/60'
+                          ? 'bg-[#2E1A11]/90 border-[#D6A84B] shadow-[0_0_12px_rgba(214,168,75,0.8)]'
+                          : 'bg-black/60 border-[#D6A84B]/40 hover:border-[#D6A84B]'
                       }`}
                     >
-                      {art.id === 'cai_hui_pot' && <Disc className="w-2.5 h-2.5 text-current animate-spin" style={{ animationDuration: '6s' }} />}
-                      <span>{art.name}</span>
+                      <span
+                        className={`w-2.5 h-2.5 rounded-full transition-all ${
+                          isSelected
+                            ? 'bg-[#160D09]'
+                            : isIlluminated
+                            ? 'bg-[#F1D98D] shadow-[0_0_6px_#F1D98D]'
+                            : 'bg-[#C8943D]/70'
+                        }`}
+                      />
                     </div>
-
-                    {/* 生活情态浮层标签 (在手电照射或选中时展现生活情态，如：贵妇照镜、侍臣捧壶) */}
-                    {(isSelected || isIlluminated) && (
-                      <div className="absolute top-full left-1/2 -translate-x-1/2 mt-0.5 whitespace-nowrap bg-black/90 text-[#E6D3AA] text-[7px] font-serif px-1.5 py-0.2 rounded border border-[#D6A84B]/40 shadow pointer-events-none">
-                        {art.sceneRole}
-                      </div>
-                    )}
                   </button>
                 );
               })}
@@ -669,9 +538,9 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
             <UnifiedDialogueBox
               isInteractiveMode={true}
               hints={[
-                '此文物通体施以朱墨彩绘，腹部绘有流转翻飞的云气纹与仙禽神兽。',
-                '它是一件泥质灰陶制成的随葬重器，既见证了生前的宴饮礼乐，也伴随诸侯王升仙通天。',
-                '考工记密录：此器正是【彩绘云气陶壶】！通体朱墨云纹翻卷，乃大葆台汉墓送葬礼仪中连接人间与仙界的瑰宝。',
+                '通体施朱墨彩绘，腹绘流转云气神兽。',
+                '泥质灰陶盛酒重器，伴王侯升仙通天。',
+                '正解为【彩绘云气陶壶】，通体朱墨云纹。',
               ]}
               errorTip={errorTip}
               onClearError={() => setErrorTip('')}
@@ -682,7 +551,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
 
       {/* Camera Modal (去边框，四角暗金细线) */}
       {showPhotoModal && (
-        <div className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 animate-fade-in font-serif select-none">
+        <div className="absolute inset-0 z-50 bg-black/95 backdrop-blur-md flex flex-col items-center justify-between p-3 animate-fade-in font-serif select-none">
           <div className="w-full flex items-center justify-between px-2 pt-1">
             <div className="flex items-center gap-1.5">
               <Scan className="w-4 h-4 text-[#79B9A1]" />
@@ -738,31 +607,20 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
               </div>
             )}
 
+            {/* 照相取景方框：去除所有小字提示，只保留名字 */}
             <div className="relative z-10 my-auto flex flex-col items-center justify-center pointer-events-none">
               <div
-                className={`w-28 h-32 rounded-xl border border-dashed flex flex-col items-center justify-center transition-all ${
+                className={`w-32 h-36 rounded-xl border border-dashed flex flex-col items-center justify-end pb-2 transition-all ${
                   scanState === 'matched'
-                    ? 'border-[#79B9A1] bg-[#121E14]/60'
-                    : 'border-[#D6A84B]/60 bg-black/25'
+                    ? 'border-[#79B9A1] bg-[#121E14]/50 shadow-[0_0_15px_rgba(121,185,161,0.3)]'
+                    : 'border-[#D6A84B]/60 bg-black/20'
                 }`}
               >
-                <span className="text-[8.5px] font-mono text-[#F1D98D] bg-black/70 px-2 py-0.5 rounded-full">
-                  {scanState === 'matched' ? '特征高度契合' : '对准展柜陶壶'}
+                {/* 只保留名字 */}
+                <span className="text-xs font-serif font-black tracking-widest text-[#F1D98D] bg-black/85 px-3 py-1 rounded-full border border-[#D6A84B]/40 shadow-md">
+                  彩绘云气陶壶
                 </span>
               </div>
-            </div>
-
-            <div className="relative z-10 w-full flex items-center justify-between px-2 bg-black/70 rounded-full py-1 border-0 backdrop-blur-sm">
-              <span className="text-[8.5px] font-mono text-[#E6D3AA]">
-                {scanState === 'matched'
-                  ? '匹配结果：彩绘云气陶壶'
-                  : scanState === 'analyzing'
-                  ? '正在提取朱墨云纹特征……'
-                  : '请将镜头对准双耳陶壶'}
-              </span>
-              <span className="text-[8.5px] font-mono text-[#79B9A1] font-bold">
-                {matchPercentage.toFixed(1)}% 匹配度
-              </span>
             </div>
           </div>
 
@@ -773,7 +631,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                 className="relative w-full py-2 rounded-lg bg-[#1E2E20] hover:bg-[#283D2B] border-0 text-[#79B9A1] text-xs font-serif font-bold shadow active:scale-95 transition-all flex items-center justify-center gap-1.5"
               >
                 <CheckCircle2 className="w-4 h-4 text-[#79B9A1]" />
-                <span>匹配成功！选入【彩绘云气陶壶】➔</span>
+                <span>选入【彩绘云气陶壶】➔</span>
               </button>
             ) : (
               <button
@@ -782,7 +640,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
                 className="relative w-full py-2 rounded-lg bg-[#2E1A11] hover:bg-[#3D2319] border-0 text-[#F1D98D] text-xs font-serif font-bold shadow active:scale-95 transition-all flex items-center justify-center gap-1.5"
               >
                 <Zap className="w-3.5 h-3.5 text-[#F1D98D]" />
-                <span>{scanState === 'analyzing' ? '正在提取纹饰与壶形特征……' : '拍照比对 / 识别文物'}</span>
+                <span>{scanState === 'analyzing' ? '识别中……' : '拍照识别文物'}</span>
               </button>
             )}
           </div>
@@ -791,7 +649,7 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
 
       {/* Manual Search Modal (去边框，无角线) */}
       {showManualModal && (
-        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-3 animate-fade-in font-serif select-none">
+        <div className="absolute inset-0 z-50 bg-black/90 backdrop-blur-md flex flex-col items-center justify-between p-3 animate-fade-in font-serif select-none">
           <div className="w-full flex items-center justify-between px-2 pt-1">
             <span className="text-xs font-serif font-bold text-[#E6D3AA]">
               手动输入与检索送葬礼乐文物
@@ -850,47 +708,19 @@ export const Stage5Funerary: React.FC<Stage5FuneraryProps> = ({
         </div>
       )}
 
-      {/* STEP 5: 成功对白 */}
-      {phase === 'success_dialogue' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          <HanMuseumTopBar />
-
-          <div className="relative my-auto flex flex-col items-center justify-center">
-            <MuseumAccessionRecord
-              memoryIndex={5}
-              title="彩绘陶壶"
-              subtitle="大葆台一号汉墓出土 · 彩绘云气飞禽纹陶壶"
-              accessionCode="DBT-M1-05"
-              material="陶质 / 朱墨彩绘飞禽流云"
-              excavationSite="大葆台一号汉墓外藏椁"
-              era="西汉 · 昭宣时期"
-              category="大汉礼乐 · 送葬长乐"
-            />
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE5_SUCCESS}
-              currentIndex={0}
-              onNext={() => {
-                soundFX.playStoneDrum();
-                setPhase('bamboo_slip');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* STEP 6: 记忆恢复·竹简收集 (黑漆漆墓室背景，彩绘陶壶轮廓与红色云气纹) */}
+      {/* STEP 5: 记忆恢复·竹简收集 (黑漆漆墓室背景，彩绘陶壶轮廓与红色云气纹，融合玉舞人对白) */}
       {phase === 'bamboo_slip' && (
-        <BambooSlipCollector
-          stageNumber={5}
-          customBgType="pottery_clouds"
-          onProceed={() => {
-            onUnlockFragment();
-            onNextPage();
-          }}
-        />
+        <div className="absolute inset-0 z-50 bg-[#0B0806] flex flex-col items-center justify-center animate-fade-in select-none font-serif">
+          <BambooSlipCollector
+            stageNumber={5}
+            customBgType="pottery_clouds"
+            dialogues={DIALOGUES_STAGE5_SUCCESS}
+            onProceed={() => {
+              onUnlockFragment();
+              onNextPage();
+            }}
+          />
+        </div>
       )}
     </div>
   );

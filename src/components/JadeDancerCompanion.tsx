@@ -127,7 +127,7 @@ export const JadeDancerCompanion: React.FC<JadeDancerCompanionProps> = ({
 
           {/* Display Exactly ONE Sentence Response */}
           <div className="min-h-[32px] flex items-center">
-            <p className="text-[10px] text-[#e6d5b8] leading-relaxed italic">
+            <p className="text-[10px] text-[#e6d5b8] font-ancient-songti leading-relaxed tracking-[0.09em]">
               {activeTab === 'memory' ? `“${memoryText}”` : `“${clueText}”`}
             </p>
           </div>

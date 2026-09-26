@@ -3,6 +3,13 @@ import { DialogueLine } from '../types';
 import { ShieldAlert, Sparkles, ChevronRight, User, Bug } from 'lucide-react';
 import { soundFX } from '../utils/soundEngine';
 
+// =========================================================================
+// 🚨【对话框左上角人物头像图片配置位置】🚨
+// =========================================================================
+import imgJadeDancerAvatar from '../assets/images/jade_dancer_real_photo_cutout.png';
+import imgWarriorAvatar from '../assets/images/han_warrior_brick_1788598169002.jpg';
+import imgPushouAvatar from '../assets/images/dabaotai_hall_entrance_bg.jpg';
+
 interface DialogueSystemProps {
   dialogues: DialogueLine[];
   currentIndex: number;
@@ -105,50 +112,31 @@ export const DialogueSystem: React.FC<DialogueSystemProps> = ({
   const renderAvatar = () => {
     if (current.speaker === 'dancer') {
       return (
-        <svg viewBox="0 0 100 120" className="w-full h-full p-1">
-          <path
-            d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-            fill="none"
-            stroke={isCorrupted ? '#ef4444' : restorationLevel >= 6 ? '#a7f3d0' : '#88b598'}
-            strokeWidth="5"
-            strokeLinecap="round"
-            className={restorationLevel >= 4 ? 'animate-pulse' : ''}
-          />
-          <circle cx="50" cy="14" r="7" fill={restorationLevel >= 7 ? '#ffffff' : '#a7f3d0'} />
-        </svg>
+        <img
+          src={imgJadeDancerAvatar}
+          alt="玉舞人"
+          className="w-full h-full object-contain p-0.5 filter drop-shadow scale-110"
+        />
       );
     }
 
     if (current.speaker === 'player') {
       return (
-        <svg viewBox="0 0 100 120" className="w-full h-full p-1">
-          {/* Modern Observer / Visitor Avatar */}
-          <circle cx="50" cy="35" r="16" fill="#38bdf8" opacity="0.9" />
-          <path
-            d="M26 95 C26 65, 74 65, 74 95 Z"
-            fill="#0284c7"
-            opacity="0.85"
-          />
-          {/* Smart Eye Glasses Beam / Modern Badge */}
-          <rect x="40" y="32" width="20" height="6" rx="3" fill="#ffffff" />
-          <circle cx="45" cy="35" r="2" fill="#0369a1" />
-          <circle cx="55" cy="35" r="2" fill="#0369a1" />
-        </svg>
+        <img
+          src={imgWarriorAvatar}
+          alt="见证者"
+          className="w-full h-full object-cover rounded-full filter contrast-110"
+        />
       );
     }
 
     if (current.speaker === 'pushou') {
       return (
-        <svg viewBox="0 0 100 120" className="w-full h-full p-1 fill-amber-400 stroke-amber-700">
-          <circle cx="50" cy="50" r="34" fill="#3a2211" stroke="#d97706" strokeWidth="3" />
-          <path d="M30 38 Q50 20 70 38 Q50 32 30 38" fill="#f59e0b" />
-          <circle cx="40" cy="46" r="5" fill="#fef3c7" />
-          <circle cx="60" cy="46" r="5" fill="#fef3c7" />
-          <circle cx="40" cy="46" r="2" fill="#78350f" />
-          <circle cx="60" cy="46" r="2" fill="#78350f" />
-          <path d="M45 56 Q50 52 55 56 Q50 64 45 56" fill="#b45309" />
-          <circle cx="50" cy="74" r="13" fill="none" stroke="#f59e0b" strokeWidth="4" />
-        </svg>
+        <img
+          src={imgPushouAvatar}
+          alt="鎏金铜铺首"
+          className="w-full h-full object-cover rounded-full filter contrast-115"
+        />
       );
     }
 
@@ -196,7 +184,7 @@ export const DialogueSystem: React.FC<DialogueSystemProps> = ({
       {/* Right Bottom Dialogue Bubble Box */}
       <div
         onClick={handleAdvance}
-        className={`flex-1 ${style.bg} border-2 ${style.boxBorder} rounded-2xl p-2.5 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between min-h-[74px]`}
+        className={`flex-1 ${style.bg} border-2 ${style.boxBorder} rounded-2xl p-2.5 shadow-2xl backdrop-blur-md cursor-pointer transition-all active:scale-[0.99] flex flex-col justify-between min-h-[70px]`}
       >
         {/* Speaker Info & Step Count */}
         <div className="flex items-center justify-between border-b border-[#3d2b1f]/60 pb-1 mb-1">
@@ -212,9 +200,9 @@ export const DialogueSystem: React.FC<DialogueSystemProps> = ({
           </span>
         </div>
 
-        {/* Dialogue Text */}
-        <p className={`text-[11px] sm:text-xs font-serif leading-relaxed select-text ${
-          current.speaker === 'corruptor' ? 'text-red-300 font-mono font-bold tracking-tight' : 'text-[#f2e6d6]'
+        {/* Dialogue Text - 采用古风宋体，字间距略宽，排版优美简洁 */}
+        <p className={`text-sm sm:text-[15px] font-ancient-songti font-normal sm:font-medium leading-relaxed tracking-[0.09em] sm:tracking-[0.1em] select-text ${
+          current.speaker === 'corruptor' ? 'text-red-300 font-mono font-medium tracking-tight' : 'text-[#fbf2e6]'
         }`}>
           {current.text}
         </p>

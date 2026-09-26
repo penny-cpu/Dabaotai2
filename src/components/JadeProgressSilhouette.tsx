@@ -81,7 +81,7 @@ export const JadeProgressSilhouette: React.FC<JadeProgressSilhouetteProps> = ({
                   title={`${frag.stage}: ${frag.name}`}
                   className={`w-2 h-2 rounded-full transition-all duration-300 ${
                     active
-                      ? 'bg-[#88b598] shadow-[0_0_6px_#88b598] scale-110'
+                      ? 'bg-[#FFE58F] shadow-[0_0_8px_#FFE58F] scale-110 animate-golden-glow'
                       : 'bg-[#291b12] border border-[#4a3424]'
                   }`}
                 />

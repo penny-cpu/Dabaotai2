@@ -100,7 +100,7 @@ const SPHERE_RELICS: SphereRelic[] = [
       {
         speaker: 'dancer',
         speakerName: '螭虎纹玉佩',
-        text: '终于等到你了。两千年过去，我还在这里。手指拖拽可 3D 旋转赏鉴我的螭虎镂雕，双指捏合可缩放。大汉的记忆，还没有沉睡。',
+        text: '两千载幽梦未醒。单指拖拽可3D旋转赏鉴，双指捏合可缩放。',
       },
     ],
     renderSvg: (isFront) => (
@@ -123,7 +123,7 @@ const SPHERE_RELICS: SphereRelic[] = [
       {
         speaker: 'dancer',
         speakerName: '龙凤纹韘形佩',
-        text: '我们同墓出土，同属王后组玉佩。我的形制融合了璧与韘，中有一孔，两侧透雕龙凤。在球体中旋转我，即可看清两侧游丝微雕。',
+        text: '同属王后组玉佩，兼具璧韘之形，旋转可细赏两侧龙凤透雕。',
       },
     ],
     renderSvg: (isFront) => (
@@ -151,7 +151,7 @@ const SPHERE_RELICS: SphereRelic[] = [
       {
         speaker: 'dancer',
         speakerName: '龙纹玉璜',
-        text: '我身上刻着方折回转的秦式龙纹。半璧为璜，两端雕饰庄严龙首。我曾是王后组玉佩的重要核心构件。',
+        text: '半璧为璜，两端雕饰龙首，亦为王后组玉佩核心之件。',
       },
     ],
     renderSvg: (isFront) => (
@@ -180,7 +180,7 @@ const SPHERE_RELICS: SphereRelic[] = [
       {
         speaker: 'dancer',
         speakerName: '玉舞人',
-        text: '这些玉器唤醒了我的身躯。汉代舞蹈重长袖、细腰，刚柔相济。请在 3D 球体中细观我右手冲霄扬袖、左手折腰探水的姿态！',
+        text: '汉舞重长袖折腰、刚柔相济。请细观我扬袖折腰之风姿！',
       },
     ],
     renderSvg: (isFront) => (
@@ -423,7 +423,7 @@ Page({
             e.stopPropagation();
             setShowCodeModal(true);
           }}
-          className="flex items-center gap-1 bg-[#2A160E] hover:bg-[#3D2114] border border-[#D6A84B] px-2.5 py-1 rounded-full text-[10px] text-[#F1D98D] shadow-md active:scale-95 transition-all"
+          className="hidden items-center gap-1 bg-[#2A160E] hover:bg-[#3D2114] border border-[#D6A84B] px-2.5 py-1 rounded-full text-[10px] text-[#F1D98D] shadow-md active:scale-95 transition-all"
         >
           <Code2 className="w-3 h-3 text-[#D6A84B]" />
           <span>小程序 Xr-frame 代码</span>
@@ -431,14 +431,15 @@ Page({
       </div>
 
       {/* TOP ARTIFACT SHOWCASE CARD (Synced with Front Sphere) */}
-      <div className="relative z-20 mx-auto w-[88%] max-w-xs rounded-2xl bg-gradient-to-b from-[#2E1A11]/95 via-[#1E110A]/95 to-[#120A07] border border-[#D6A84B] shadow-[0_0_35px_rgba(214,168,75,0.25)] p-3 flex flex-col items-center text-center space-y-1 backdrop-blur-md transition-all duration-300">
+      <div className="relative z-20 mx-auto w-[88%] max-w-xs rounded-2xl bg-gradient-to-b from-[#2E1A11]/95 via-[#1E110A]/95 to-[#120A07] border border-[#D6A84B] shadow-[0_0_35px_rgba(214,168,75,0.25)] p-2.5 flex flex-col items-center text-center space-y-1 backdrop-blur-md transition-all duration-300">
         <div className="flex items-center gap-2">
           {/* Badge */}
           <div className="flex items-center gap-1 text-[8.5px] font-mono text-[#F1D98D] bg-[#120A07] px-2 py-0.5 rounded-full border border-[#8C6D46]">
             <Sparkles className="w-2.5 h-2.5 text-[#D6A84B]" />
             <span>{activeRelic.tag}</span>
           </div>
-          <span className="text-[8px] font-mono text-[#79B9A1] bg-black/60 px-1.5 py-0.5 rounded border border-[#79B9A1]/40">
+          {/* 小字说明部分在页面显示器上去掉，保持代码中位置不要变 */}
+          <span className="hidden text-[8px] font-mono text-[#79B9A1] bg-black/60 px-1.5 py-0.5 rounded border border-[#79B9A1]/40">
             支持 3D 旋转 & 缩放
           </span>
         </div>
@@ -448,21 +449,21 @@ Page({
           {activeRelic.name}
         </h3>
 
-        {/* 🚨 3D Model GLB Asset Interface Location Indicator */}
+        {/* 🚨 3D Model GLB Asset Interface Location Indicator - 页面显示器上去掉，保持代码中位置不要变 */}
         <div
           onClick={(e) => {
             e.stopPropagation();
             setShowCodeModal(true);
           }}
-          className="cursor-pointer flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/70 hover:bg-[#2A160E] border border-[#D6A84B]/50 text-[8px] font-mono text-[#F1D98D] shadow transition-all active:scale-95"
+          className="hidden cursor-pointer items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-black/70 hover:bg-[#2A160E] border border-[#D6A84B]/50 text-[8px] font-mono text-[#F1D98D] shadow transition-all active:scale-95"
           title="点击查看 3D 模型存放目录与代码引用位置"
         >
           <Box className="w-2.5 h-2.5 text-[#D6A84B]" />
           <span>模型接口: {activeRelic.diskFilePath}</span>
         </div>
 
-        {/* Description */}
-        <p className="text-[9px] text-[#C4A98B] leading-relaxed line-clamp-2 px-1">
+        {/* Description - 小字说明部分在页面显示器上去掉，保持代码中位置不要变 */}
+        <p className="hidden text-[9px] text-[#C4A98B] leading-relaxed line-clamp-2 px-1">
           {activeRelic.muralDesc}
         </p>
       </div>
@@ -542,22 +543,22 @@ Page({
               }}
               className="absolute flex flex-col items-center cursor-pointer group select-none"
             >
-              {/* Spherical Glowing Container with Embedded 3D Model */}
+              {/* Spherical Glowing Container with Embedded 3D Model (球体发光边缘替换为暗金色) */}
               <div
                 className={`relative rounded-full flex items-center justify-center transition-all duration-500 overflow-hidden ${
                   isFront
                     ? isEnlarged
-                      ? 'w-36 h-36 sm:w-44 sm:h-44 bg-gradient-to-b from-[#3D2319] via-[#24130C] to-[#120A07] border-2 border-[#FFE87A] shadow-[0_0_50px_rgba(255,232,122,0.8)]'
-                      : 'w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-b from-[#3D2319] via-[#24130C] to-[#120A07] border-2 border-[#F1D98D] shadow-[0_0_35px_rgba(241,217,141,0.65)]'
-                    : 'w-20 h-20 bg-gradient-to-b from-[#24130C] via-[#1A0E08] to-[#0D0704] border border-[#8C6D46]/70 shadow-[0_0_10px_rgba(0,0,0,0.5)]'
+                      ? 'w-36 h-36 sm:w-44 sm:h-44 bg-gradient-to-b from-[#3D2319] via-[#24130C] to-[#120A07] border-2 border-[#A8824A] shadow-[0_0_28px_rgba(168,130,74,0.55)]'
+                      : 'w-28 h-28 sm:w-32 sm:h-32 bg-gradient-to-b from-[#3D2319] via-[#24130C] to-[#120A07] border-2 border-[#8C6D46] shadow-[0_0_20px_rgba(140,109,70,0.45)]'
+                    : 'w-20 h-20 bg-gradient-to-b from-[#24130C] via-[#1A0E08] to-[#0D0704] border border-[#6B4F30]/70 shadow-[0_0_10px_rgba(0,0,0,0.5)]'
                 }`}
                 onMouseDown={(e) => isFront && isEnlarged && e.stopPropagation()}
                 onTouchStart={(e) => isFront && isEnlarged && e.stopPropagation()}
               >
                 {/* Internal Jade Sheen Texture */}
-                <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(241,217,141,0.3),transparent_70%)] pointer-events-none z-10" />
+                <div className="absolute inset-0 rounded-full bg-[radial-gradient(circle_at_30%_30%,rgba(168,130,74,0.25),transparent_70%)] pointer-events-none z-10" />
 
-                {/* 🚨 EMBEDDED 3D MODEL VIEWER FOR EACH SPHERE */}
+                {/* 🚨 EMBEDDED 3D MODEL VIEWER FOR EACH SPHERE (球体内部只展示模型内容) */}
                 <div className="relative w-full h-full flex items-center justify-center">
                   <ThreeModelViewer
                     modelId={relic.id}
@@ -568,37 +569,14 @@ Page({
                   />
                 </div>
 
-                {/* Front Ring Highlight Spinner */}
+                {/* Front Ring Highlight Spinner - 暗金色细轮廓线 */}
                 {isFront && (
                   <div
-                    className={`absolute -inset-1 rounded-full border border-dashed border-[#F1D98D]/60 animate-spin pointer-events-none ${
-                      isEnlarged ? 'border-[#FFE87A]' : ''
-                    }`}
+                    className="absolute -inset-1 rounded-full border border-dashed border-[#8C6D46]/40 animate-spin pointer-events-none"
                     style={{ animationDuration: isEnlarged ? '16s' : '24s' }}
                   />
                 )}
-
-                {/* 360 Rotation indicator badge on center sphere */}
-                {isFront && (
-                  <div className="absolute bottom-1.5 z-20 pointer-events-none px-2 py-0.5 rounded-full bg-black/65 border border-[#D6A84B]/60 text-[7.5px] font-serif text-[#F1D98D] shadow flex items-center gap-1 backdrop-blur-xs">
-                    <RotateCw className="w-2 h-2 text-[#FFE87A] animate-spin" style={{ animationDuration: '6s' }} />
-                    <span>{isEnlarged ? '360°旋转鉴赏中' : '点击放大360°旋转'}</span>
-                  </div>
-                )}
               </div>
-
-              {/* Sphere Caption */}
-              <span
-                className={`mt-1.5 text-[9px] font-serif font-bold px-2 py-0.5 rounded-full whitespace-nowrap shadow transition-all ${
-                  isFront
-                    ? isEnlarged
-                      ? 'text-[#FFE87A] bg-[#1E110A] border border-[#FFE87A] shadow-[0_0_15px_rgba(255,232,122,0.5)]'
-                      : 'text-[#F1D98D] bg-[#160D09] border border-[#D6A84B] shadow-[0_0_10px_rgba(214,168,75,0.4)]'
-                    : 'text-[#A89078] bg-black/70 border border-[#4A3321]'
-                }`}
-              >
-                {relic.name}
-              </span>
             </div>
           );
         })}
@@ -607,7 +585,8 @@ Page({
       {/* CONTROLLER & PAGINATION AREA */}
       <div className="relative z-10 flex flex-col items-center gap-2 px-4 pb-36">
         <div className="flex flex-col items-center gap-1.5">
-          <div className="flex items-center gap-2 text-[9px] text-[#F1D98D] font-serif bg-black/80 px-3.5 py-1 rounded-full border border-[#8C6D46] shadow backdrop-blur-sm">
+          {/* 小字提示在页面显示器上去掉，保持页面简洁，代码位置不变 */}
+          <div className="hidden items-center gap-2 text-[9px] text-[#F1D98D] font-serif bg-black/80 px-3.5 py-1 rounded-full border border-[#8C6D46] shadow backdrop-blur-sm">
             <Move className="w-3 h-3 text-[#D6A84B] animate-pulse" />
             <span>左右滑动 · 探索玉器</span>
           </div>

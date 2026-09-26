@@ -3,6 +3,15 @@ import { ChevronRight, Sparkles, HelpCircle, X, ChevronUp, ChevronDown } from 'l
 import { DialogueLine, SpeakerRole } from '../types';
 import { soundFX } from '../utils/soundEngine';
 
+// =========================================================================
+// 🚨【聊天框左上角人物头像图片配置位置 (方便一键查找与替换)】🚨
+// 提示：可以在此替换玉舞人、广阳王等角色头像图片路径，支持本地图片或网络图片
+// =========================================================================
+import imgJadeDancerAvatar from '../assets/images/jade_dancer_real_photo_cutout.png';
+import imgPushouAvatar from '../assets/images/dabaotai_hall_entrance_bg.jpg';
+import imgWarriorAvatar from '../assets/images/han_warrior_brick_1788598169002.jpg';
+import imgBaixiAvatar from '../assets/images/han_paiyou_tiaowan_bg_1788620031860.jpg';
+
 interface UnifiedDialogueBoxProps {
   dialogues?: DialogueLine[];
   currentIndex?: number;
@@ -36,9 +45,9 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
   const resolvedHints: string[] = hints && hints.length > 0
     ? hints
     : [
-        hintText || '仔细观察文物的形制与纹样，答案就藏在汉代礼乐之中……',
-        '多留心器物的特殊结构、出土位置与历史记载。',
-        '根据汉代宗庙与列侯仪轨，选出最契合之物。',
+        hintText || '细察形制纹样，答案藏于礼乐中。',
+        '多留心器物结构与出土位置。',
+        '依汉家仪轨，选契合之物。',
       ];
 
   // Auto-expand and show center help button when an error occurs
@@ -103,23 +112,18 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
               handleAdvanceHint();
             }
           }}
-          className="relative w-full rounded-none border-t border-[#8F6A30]/35 bg-[#3A2116]/95 px-4 py-3 shadow-[0_-4px_25px_rgba(0,0,0,0.7)] backdrop-blur-md flex flex-col justify-between h-[134px] cursor-pointer transition-all"
+          className="relative w-full rounded-none border-t border-[#8F6A30]/35 bg-[#3A2116]/95 px-4 py-2.5 shadow-[0_-4px_25px_rgba(0,0,0,0.7)] backdrop-blur-md flex flex-col justify-between min-h-[114px] sm:min-h-[120px] cursor-pointer transition-all"
         >
           {/* Avatar positioned overlapping the top-left border */}
-          <div className="absolute -top-5 left-3.5 z-10 flex items-center gap-2">
-            <div className="w-11 h-11 rounded-full bg-[#160D09] border border-[#D6A84B] p-1 flex items-center justify-center shadow-md backdrop-blur-sm">
-              <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-                <path
-                  d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                  fill="none"
-                  stroke="#79B9A1"
-                  strokeWidth="5"
-                  strokeLinecap="round"
-                />
-                <circle cx="50" cy="18" r="5.5" fill="#E6D3AA" />
-              </svg>
+          <div className="absolute -top-4 left-3.5 z-10 flex items-center gap-2">
+            <div className="w-10 h-10 rounded-full bg-[#160D09] border border-[#D6A84B] p-0.5 flex items-center justify-center shadow-md backdrop-blur-sm overflow-hidden">
+              <img
+                src={imgJadeDancerAvatar}
+                alt="玉舞人"
+                className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] scale-110"
+              />
             </div>
-            <div className="px-2.5 py-0.5 rounded-full border border-[#D6A84B]/60 bg-[#160D09] text-[#79B9A1] text-[9px] font-serif font-black shadow-md tracking-wider mt-2 flex items-center gap-1">
+            <div className="px-2 py-0.5 rounded-full border border-[#D6A84B]/60 bg-[#160D09] text-[#79B9A1] text-[9px] font-serif font-black shadow-md tracking-wider mt-1 flex items-center gap-1">
               <Sparkles className="w-2.5 h-2.5 text-[#D6A84B]" />
               <span>{showCenterHelpPrompt ? '玉舞人轻语' : `考工线索 (${hintLevel}/3)`}</span>
             </div>
@@ -141,7 +145,7 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           {/* Main Content Area */}
           {showCenterHelpPrompt ? (
             /* CENTER HELP BUTTON ON WRONG SELECTION / ERROR TRIGGER */
-            <div className="mt-4 flex-1 flex flex-col items-center justify-center text-center px-2">
+            <div className="mt-3 flex-1 flex flex-col items-center justify-center text-center px-2">
               <button
                 onClick={handleEnterNormalHints}
                 className="px-4 py-1.5 rounded-xl bg-gradient-to-r from-[#6E3024] via-[#8C4334] to-[#6E3024] border border-[#D6A84B] text-[#F1D98D] text-xs sm:text-sm font-serif font-black tracking-wider shadow-[0_0_18px_rgba(214,168,75,0.45)] animate-pulse flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
@@ -150,15 +154,15 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
                 <span>玉舞人可以帮助提示</span>
               </button>
               {errorTip && (
-                <p className="text-[10px] text-[#E6D3AA]/90 font-serif mt-1 line-clamp-1">
+                <p className="text-[11px] text-[#E6D3AA]/90 font-serif mt-1 line-clamp-1">
                   {errorTip}
                 </p>
               )}
             </div>
           ) : (
-            /* NORMAL DETAILED HINT TEXT */
-            <div className="mt-3.5 flex-1 flex flex-col justify-center px-0.5 overflow-hidden">
-              <p className="text-[12px] sm:text-[12.5px] text-[#E6D3AA] font-serif leading-relaxed tracking-wide line-clamp-3">
+            /* NORMAL DETAILED HINT TEXT - 古风宋体，字间距略宽，排版优雅简洁 */
+            <div className="mt-2.5 flex-1 flex flex-col justify-center px-1 overflow-hidden">
+              <p className="text-sm sm:text-[15px] text-[#F3E7CE] font-ancient-songti font-medium leading-relaxed tracking-[0.09em] sm:tracking-[0.1em] line-clamp-2 drop-shadow">
                 {currentHint}
               </p>
             </div>
@@ -229,17 +233,12 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           title: name || '玉舞人',
           badgeColor: 'bg-[#160D09] text-[#79B9A1] border-[#A9782B]/60',
           boxBg: 'bg-[#3A2116]/95 border-[#A9782B]/60',
-          avatarSvg: (
-            <svg viewBox="0 0 100 120" className="w-full h-full filter drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">
-              <path
-                d="M50 15 C45 22, 55 25, 50 32 C42 42, 30 50, 20 40 C12 32, 22 20, 32 24 C40 28, 45 35, 48 42 C50 55, 42 70, 38 85 C32 100, 48 112, 60 110 C72 108, 65 92, 58 80 C68 75, 82 62, 85 45 C88 28, 70 20, 60 30 C55 35, 62 48, 54 58"
-                fill="none"
-                stroke="#79B9A1"
-                strokeWidth="5"
-                strokeLinecap="round"
-              />
-              <circle cx="50" cy="18" r="5.5" fill="#E6D3AA" />
-            </svg>
+          avatarElement: (
+            <img
+              src={imgJadeDancerAvatar}
+              alt="玉舞人"
+              className="w-full h-full object-contain filter drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)] scale-110"
+            />
           ),
         };
       case 'pushou':
@@ -247,17 +246,12 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           title: name || '鎏金铜铺首',
           badgeColor: 'bg-[#160D09] text-[#E6D3AA] border-[#A9782B]/60',
           boxBg: 'bg-[#3A2116]/95 border-[#A9782B]/60',
-          avatarSvg: (
-            <svg viewBox="0 0 100 100" className="w-full h-full fill-[#C8943D] stroke-[#6E3024]">
-              <circle cx="50" cy="50" r="42" fill="#3A2116" stroke="#A9782B" strokeWidth="2.5" />
-              <path d="M25 35 Q50 15 75 35 Q50 30 25 35" fill="#A9782B" />
-              <circle cx="38" cy="45" r="5.5" fill="#E6D3AA" />
-              <circle cx="62" cy="45" r="5.5" fill="#E6D3AA" />
-              <circle cx="38" cy="45" r="2" fill="#160D09" />
-              <circle cx="62" cy="45" r="2" fill="#160D09" />
-              <path d="M44 55 Q50 50 56 55 Q50 65 44 55" fill="#6E3024" />
-              <circle cx="50" cy="72" r="14" fill="none" stroke="#C8943D" strokeWidth="3.5" />
-            </svg>
+          avatarElement: (
+            <img
+              src={imgPushouAvatar}
+              alt="鎏金铜铺首"
+              className="w-full h-full object-cover rounded-full filter contrast-110 brightness-90"
+            />
           ),
         };
       case 'player':
@@ -265,10 +259,12 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           title: name || '广阳王刘建',
           badgeColor: 'bg-[#160D09] text-[#E6D3AA] border-[#C8943D]/60',
           boxBg: 'bg-[#3A2116]/95 border-[#A9782B]/60',
-          avatarSvg: (
-            <div className="w-full h-full rounded-full bg-[#6E3024]/80 border border-[#A9782B] flex items-center justify-center text-[#E6D3AA] text-xs font-serif font-black shadow-inner">
-              王
-            </div>
+          avatarElement: (
+            <img
+              src={imgWarriorAvatar}
+              alt="广阳王刘建"
+              className="w-full h-full object-cover rounded-full filter contrast-115"
+            />
           ),
         };
       case 'corruptor':
@@ -276,10 +272,12 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           title: name || '俳优 / 文物自述',
           badgeColor: 'bg-[#160D09] text-[#E6D3AA] border-[#9B3D2E]/60',
           boxBg: 'bg-[#3A2116]/95 border-[#9B3D2E]/60',
-          avatarSvg: (
-            <div className="w-full h-full rounded-full bg-[#6E3024] border border-[#9B3D2E] flex items-center justify-center text-[#E6D3AA] text-xs font-serif font-bold">
-              戏
-            </div>
+          avatarElement: (
+            <img
+              src={imgBaixiAvatar}
+              alt="俳优"
+              className="w-full h-full object-cover rounded-full filter contrast-115"
+            />
           ),
         };
       case 'narrator':
@@ -288,10 +286,12 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           title: name || '汉代时空印记 · 考工记',
           badgeColor: 'bg-[#160D09] text-[#E6D3AA] border-[#A9782B]/50',
           boxBg: 'bg-[#3A2116]/95 border-[#A9782B]/50',
-          avatarSvg: (
-            <div className="w-full h-full rounded-full bg-[#160D09] border border-[#A9782B]/60 flex items-center justify-center text-[#E6D3AA] text-xs font-serif font-black">
-              汉
-            </div>
+          avatarElement: (
+            <img
+              src={imgJadeDancerAvatar}
+              alt="汉代时空印记"
+              className="w-full h-full object-contain filter drop-shadow scale-110"
+            />
           ),
         };
     }
@@ -307,23 +307,23 @@ export const UnifiedDialogueBox: React.FC<UnifiedDialogueBoxProps> = ({
           soundFX.playStoneDrum();
           onNext();
         }}
-        className={`relative w-full rounded-none border-t border-[#8F6A30]/35 ${details.boxBg} px-4 py-3 shadow-[0_-4px_20px_rgba(0,0,0,0.6)] backdrop-blur-md cursor-pointer transition-all duration-300 flex flex-col justify-between h-[132px]`}
+        className={`relative w-full rounded-none border-t border-[#8F6A30]/35 ${details.boxBg} px-4 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.6)] backdrop-blur-md cursor-pointer transition-all duration-300 flex flex-col justify-between min-h-[112px] sm:min-h-[118px]`}
       >
         {/* Avatar positioned overlapping the top-left border */}
-        <div className="absolute -top-5 left-3.5 z-10 flex items-center gap-2">
-          <div className="w-11 h-11 rounded-full bg-[#160D09] border border-[#A9782B] p-1 flex items-center justify-center shadow-md backdrop-blur-sm">
-            {details.avatarSvg}
+        <div className="absolute -top-4 left-3.5 z-10 flex items-center gap-2">
+          <div className="w-10 h-10 rounded-full bg-[#160D09] border border-[#A9782B] p-0.5 flex items-center justify-center shadow-md backdrop-blur-sm overflow-hidden">
+            {details.avatarElement}
           </div>
-          <div className="px-2.5 py-0.5 rounded-full border text-[9px] font-serif font-black shadow-md tracking-wider mt-2">
+          <div className="px-2 py-0.5 rounded-full border text-[9.5px] font-serif font-bold shadow-md tracking-wider mt-1">
             <span className={`px-2 py-0.5 rounded-full border ${details.badgeColor}`}>
               {details.title}
             </span>
           </div>
         </div>
 
-        {/* Text Content Area */}
-        <div className="mt-3.5 flex-1 flex flex-col justify-center px-0.5 overflow-hidden">
-          <p className="text-[12px] sm:text-[13px] text-[#E6D3AA] font-serif leading-relaxed tracking-wide line-clamp-3">
+        {/* Text Content Area - 采用古风宋体，字间距略宽，字号维持标题适中大小 */}
+        <div className="mt-2 flex-1 flex flex-col justify-center px-1 overflow-hidden">
+          <p className="text-sm sm:text-[15px] text-[#F3E7CE] font-ancient-songti font-normal sm:font-medium leading-relaxed tracking-[0.09em] sm:tracking-[0.1em] line-clamp-2 drop-shadow-[0_1px_3px_rgba(0,0,0,0.8)]">
             {currentLine.text}
           </p>
         </div>

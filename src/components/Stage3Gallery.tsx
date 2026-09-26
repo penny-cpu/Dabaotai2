@@ -11,6 +11,7 @@ import { MuseumTombBackdrop } from './MuseumTombBackdrop';
 import { BambooSlipCollector } from './BambooSlipCollector';
 import { CHAPTER_PAGE_BACKGROUNDS, STAGE3_QUIZ_OPTION_IMAGES } from '../config/assetRegistry';
 import { ChapterVideoPageView } from './ChapterVideoPageView';
+import { useSmoothPhaseTransition } from '../utils/useSmoothPhaseTransition';
 
 interface Stage3GalleryProps {
   onUnlockFragment: () => void;
@@ -89,7 +90,7 @@ const DIALOGUES_STAGE3_SUCCESS: DialogueLine[] = [
   {
     speaker: 'dancer',
     speakerName: '玉舞人',
-    text: '我想起来了……翘袖折腰！右臂扬袖凌霄，左臂拂腰探水，这正是我在大葆台汉墓沉睡千年的模样！',
+    text: '我想起来了！翘袖折腰、凌霄探水，正是我千年前的模样！',
   },
 ];
 
@@ -98,7 +99,10 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
   onNextPage,
   isUnlocked,
 }) => {
-  const [phase, setPhase] = useState<'guide' | 'fan_cards' | 'dance_video' | 'select_quiz' | 'success_dialogue' | 'bamboo_slip'>('guide');
+  // 每一子页面转场统一控制在 0.5 秒左右（240ms 柔和淡出 -> 瞬时切换 -> 260ms 柔和淡入）
+  const { phase, setPhase, transitionStyle } = useSmoothPhaseTransition<
+    'guide' | 'fan_cards' | 'dance_video' | 'select_quiz' | 'success_dialogue' | 'bamboo_slip'
+  >('guide');
   const [activeCardIndex, setActiveCardIndex] = useState<number>(0);
   const [activeVideoPoseIndex, setActiveVideoPoseIndex] = useState<number>(0);
   const [selectedPoseCode, setSelectedPoseCode] = useState<'A' | 'B' | 'C' | null>(null);
@@ -134,7 +138,7 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
   };
 
   const handleSelectQuizOption = (code: 'A' | 'B' | 'C') => {
-    soundFX.playStoneDrum();
+    soundFX.playJadeClink();
     setSelectedPoseCode(code);
     setErrorTip('');
 
@@ -143,18 +147,19 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
       soundFX.playBronzeChime();
       soundFX.playMemoryRestore();
       onUnlockFragment();
-      setTimeout(() => {
-        setPhase('success_dialogue');
-      }, 500);
+      setPhase('bamboo_slip');
     } else {
       setIsAnswerCorrect(false);
       soundFX.playGlitchStatic();
-      setErrorTip('此舞姿翩跹，但非大葆台玉舞人右臂凌霄、纤腰反折的“翘袖折腰”之姿，再端详一番……');
+      setErrorTip('并非玉舞人身姿反折之态，再端详一番。');
     }
   };
 
   return (
-    <div className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806] han-app-sandbox-grain">
+    <div
+      className="relative w-full h-full text-[#E6D3AA] flex flex-col justify-between overflow-hidden font-serif select-none bg-[#0B0806] han-app-sandbox-grain"
+      style={transitionStyle}
+    >
       {/* Visual Background: 翘袖折腰漆红棕＋玉青 */}
       <MuseumTombBackdrop palette="sleeve" pattern="cloud" spotlight={true} intensity="subtle" />
 
@@ -236,6 +241,18 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
             onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
           >
+            {/* 左右滑动/点击选择按键：位于中间人物画面的两侧，上下居中 */}
+            <button
+              onClick={() => {
+                soundFX.playJadeClink();
+                setActiveCardIndex((prev) => (prev - 1 + DANCE_POSES.length) % DANCE_POSES.length);
+              }}
+              className="absolute left-1 sm:left-2 top-1/2 -translate-y-1/2 z-40 p-2 rounded-full bg-[#180E0A]/85 hover:bg-[#25150F] border border-[#8C6D46]/60 text-[#F1D98D] shadow-lg backdrop-blur-xs cursor-pointer active:scale-95 transition-all"
+              title="上一舞式"
+            >
+              <ChevronLeft className="w-4 h-4 text-[#D6A84B]" />
+            </button>
+
             {DANCE_POSES.map((pose, idx) => {
               const offset = idx - activeCardIndex;
               const isActive = idx === activeCardIndex;
@@ -262,7 +279,7 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
                 <div
                   key={pose.id}
                   onClick={() => {
-                    soundFX.playStoneDrum();
+                    soundFX.playJadeClink();
                     setActiveCardIndex(idx);
                   }}
                   style={{
@@ -319,6 +336,18 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
                 </div>
               );
             })}
+
+            {/* 右侧切换按键 */}
+            <button
+              onClick={() => {
+                soundFX.playStoneDrum();
+                setActiveCardIndex((prev) => (prev + 1) % DANCE_POSES.length);
+              }}
+              className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 z-40 p-2 rounded-full bg-[#180E0A]/85 hover:bg-[#25150F] border border-[#8C6D46]/60 text-[#F1D98D] shadow-lg backdrop-blur-xs cursor-pointer active:scale-95 transition-all"
+              title="下一舞式"
+            >
+              <ChevronRight className="w-4 h-4 text-[#D6A84B]" />
+            </button>
           </div>
 
           {/* 轮播指示点 */}
@@ -492,9 +521,9 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
             <UnifiedDialogueBox
               isInteractiveMode={true}
               hints={[
-                '大葆台玉舞人雕琢精美，特点是身姿反折如月、长袖凌空起伏。',
-                '右臂扬袖拂云、左臂折腰下垂探水，刚柔并济，尽展大汉神韵。',
-                '正确答案为【C · 翘袖折腰】舞姿。',
+                '身姿反折如弯月，长袖凌空起伏。',
+                '右臂扬袖凌霄，左臂折腰探水。',
+                '选【C · 翘袖折腰】舞姿。',
               ]}
               errorTip={errorTip}
               onClearError={() => setErrorTip('')}
@@ -504,59 +533,13 @@ export const Stage3Gallery: React.FC<Stage3GalleryProps> = ({
       )}
 
       {/* =========================================================================
-          STEP 4: 成功反馈对白
-          ========================================================================= */}
-      {phase === 'success_dialogue' && (
-        <div className="relative z-10 w-full h-full flex flex-col justify-between p-3 pb-2 animate-fade-in overflow-hidden">
-          {/* 🚨【PAGE 4: 苏醒对白页背景底图 - 可一键替换】🚨 */}
-          <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-            <img
-              src={STAGE3_BACKGROUNDS.page4_success}
-              alt="苏醒背景底图"
-              className="w-full h-full object-cover filter brightness-[0.4] saturate-85"
-            />
-            {/* 80% 遮罩效果 */}
-            <div className="absolute inset-0 bg-[#0B0806]/80" />
-            <div className="han-mural-texture opacity-75" />
-          </div>
-
-          <HanMuseumTopBar />
-
-          <div className="relative my-auto flex flex-col items-center justify-center text-center px-4 py-2 space-y-2.5">
-            {/* 第一排：长 */}
-            <p className="text-[11px] sm:text-xs font-serif text-[#79B9A1] tracking-[0.18em] leading-relaxed max-w-xs">
-              汉代乐舞礼乐相和 · 翘袖折腰轻盈若飞
-            </p>
-            {/* 第二排：短 */}
-            <h2 className="text-base sm:text-lg font-serif font-black text-[#F1D98D] tracking-[0.25em] drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)]">
-              白玉舞人
-            </h2>
-            {/* 第三排：长 */}
-            <p className="text-[10.5px] sm:text-xs font-serif text-[#E6D3AA]/90 tracking-[0.14em] leading-relaxed max-w-xs">
-              罗衣回雪刚柔并济 · 唤醒大葆台汉墓乐舞绝技
-            </p>
-          </div>
-
-          <div className="relative z-30 w-full">
-            <UnifiedDialogueBox
-              dialogues={DIALOGUES_STAGE3_SUCCESS}
-              currentIndex={0}
-              onNext={() => {
-                soundFX.playStoneDrum();
-                setPhase('bamboo_slip');
-              }}
-            />
-          </div>
-        </div>
-      )}
-
-      {/* =========================================================================
-          STEP 5: 记忆归位 · 深色木纹竹简页面 (无弹窗，完整呈现实图1竹简筒)
+          STEP 5: 记忆归位 · 深色木纹竹简页面 (图7删除，玉舞人聊天框合并到此页)
           ========================================================================= */}
       {phase === 'bamboo_slip' && (
-        <div className="fixed inset-0 z-50 bg-[#0B0806] flex flex-col items-center justify-center animate-fade-in select-none font-serif">
+        <div className="absolute inset-0 z-50 bg-[#0B0806] flex flex-col items-center justify-center animate-fade-in select-none font-serif">
           <BambooSlipCollector
             stageNumber={3}
+            dialogues={DIALOGUES_STAGE3_SUCCESS}
             onProceed={() => {
               onUnlockFragment();
               onNextPage();

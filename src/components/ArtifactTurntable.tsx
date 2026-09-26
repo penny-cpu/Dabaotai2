@@ -31,10 +31,10 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
   onConfirm,
   canConfirm = false,
 }) => {
-  // Center coordinates and radius
-  const turntableRadius = 108; // px
-  const centerX = 160; // relative center in 320px width
-  const centerY = 135; // center in ~270px height
+  // Center coordinates and radius (大幅放大转盘以饱满占满手机屏幕)
+  const turntableRadius = 132; // px (由原先108放大至132)
+  const centerX = 175; // relative center in 350px width
+  const centerY = 150; // center in ~300px height
 
   const [rotationAngle, setRotationAngle] = useState<number>(-90); // start with top item at -90deg
   const [isRotating, setIsRotating] = useState<boolean>(false);
@@ -96,7 +96,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
 
   return (
     <div className="w-full flex flex-col items-center select-none font-serif">
-      {/* Turntable Interactive Stage */}
+      {/* Turntable Interactive Stage - 占满手机屏幕宽度 */}
       <div
         ref={containerRef}
         onMouseDown={(e) => handlePointerDown(e.clientX, e.clientY)}
@@ -106,7 +106,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
         onTouchStart={(e) => handlePointerDown(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchMove={(e) => handlePointerMove(e.touches[0].clientX, e.touches[0].clientY)}
         onTouchEnd={handlePointerUp}
-        className="relative w-full max-w-[320px] h-[270px] cursor-grab active:cursor-grabbing overflow-visible flex items-center justify-center"
+        className="relative w-full max-w-[360px] h-[300px] sm:h-[310px] cursor-grab active:cursor-grabbing overflow-visible flex items-center justify-center"
       >
         {/* =========================================================================
             图层 0: 左上角微弱聚光 (打向选中文物，提供精品文物摄影质感)
@@ -122,15 +122,15 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
         />
 
         {/* =========================================================================
-            图层 1: 文物转台底层 (在所有道具图片的下一图层，暗金色纹路不发光)
+            图层 1: 文物转台底层 (大幅扩展直径，占满手机页面，暗金色纹路不发光)
             ========================================================================= */}
         <div className="absolute inset-0 pointer-events-none z-0 flex items-center justify-center">
-          <svg width="320" height="270" viewBox="0 0 320 270" className="overflow-visible">
+          <svg width="350" height="300" viewBox="0 0 350 300" className="overflow-visible">
             {/* Outer turntable rim */}
             <circle
               cx={centerX}
               cy={centerY}
-              r={turntableRadius + 24}
+              r={turntableRadius + 26}
               fill="#160C08"
               stroke="#6B4B28"
               strokeWidth="1.2"
@@ -150,7 +150,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
             <circle
               cx={centerX}
               cy={centerY}
-              r={turntableRadius - 16}
+              r={turntableRadius - 18}
               fill="none"
               stroke="#5C3B1E"
               strokeWidth="0.8"
@@ -174,13 +174,13 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
         </div>
 
         {/* =========================================================================
-            图层 2: 圆环中央的武舞人物缩小版图片 (居中不动，转台绕其旋转)
+            图层 2: 圆环中央的武舞人物缩小版图片 (居中放大版)
             ========================================================================= */}
         <div
-          className="absolute z-10 w-16 h-16 rounded-full overflow-hidden shadow-inner pointer-events-none flex items-center justify-center bg-[#180C08]"
+          className="absolute z-10 w-18 h-18 sm:w-20 sm:h-20 rounded-full overflow-hidden shadow-inner pointer-events-none flex items-center justify-center bg-[#180C08]"
           style={{
-            left: `${centerX - 32}px`,
-            top: `${centerY - 32}px`,
+            left: `${centerX - 36}px`,
+            top: `${centerY - 36}px`,
           }}
         >
           <img
@@ -194,7 +194,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
         </div>
 
         {/* =========================================================================
-            图层 3: 五件真实文物道具图片 (去除背景，只展示真实文物，在一条线上露2/3，点选时升起露全貌)
+            图层 3: 五件真实文物道具图片 (按用户要求全部放大一倍，让页面饱满充实！)
             ========================================================================= */}
         {items.map((item, index) => {
           const itemAngle = rotationAngle + index * angleStep;
@@ -202,9 +202,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
           const isSelected = selectedIds.includes(item.id);
 
           // Position along the circular turntable line
-          // Unselected: sits along line and shows ~2/3 (offset towards center by 6px)
-          // Selected: lifts upward (away from center or elevates by -12px)
-          const currentRadius = isSelected ? turntableRadius + 10 : turntableRadius - 4;
+          const currentRadius = isSelected ? turntableRadius + 8 : turntableRadius - 4;
           const posX = centerX + currentRadius * Math.cos(rad);
           const posY = centerY + currentRadius * Math.sin(rad);
 
@@ -219,7 +217,7 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
               style={{
                 left: `${posX}px`,
                 top: `${posY}px`,
-                transform: `translate(-50%, -50%) ${isSelected ? 'scale(1.15) translateY(-8px)' : 'scale(0.95)'}`,
+                transform: `translate(-50%, -50%) ${isSelected ? 'scale(1.15) translateY(-8px)' : 'scale(1)'}`,
                 transition: isRotating ? 'none' : 'transform 320ms cubic-bezier(0.16, 1, 0.3, 1), left 150ms, top 150ms',
               }}
               className="absolute z-20 flex flex-col items-center cursor-pointer group"
@@ -227,19 +225,19 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
               {/* 精品文物摄影光线落在选中文物上 */}
               {isSelected && (
                 <div
-                  className="absolute -inset-2 rounded-full pointer-events-none animate-pulse"
+                  className="absolute -inset-3 rounded-full pointer-events-none animate-pulse"
                   style={{
                     background:
-                      'radial-gradient(circle at 35% 25%, rgba(241, 217, 141, 0.28) 0%, rgba(200, 148, 61, 0.08) 50%, transparent 70%)',
-                    filter: 'blur(3px)',
+                      'radial-gradient(circle at 35% 25%, rgba(241, 217, 141, 0.32) 0%, rgba(200, 148, 61, 0.1) 50%, transparent 70%)',
+                    filter: 'blur(4px)',
                   }}
                 />
               )}
 
-              {/* 文物图片容器：露出2/3，选定时升起显全貌 */}
+              {/* 文物图片容器：【按指令全部放大一倍，由原先 56x64 翻倍至约 104x112】 */}
               <div
-                className={`relative w-14 h-16 flex items-center justify-center overflow-hidden transition-all duration-300 ${
-                  isSelected ? 'h-18' : 'h-13'
+                className={`relative w-24 sm:w-26 flex items-center justify-center overflow-hidden transition-all duration-300 ${
+                  isSelected ? 'h-26 sm:h-28' : 'h-22 sm:h-24'
                 }`}
               >
                 {item.imageUrl ? (
@@ -249,24 +247,24 @@ export const ArtifactTurntable: React.FC<ArtifactTurntableProps> = ({
                     referrerPolicy="no-referrer"
                     className={`max-w-full max-h-full object-contain filter transition-all duration-300 ${
                       isSelected
-                        ? 'brightness-110 contrast-110 drop-shadow-[0_4px_12px_rgba(241,217,141,0.5)]'
-                        : 'brightness-85 contrast-100 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] opacity-90'
+                        ? 'brightness-110 contrast-110 drop-shadow-[0_6px_16px_rgba(241,217,141,0.6)]'
+                        : 'brightness-90 contrast-105 drop-shadow-[0_3px_8px_rgba(0,0,0,0.85)] opacity-95'
                     }`}
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-[#3E2114] text-[#F1D98D] text-xs flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-full bg-[#3E2114] text-[#F1D98D] text-sm flex items-center justify-center">
                     {item.name[0]}
                   </div>
                 )}
               </div>
 
-              {/* 文物名称标签 (无边框，极简古风小字) */}
+              {/* 文物名称标签 (无边框，古风大字清晰标牌) */}
               <div className="mt-0.5 text-center">
                 <span
-                  className={`text-[9.5px] font-serif tracking-wider px-1 py-0.5 rounded-sm transition-colors ${
+                  className={`text-[10px] sm:text-[10.5px] font-serif tracking-wider px-1.5 py-0.5 rounded-sm transition-colors ${
                     isSelected
-                      ? 'text-[#F1D98D] font-bold bg-[#2A160E]/90 drop-shadow'
-                      : 'text-[#A89078] hover:text-[#E6D3AA]'
+                      ? 'text-[#F1D98D] font-black bg-[#2A160E]/95 drop-shadow border border-[#D6A84B]/40'
+                      : 'text-[#C8B095] hover:text-[#F1D98D] bg-black/60'
                   }`}
                 >
                   {item.name}
